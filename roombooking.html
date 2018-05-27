@@ -1,0 +1,133 @@
+<html>
+
+<head>
+  <title>รบบจองห้องพัก</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+  <link rel="shortcut icon" type="image/x-icon" href="resources/imgs/ico/hotelOS.ico">
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</head>
+
+<body>
+<div class="thickbox" style="display: none;">&nbsp;</div>
+<div class="mdl-layout mdl-js-layout" id="main-content">
+  <header class="mdl-layout__header mdl-layout__header--scroll">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">จองห้องพัก</span>
+      
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">เมนู</span>
+    <nav class="mdl-navigation">
+		<!--	  	-->
+      <a class="mdl-navigation__link" href="index.html">หน้าหลัก</a>
+      <a class="mdl-navigation__link" href="roommng.html">จัดการห้องพัก</a>
+      <a class="mdl-navigation__link" href="roombooking.html">จองห้องพัก</a>
+      <a class="mdl-navigation__link" href="">จัดการลูกค้า</a>
+      <a class="mdl-navigation__link" href="#" onclick="signout()">ออกจากระบบ</a>
+    </nav>
+	<input type="button" value=" ข้อมูลของฉัน " onclick="showUserData()"/>
+	<div id="userdata" style="display: none;">&nbsp;</div>
+  </div>
+  <main class="mdl-layout__content">
+    <div class="page-content" style="padding-top: 60px;" align="center">
+    <!-- Your content goes here -->
+		  <div id="content-middle">
+				<div id="control-bar" style="text-align: right; display:block-inline; padding: 20px;">
+					 <!--
+					<input type="button" value=" เลือกวันเข้าพัก " onclick="selectdaterange()"/>
+					<input type="button" value=" เลือกห้องพัก " onclick="selectroom()"/>
+					<input type="button" value=" ข้อมูลผู้จอง " onclick="bookingdataform()"/>
+					-->
+				</div>
+
+				<div id="room-booking-arae"/>
+		  </div>
+    </div>
+  </main>
+</div>
+
+<script type="text/javascript" src="resources/js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="resources/js/jquery-ui-1.8.10.offset.datepicker.min.js"></script>
+<!-- -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+<script type="text/javascript" src="resources/js/myhotel.js"></script>
+<script type="text/javascript" src="resources/js/jquery.cookie.js"></script>
+<script type="text/javascript" src="resources/js/notify.js"></script>  
+
+  <!--Configure firebase-->
+  <script>
+    // Visit https://console.firebase.google.com/project/<your project id>/overview and click on "Add Firebase to your web app"
+    // Initialize Firebase
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	//Your Code Here
+
+    var cuser = firebase.auth().currentUser;
+	myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+	var myhotelid = myhotelOB[0].hotelid;
+	var hotelRef = db.doc("hotels/" + myhotelid);
+	hotelRef.get().then(function(doc) {
+		document.title = doc.data().hotelname + " :: ระบบจองห้องพัก";
+	});
+
+	firebase.auth().onAuthStateChanged(user => {  
+		//ในส่วนนี้ให้ระวัง การสั่ง redirect หาก uer != null เครื่องจะแฮ็งค์ได้
+		if (!user) {
+			window.location = "login.html";
+		} else {
+			cuser = user;
+			//console.log(cuser);
+			//showUserData();
+		}
+	});
+
+	function signout() {
+		firebase.auth().signOut()
+		.then(function() {
+			alert("คุณได้ออกจากระบบเรียบร้อยแล้ว");
+			window.location = "login.html";
+		})
+		.catch(function(error) {
+			alert("มีความผิดพลาดเกิดขึ้น");
+		});
+	}
+
+	selectdaterange();
+
+	function selectdaterange() {
+		$.post("contents/middle/daterangeselector.html", {},
+		function(data) {
+			$("#room-booking-arae").html(data);
+		});
+	}
+
+	$.post("contents/middle/Notification.html", {},
+	function(data) {
+		$('#Notification').html(data);
+	 });
+
+</script>
+
+ <div id="Notification"></div>
+
+</body>
+
+</html>

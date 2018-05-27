@@ -1,0 +1,359 @@
+<html>
+
+<head>
+	<title>รบบจองห้องพัก</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+	<link rel="shortcut icon" type="image/x-icon" href="resources/imgs/ico/hotelOS.ico">
+	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+<style>
+#snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 17px;
+}
+
+#snackbar.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+</style>
+
+</head>
+
+<body>
+<div class="mdl-layout mdl-js-layout">
+  <header class="mdl-layout__header mdl-layout__header--scroll">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">ลงทะเบียน ผู้ให้บริการห้องพัก(รีสอร์ท)</span>
+      
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">เมนู</span>
+	<!--
+    <nav class="mdl-navigation">
+      <a class="mdl-navigation__link" href="">Link</a>
+      <a class="mdl-navigation__link" href="">Link</a>
+      <a class="mdl-navigation__link" href="">Link</a>
+      <a class="mdl-navigation__link" href="">Link</a>
+    </nav>
+	-->
+  </div>
+  <main class="mdl-layout__content">
+    <div class="page-content" style="padding-top: 60px;" align="center">
+    <!-- Your content goes here -->
+<form>
+    <table>
+	<!--
+      <thead>
+        <tr>
+          <th colspan="5" style="text-align:center">&nbsp;</th>
+        </tr>
+      </thead>
+	  -->
+      <tbody>
+        <tr>
+          <td>ชื่อที่พัก(รีสอร์ท)</td>
+          <td colspan="4">
+            <div>
+              <input type="text" id="hname"/>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ชื่อ</td>
+          <td>
+            <div>
+              <input type="text" id="fname"/>
+            </div>
+          </td>
+		  <td>&nbsp;</td>
+           <td>นามสกุล</td>
+          <td>
+            <div>
+              <input type="text" id="lname">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ตำแหน่ง</td>
+          <td>
+            <div>
+              <input type="text" id="pname">
+            </div>
+          </td>
+		  <td>&nbsp;</td>
+           <td>หมายเลขโทรศัพท์</td>
+          <td>
+            <div>
+              <input  type="text" id="phone">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ที่อยู่</td>
+          <td colspan="4">
+            <div>
+                 <textarea  id="address" cols="40" rows="8"></textarea>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td>
+            <div>
+              <input  type="email" id="email">
+            </div>
+          </td>
+		  <td>&nbsp;</td>
+           <td>URL เว็บไซต์รีสอร์ท</td>
+          <td>
+            <div>
+              <input  type="text" id="url">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td>
+            <div>
+              <input type="password" id="password">
+              <span class="mdl-textfield__error"></span>
+            </div>
+          </td>
+		  <td>&nbsp;</td>
+           <td>Confirm-Password&nbsp;&nbsp;</td>
+          <td>
+            <div>
+              <input class="mdl-textfield__input" type="password" id="con-password">
+              <span class="mdl-textfield__error"></span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:center">
+            <button id="sign-up" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+              สมัคร
+            </button>
+          </td>
+      </tr>
+
+       <tr>
+          <td class="mdl-data-table__cell--non-numeric">
+               &nbsp;
+          </td>
+          <td colspan="4">
+            <div class="panel panel-danger" id ="errors" style='display: none;'></div>
+            <div class="panel panel-primary" id ="success" style='display: none;'></div>
+			<!--<input type='button' id='recall-cmd' value='Recall' onclick='recall_userdata()' style='display: none;'/>-->
+           </td>
+        </tr>
+       <tr>
+           <td colspan="5">
+				<div id="hotellink"></div>
+            </td>
+        </tr>
+      </tbody>
+    </table>
+    </form>
+    </div>
+  </main>
+</div>
+
+<script src = "https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+<script src="https://www.gstatic.com/firebasejs/4.9.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.9.1/firebase-firestore.js"></script>
+
+<script type="text/javascript" src="resources/js/myhotel.js"></script>
+<script type="text/javascript" src="resources/js/jquery.cookie.js"></script>
+
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+    authDomain: "myhotel-4746f.firebaseapp.com",
+    databaseURL: "https://myhotel-4746f.firebaseio.com",
+    projectId: "myhotel-4746f",
+    storageBucket: "myhotel-4746f.appspot.com",
+    messagingSenderId: "312890797074"
+  };
+  firebase.initializeApp(config);
+  var db = firebase.firestore();
+   //Your Code Here
+
+$("#sign-up").click(function(e) {
+    e.preventDefault();
+    handleSignUp();
+});
+
+function handleSignUp() {
+    var hname = $("#hname").val();
+    var fname = $("#fname").val();
+    var lname = $("#lname").val();
+    var pname = $("#pname").val();
+    var address = $("#address").val();
+    var phone = $("#phone").val();
+    var email = $("#email").val();
+    var url = $("#url").val();
+    var password = $("#password").val();
+    var conpassword = $("#con-password").val();
+    var warnings = "";
+
+	if (hname.length == 0){
+      warnings += 'คุณยังไม่ได้กรอกชื่อที่พัก(รีสอร์ท)<br/>';
+	}
+	if (fname.length == 0){
+      warnings += 'คุณยังไม่ได้กรอกชื่อ<br/>';
+	}
+	if (lname.length == 0){
+      warnings += 'คุณยังไม่ได้กรอกนามสกุล<br/>';
+	}
+	if (pname.length == 0){
+      warnings += 'คุณยังไม่ได้กรอกตำแหน่ง<br/>';
+	}
+	if (address.length == 0){
+      warnings += 'คุณยังไม่ได้กรอกที่อยู่<br/>';
+	}
+	if ((phone.length == 0) ||  (phone.length > 10)) {
+      warnings += 'คุณยังไม่ได้กรอกหมายเลขโทรศัพท์ หรือหมายเลขโทรศัพท์ไม่ถูกต้อง<br/>';
+	}
+    if (!validateEmail(email)) {
+      warnings += 'Email ไม่ถูกต้อง<br/>';
+    }
+    if ((password.length < 6) || (password != conpassword)) {
+      warnings += 'Password ต้องยาวไม่น้อยกว่า 6 ตัวอักษร หรือ Password กับ Confirm-Password ไม่ตรงกัน<br/>';
+    }
+    if (warnings != "") {
+      $("#errors").css("display", "block");
+      $("#errors").html(warnings);
+    } else {
+      $("#errors").css("display", "none");
+      firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+		  var errorCode = error.code;
+		  var errorMessage = error.message;
+		  if (errorCode ==='auth/weak-password') {
+			$("#errors").css("display",(errors.css("display") === "none" || errors.css("display") === "") ? "block" : "none");
+			$("#errors").html("Password ของคุณมีความเสี่ยง!!" + "<br/>");
+		  }
+      })
+	  .then(function (sendEmailVerify) {
+			if (sendEmailVerify === false) {
+				return false;
+			} else {
+				firebase.auth().currentUser.sendEmailVerification();
+				insertData(hname, fname, lname, pname, address, phone, email, url, password);
+			}
+	  });
+    }
+}
+
+function validateEmail(email) {
+	var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return re.test(email);
+}
+
+function insertData(hname, fname, lname, pname, address, phone, email, url, password) {
+	db.collection("hotels").add({
+		hotelname : hname,
+		firstname: fname,
+		lastname: lname,
+		posname: pname,
+		address: address,
+		phonenumber: phone,
+		email: email,
+		url: url,
+		password: password
+	})
+	.then(function(docRef) {
+		var congmsg = "<h3>ขอแสดงความยินดีในการลงทะเบียนใช้งานระบบที่สำเร็จลงด้วยดี</h3>";
+		congmsg = congmsg.concat("<p><a href='hotelmanual.html' target='_blank'>อ่านวิธีใช้งาน</a></p>");
+		congmsg = congmsg.concat("<p>เมื่อต้องการให้ลูกค้าจองห้องพักแบบอนนไลน์ โปรดนำลิงค์ด้านล่างนี้ ไปใส่ไว้ในช่อง <b>URL</b> ของหลักหมุดคุณ บน Google Map</p>");
+		congmsg = congmsg.concat("<div><div id='yourlink'>https://www.myshopman.com/mshop/mbook.jsp?h=" + docRef.id + "</div><input type='button' value=' Copy ' onclick='copyToClipboard(\"https://www.myshopman.com/mshop/mbook.jsp?h=" + docRef.id + "\")'/></div>");
+		congmsg = congmsg.concat("<p>เริ่มต้นใช้งาน <a href='index.html'>คลิกที่นี่</a></p>");
+		$("#hotellink").html(congmsg);
+
+		setTimeout(function() {
+			window.location = "index.html";
+			return true;
+		}, 5000);
+
+	})
+ 	.catch(function(error) {
+		userdata = "มีความผิดพลาด";
+		$("#errors").html(userdata);
+		$("#errors").css("display", "block");
+	});
+}
+
+function recall_userdata() {
+	var userdata = "";
+	var useremail = $("#useremail").text();
+	//var useremail = 'newin@gmail.com';
+	//console.log(useremail);
+	db.collection("hotels").where("email", "==", useremail).get()
+	.then(function(querySnapshot) {
+		querySnapshot.forEach(function(doc) {
+				//console.log(doc.id);
+				console.log(doc.data().firstname + doc.data().lastname);
+				userdata = userdata.concat("<b>ข้อมูลผู้สมัคร : </b><br />"); 
+				userdata = userdata.concat("<b>ชื่อที่พัก(รีสอร์ท) :</b> " + doc.data().hotelname + "<br />"); 
+				userdata = userdata.concat("<b>ชื่อ นามสกุล :</b> " + doc.data().firstname + " " + doc.data().lastname + "<br />"); 
+				userdata = userdata.concat("<b>ตำแหน่ง :</b> " + doc.data().posname + "<br />"); 
+				userdata = userdata.concat("<b>ที่อยู่ :</b> " + doc.data().address  + "<br />"); 
+				userdata = userdata.concat("<b>หมายเลขโทรศัพท์ : </b>" + doc.data().phonenumber + "<br />");
+				userdata = userdata.concat("<b>Email : </b>" + doc.data().email + "<br />");
+				userdata = userdata.concat("<b>URL : </b>" + doc.data().url + "<br />");
+				userdata = userdata.concat("<b>uid : </b><div id='useremail'>" + doc.data().email  + "</div><br />");
+				//console.log(userdata);
+			    $("#success").html(userdata);
+				$("#success").css("display", "block");
+		});
+	})
+	.catch(function(error) {
+			userdata = "มีความผิดพลาด";
+			$("#errors").html(userdata);
+			$("#errors").css("display", "block");
+	});
+}
+
+</script>
+
+</body>
+
+</html>
