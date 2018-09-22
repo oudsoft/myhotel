@@ -1,0 +1,170 @@
+<style>
+	#token-list-popup {
+		/* display: none; */
+		margin: 10px;
+	}
+	#errors{
+		display: none;
+		color: red;
+	}
+	#result{
+		display: none;
+		color: blue;
+	}
+	$mytoken{
+		color: red;
+	}
+</style>
+
+<div  id='push-notification-form'>
+	<p>ตอบกลับ(รวมทั้งที่ต้องการส่งไปที่อื่น) โดย คลิกปุ่ม " ... " เลือก รายการปลายทางที่ต้องส่ง โดยคลิกปุ่ม " ตกลง " แล้วป้อนข้อความให้ครบทั้งสามช่อง แล้วคลิก " ตกลง "</p>
+	<div class="ui-field-contain">
+		<label for="id_to">เครื่องปลายทางที่ต้องการส่ง</label>
+		<input type="text" data-clear-btn="false" id="id_to" placeholder=""/>&nbsp;&nbsp;
+		<input type="button" id="gettokenlist-cmd" value=" ... " onclick="gettokenlist()"/>
+	</div>
+	<div class="ui-field-contain">
+		<label for="sender">ชื่อผู้ส่ง</label>
+		<input type="text" data-clear-btn="false" id="sender" placeholder=""/>
+	</div>
+	<div class="ui-field-contain">
+		<label for="title">พาดหัวข้อความ</label>
+		<input type="text" data-clear-btn="false" id="title" placeholder=""/>
+	</div>
+	<div class="ui-field-contain">
+		<label for="message">ข้อความ</label>
+		<input type="text" data-clear-btn="false" id="message" placeholder=""/>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="push-cmd">   ตกลง     </button>	
+	</div>
+	<div id="result"></div>
+	<p id="errors"></p>
+	<input type="hidden" id="mytoken"/>
+	<!--
+	<div>
+		<label><input type="radio" name="managerelradio" value="Yes" id="Add">Add</label>
+		<label><input type="radio" name="managerelradio" value="No" id="Remove">Remove</label>
+		<button class="ui-btn" id="test-cmd">   Test     </button>	
+	</div>
+	-->
+</div>
+
+<div data-role='popup' id='token-list-popup' title='รายการ Token'>
+	<h3>รายการ Token</h3>
+	<label><input type="radio" name="managerelradio" value="fe7ftqv3Lf4:APA91bH-s9MAvZktroXN1btApMsuDh28MlUtDYLtZxOa92SSdjQZMkwulEiXHMTrYNuyq9JrJoIj2bXwS4Uf812puMG-fi2BNhE9EJWp0wAAW_KjMdRpL2xsDYXEWMQAXcfRMS28u0yt" id="dad-token">พ่อ lenovo notebook</label>
+	<label><input type="radio" name="managerelradio" value="fr-_LiMdc-k:APA91bE4G_anXHmkL1Lkr0NiJHbjM6gidaPi6JTLMXngMOxItF1N5zqV1WRTCNxG-dHV_ezkp7h3vUOGkeYXpgacy2TTZ1gx-ya8hwH-XzV3dcM2di3bK99GDOCR4oJqneOx1rvAlDih" id="mom-token">แม่</label>
+	<label><input type="radio" name="managerelradio" value="cBYtxlPN5N0:APA91bEB4kxblM5ouLlwNcjJEbAyD1ZBrjl2hwEaEDYYOT4WaEm-U6OmEL2leLq1ODf7vRaBspCeld1Iz4585b6pEjFSGyIIDLCfpZqw9j2OOMrORY_lhT4hPHXthq_7U2fpYsCn6yDt" id="ibm-thinkpad-token">IBM ThinkPad-Firefox</label>
+	<label><input type="radio" name="managerelradio" value="eqgxEGTG3WI:APA91bFrejm9nA3PBUKESuFX4axIEuLlKJ_E9I5LHVpaDmgwRkIgE5KfgZF23hyrKH5LTkVSEJ931a8ES8mqXXm4YJB9KUUBDmVeAPXBp5UyIC3YcsBA6atnuJT61U-PjoHgXhufSu3G" id="huawei-token">HuaWei</label>
+	<label><input type="radio" name="managerelradio" value="d-PIuS2YLBQ:APA91bHgeIQmusUhiDxvDqGQZE2VWhrpePiiSFI_t_LCPRjNijhDECYtEDBjA0Y1Rf2qrYHKC4-OUeau5Ansnbm8rlSqzHqk78MW_3tF2W-p_1tkxMb4STjSpjkdOvLCrEZyXcqa8MCA" id="p-eye-token">พี่อาย</label>
+	<label><input type="radio" name="managerelradio" value="dbskL5FO0aY:APA91bGKrbtVFdh8kajwlX2eEADlCVaMLn4Ulj6hBMtzsH_XehQpLEkKlJtW0S2MOf9pupolBeLaOgngGjvWexZGFTGEkkVFvqCfCxjXdFR4CecY5UivlVWiMPerunSXKBHoXryl_wtj" id="p-oat-token">พี่โอ๊ด</label>
+	<label><input type="radio" name="managerelradio" value="d446sArz2DU:APA91bHWFHZ65Jk5UT3l1oIm0WhDGqY9edco00ohXIlc8uIQ4LFtSN8XJLzh8wqi5fzsByHCcU4ki3XTurywfRGtD4q_ph1xnzG9dOwbfu23h2N45skbqZ3x4QrURV2EVZiuve_kJ07x" id="dad-lenovo-token">พ่อ lenovo smart phone</label>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="ok-cmd" onclick="closeTokenPopup()">   ตกลง     </button>	
+	</div>
+	<input type="text" id="toName" size="40"/>&nbsp;&nbsp;<input type="button" value=" ใช้ "onclick="selectThis('mytoken')"/>
+</div>
+
+
+<script>
+	
+    $(document).ready(function() {
+		$("#token-list-popup").popup({ overlayTheme: "a"});
+		 messaging.getToken().then(function(currentToken) {
+		   $("#mytoken").val(currentToken);
+		   $("#toName").val(currentToken);
+		 });
+	});
+
+	function gettokenlist() {
+		$("#token-list-popup").popup('open');
+	}
+	function selectThis(tname) {
+		var tk = $('#toName').val();
+		$("#id_to").val(tname);
+		$("#mytoken").val(tk);
+		$("#token-list-popup").popup('close');
+	}
+	function closeTokenPopup(){
+		var token = $("input[name='managerelradio']").groupVal();
+		var id_to = $("input[name='managerelradio']").groupId();
+		$("#mytoken").val(token);
+		$("#id_to").val(id_to);
+		$("#token-list-popup").popup('close');
+	}
+
+	$("#push-cmd").click(function(e) {
+		$("#result").hide();
+		var token = $("#mytoken").val();
+		var sender = $("#sender").val();
+		var title = $("#title").val();
+		var message = $("#message").val();
+		var toName = $("#id_to").val();
+		var warnings = "";
+		if (token.length == 0) {
+		  warnings += 'คุณยังไม่ได้เลือกปลายทางที่จะส่งไป' + '<br/>';
+		}
+		if (sender.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อผู้ส่ง' + '<br/>';
+		}
+		if (title.length == 0) {
+		  warnings += 'โปรดเขียนพาดหัวข้อความนิดหนึ่ง' + '<br/>';
+		}
+		if (message.length == 0) {
+		  warnings += 'โปรดป้อนข้อความที่ต้องการจะส่งไป' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#errors").css("display", "block");
+		  $("#errors").html(warnings);
+		} else {
+			$("#errors").css("display", "none");
+			$.post("https://us-central1-myhotel-4746f.cloudfunctions.net/sendPushNotification", 
+				{
+					msg: message,
+					token: token,
+					title: title,
+					sender: sender,
+					replylink: 'https://myhotel-4746f.firebaseapp.com/mobile/mviewpush.html?mmes=' + toName,
+					replyicon: 'resources/imgs/hotelOS.jpg'
+				},
+				function(data) {
+					$("#result").html(data);
+					$("#result").show();
+				}
+			);
+			saveMessage(sender, toName, title, message);
+		}
+	});
+
+	function saveMessage(fromName, toName, title, msg) {
+		FamilyChatRoomRef = db.doc("/chats/KEYae3aLTsDdYnIJYIfG/rooms/ZgzOTZ1PKGc0Om8gSGhK");
+		FamilyChatRoomRef.collection("messages").doc().set({
+			from: fromName,
+			to: toName,
+			title: title,
+			msg: msg,
+ 			time: new Date()
+		})
+		.catch (function(e) {
+			console.log(e.message); ///log
+		});	
+	}
+
+	jQuery.fn.extend({
+		groupVal: function() {
+			return $(this).filter(':checked').val();
+		}
+	});
+	jQuery.fn.extend({
+		groupId: function() {
+			return $(this).filter(':checked').attr('id');
+		}
+	});
+	/*
+	$("#test-cmd").click(function(e) {
+		// Usage:
+		console.log($("input[name='managerelradio']").groupVal());
+		console.log($("input[name='managerelradio']").groupId());
+	});
+	*/
+</script>

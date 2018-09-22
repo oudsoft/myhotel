@@ -1,0 +1,124 @@
+<style>
+	#select-daterange {
+		margin-left: 10px; 
+		margin-right: 10px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+	}
+	#errors-msg {
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+	p {
+		color: blue;
+	}
+	#okcmdBox{
+		text-align: center;
+	}
+</style>
+
+<div  id='select-daterange'>
+	<p>โปรดระบุช่วงเวลาที่จะเข้าพัก โดยการเลือก <b>วันที่เริ่มเข้าพัก</b> และ <b>วันออกจากที่พัก</b> จากปฎิทิน แล้วคลิกปุ่ม <b>ตกลง</b></p>
+	<div class="ui-field-contain">
+		<label for="datepicker-th-start"><b>ต้องการเริ่มเข้าพัก วันที่ :</b></label>&nbsp;&nbsp;
+		<input type="date" data-clear-btn="false" id="datepicker-th-start" name="date1" placeholder="คลิก เพื่อเลือกวันที่เช็คอินจากปฏิทิน" ReadOnly/>&nbsp;&nbsp;(หมายถึงวันที่เช็คอิน)
+	</div>
+	<div class="ui-field-contain">
+		<label for="datepicker-th-to"><b>ถึง วันที่ :</b></label>&nbsp;&nbsp;
+		<input type="date" data-clear-btn="false" id="datepicker-th-to" name="date2" placeholder="คลิก เพื่อเลือกวันที่เช็คเอาต์จากปฏิทิน" ReadOnly/>&nbsp;&nbsp;(หมายถึงวันที่เช็คเอาต์)
+	</div>
+ 	<p>&nbsp;</p>
+	<p id="start-msg">&nbsp;</p>
+	<p id="to-msg">&nbsp;</p>
+	<p id="diff-msg">&nbsp;</p>
+	<p id="alert-msg">&nbsp;</p>
+	<div class="ui-field-contain" id="okcmdBox">
+		<button class="ui-btn" id="select-ok-cmd">   ตกลง     </button>
+	</div>
+	<div id="errors" style="color:red">&nbsp;</div>
+</div>
+
+<script>
+
+	//ท่อนนี้ สำหรับ เลือกวันที่จองห้อง โดยใช้ datepicker
+	var d = new Date();
+	var toDay = d.getDate() + '/' 	+ (d.getMonth() + 1) + '/' 	+ (d.getFullYear());
+
+	$("#datepicker-th-start").datepicker({dateFormat: 'yy-mm-dd'})
+		.on("change", function() {
+			display(this.name, $(this).val());
+	 });
+	$("#datepicker-th-to").datepicker({dateFormat: 'yy-mm-dd'})
+		.on("change", function() {
+			display(this.name, $(this).val());
+	 });
+
+ 	function display(name, msg) {
+		//console.log(name + "-" + msg);
+		//console.log(name + "-" + toDate(msg).getTime());
+		//console.log(name + "-" + toDate(msg).setTime(toDate(msg).getTime()+(60*1000)));
+	}
+
+$("#select-ok-cmd").click(function(e) {
+    e.preventDefault();
+    goselectroomstep();
+});
+
+function goselectroomstep() {
+	var start = $("#datepicker-th-start").val();
+	var to = $("#datepicker-th-to").val();
+  	var stdd = toDateM(start);
+	var todd = toDateM(to);
+ 	var diff =  ((todd  -  stdd) / 86400000) + 1;
+ 	var warnings = "";
+    if (start.length == 0) {
+      warnings += 'คุณยังไม่ได้เลือก วันที่เริ่มเข้าพัก<br/>';
+    }
+    if (to.length == 0) {
+      warnings += 'คุณยังไม่ได้เลือก วันที่ออกจากที่พัก<br/>';
+    }
+	if (diff <= 0) {
+		warnings += 'ช่วงวันที่เข้าพักไม่ถูกต้อง วันเริ่มเข้าพัก ไม่ควรมากกว่า หรือ เท่ากับ วันที่ออก<br/>';
+	}
+    if (warnings != "") {
+		$("#errors").css("display","block");
+		$("#errors").html(warnings);
+    } else {
+		$("#errors").css("display","none");
+		selectroomstep(start, to);
+    }
+}
+
+function selectroomstep(start, to) {
+ 	var stdd = toDateM(start);
+	var todd = toDateM(to);
+ 	var diff =  ((todd  -  stdd) / 86400000) ;
+	$("#start-msg").html("เริ่มเข้าพักวันที่ : " + start);
+	$("#to-msg").html("ถึงวันที่ : " + to);
+	$("#diff-msg").html("รวมจำนวนวันที่เข้าพัก : <b>" + diff + "</b> วัน");
+	$("#alert-msg").html("โปรดรอสักครู่ ระบบกำลังดำเนินการค้นหาห้องพักที่ว่างตรงกับช่วงวันที่ระบุ...");
+	startDate = stdd.setTime(stdd.getTime()+(0*1000));
+	toDate = todd.setTime(todd.getTime()+(0*1000));
+	showLoadingImageM();
+	setTimeout(function() {
+		$.post("mselectroom.html", {},
+		function(data) {
+			$('#main').html(data);
+			hideLoadingImageM();
+		});
+ 	}, 4000);
+}
+
+if (myhotelurl){
+	console.log(myhotelurl);
+	str = "<div style='text-align: center;'><a href='" + myhotelurl +"' target='_blank'>เยี่ยมชมเว็บไซด์หลักของเรา</a></div>";
+	$("#select-daterange").append(str);
+}
+</script>

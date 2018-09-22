@@ -1,0 +1,466 @@
+<style>
+	#vanman-main{
+		text-align: center;
+	}
+	#errors{
+		display: none;
+		color: red;
+	}
+	#new-van-form-popup {
+
+	}
+	.van-item {
+		margin: 5px;
+		position: relative;
+	}
+	.van-item p {
+		border: 5px solid #cc33cc;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	.route{
+		border-radius: 25px;
+		background: #cc33cc;
+		padding: 10px; 
+		width: 97%;
+		height: 30px; 
+		color: white;
+		margin-top: 10px;
+	}
+	#route-used {
+		background: #cc33cc;
+		padding: 10px; 
+		width: 96%;
+		color: white;
+	}
+	#item-icon{
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#van-section-form, #driver-section-form{
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+	#heade-title{
+		text-align: center;
+	}
+	#explain-text{
+		text-align: left;
+	}
+	#route-list{
+		display: none;
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+</style>
+
+<div  id='vanman-main'>
+	<div id="heade-title">&nbsp;</div>
+	<div id="explain-text"></div>
+	<div id="van-list-view">
+
+	</div>
+
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="new-van-cmd" onclick="openNewVanPopup()">   เพิ่มรถตู้     </button>	
+		<button class="ui-btn" id="back-cmd">   กลับ     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='new-van-form-popup' style='padding: 20px;'>
+	<div class="title-box">เพิ่มรายการรถตู้</div>
+	<p>ป้อน <b>ข้อมูลรถตู้</b> และ <b>ข้อมูลคนขับรถตู้</b> แล้วคลิกปุ่ม <b>ตกลง</b>เพื่อบันทึกข้อมูล</p>
+	<div id="van-section-form">
+		<div style="text-align:center">
+			<img src='../../resources/imgs/vansideicon.png' width='80' height='60'/>
+		</div>
+		<div class="ui-field-contain">
+			<label for="vanregno"><b>ทะเบียนรถ :</b></label> 
+			<input type="text" data-clear-btn="false" id="vanregno" size="20" />
+		</div>
+		<div class="ui-field-contain">
+			<label for="vanno"><b>หมายเลขรถ :</b></label> 
+			<input type="text" data-clear-btn="false" id="vanno" size="20" />
+		</div>
+		<div class="ui-field-contain">
+			<label><input type="checkbox" id="van-status" checked>สถานะรถ</label>
+		</div>
+	</div>
+	<div id="driver-section-form">
+		<div class="ui-field-contain">
+			<label for="fname"><b>ชื่อ คนขับรถ :</b></label> 
+			<input type="text" data-clear-btn="false" id="fname" size="20" />
+		</div>
+		<div class="ui-field-contain">
+			<label for="lname"><b>นามสกุล คนขับรถ :</b></label> 
+			<input type="text" data-clear-btn="false" id="lname" size="20" />
+		</div>
+		<div class="ui-field-contain">
+			<label for="phone"><b>หมายเลขโทรศัพท์ คนขับรถ :</b></label> 
+			<input type="number" data-clear-btn="false" id="phone" size="20" />
+		</div>
+		<div class="ui-field-contain">
+			<label for="email"><b>Email คนขับรถ :</b></label> 
+			<input type="email" data-clear-btn="false" id="email" size="20" />
+		</div>
+		<div class="ui-field-contain">
+			<label for="promptpay"><b>หมายเลขพร้อมเพย์คนขับรถ :</b></label> 
+			<input type="number" data-clear-btn="false" id="promptpay" size="20" />
+		</div>
+	</div>
+	<div id="route-list"></div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="ok-cmd" onclick="saveNewVan()">   ตกลง     </button>	
+		<button class="ui-btn" id="close-cmd" onclick="closeNewVanPopUp()">   ปิด     </button>	
+	</div>
+	<p id="errors"></p>
+</div>
+
+<script>
+
+	var routes = [];
+
+   $(document).ready(function() {
+		$("#new-van-form-popup").popup({ overlayTheme: "a"});
+		new DG.OnOffSwitch({
+			el: '#van-status',
+			textOn: 'วิ่ง',
+			textOff: 'หยุด',
+			trackColorOn:'#cc33cc'
+		});
+
+		loadRouteList(function(routeitems) {
+			//console.log(JSON.stringify(routeitems));
+			routes = routeitems;
+			$("#heade-title").html("<b>รายการรถตู้ทั้งหมด</b>");
+			$("#explain-text").html("<p>คลิกบนรูปรถตู้หน้ารายการใดๆ เพื่อแก้ไขข้อมูลรถตู้รายการนั้นๆ </p>");
+			loadAllVanList();
+		});
+	});
+
+	$("#back-cmd").click(function(e) {
+		window.location ="index.html?t=" + myterminalid;
+	});
+
+	function loadAllVanList() {
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("vans").get().then(function(tmquerySnapshot) {
+			var str = "";
+			$("#van-list-view").html("");
+			tmquerySnapshot.forEach(function(tmdoc) {
+				str = "";
+				var y = (tmdoc.data().status==1? " วิ่ง " : "  หยุด ");
+				var x = (tmdoc.data().status==1? " style='background-color: #cc33cc; color: white;'" : " style='background-color:  #d7d7d7; color: white;'");
+				str = str.concat("<div class='van-item'>");
+				str = str.concat("<div id='item-icon'><img src='../../resources/imgs/vansideicon.png' width='50' height='40' onmouseover='this.style.cursor=\"pointer\";' onclick='editVan(\"" +  tmdoc.id + "\")'/>&nbsp;&nbsp;</div>");
+				str = str.concat("<p>");
+				str = str.concat("<b>หมายเลขรถ : </b>" + tmdoc.data().vanno + "&nbsp;&nbsp;<b>ชื่อคนขับ : </b>" + tmdoc.data().firstname + " " + tmdoc.data().lastname );
+				str = str.concat("</p>");
+				str = str.concat("<p" + x + ">" + y + "</p>");
+				str = str.concat("</div>");
+				$("#van-list-view").append(str);
+			});
+		});
+	}
+
+	function loadRoteOfVan(vanid, callback) {
+		var str = "";
+		var list = [];
+		docpath = "terminals/" + myterminalid + "/vans/" + vanid;
+		var vanRef = db.doc(docpath);
+		vanRef.collection("routeids").get().then(function(vnquerySnapshot) {
+			vnquerySnapshot.forEach(function(vndoc) {
+				list.push(vndoc.data().routeid);
+				var item = routes.find(ob => ob.id == vndoc.data().routeid);
+				str = str.concat("<div id ='route-used'>");
+				str = str.concat("<p>");
+				str = str.concat(item.beg + " - " + item.end);
+				str = str.concat("&nbsp;&nbsp;");
+				str = str.concat("<a href='#' onclick='deleteRouteOfVan(\"" + vanid + "\",\"" + vndoc.id + "\")'>ลบ</a>");
+				str = str.concat("</p>");
+				str = str.concat("</div>");
+			});
+			callback(list, str);
+		});
+	}
+
+	function deleteRouteOfVan(vanid, routeid) {
+		var docpath = "terminals/" + myterminalid + "/vans/" + vanid + "/routeids/" + routeid;
+		var delRef = db.doc(docpath);
+		delRef.delete();
+		loadRoteOfVan(vanid, function(list, listHTML) {
+			$("#route-list").show();
+			$("#route-list").empty();
+			$("#route-list").html("<p><b>รายการเส้นทางที่รถวิ่ง :</b></p>");
+			$("#route-list").append(listHTML);
+			$("#route-list").append("<p><b>รายการเส้นทางที่รถไม่ได้วิ่ง :</b></p>");
+			$("#route-list").append("<div id='route-available'>");
+			routes.forEach(function(item) {
+				var have = list.find(ob => ob == item.id);
+				if (! have) {
+					$("#route-list").append("<p>" + item.beg + " - " + item.end + "&nbsp;&nbsp;<a href='#' onclick='addRouteItem(\"" + vanid + "\",\"" + item.id + "\")'>เพิ่ม</a></p>");
+				}
+			});
+			$("#route-list").append("</div>");
+		});
+	}
+	
+	function addRouteItem(vanid, routeid) { 
+		var docpath = "terminals/" + myterminalid + "/vans/" + vanid;
+		var vanRef = db.doc(docpath);
+		vanRef.collection("routeids").doc().set({
+			routeid: routeid
+		});
+		loadRoteOfVan(vanid, function(list, listHTML) {
+			$("#route-list").show();
+			$("#route-list").empty();
+			$("#route-list").html("<p><b>รายการเส้นทางที่รถวิ่ง :</b></p>");
+			$("#route-list").append(listHTML);
+			$("#route-list").append("<p><b>รายการเส้นทางที่รถไม่ได้วิ่ง :</b></p>");
+			$("#route-list").append("<div id='route-available'>");
+			routes.forEach(function(item) {
+				var have = list.find(ob => ob == item.id);
+				if (! have) {
+					$("#route-list").append("<p>" + item.beg + " - " + item.end + "&nbsp;&nbsp;<a href='#' onclick='addRouteItem(\"" + vanid + "\",\"" + item.id + "\")'>เพิ่ม</a></p>");
+				}
+			});
+			$("#route-list").append("</div>");
+		});
+	}
+
+	function openNewVanPopup() {
+		$("#new-van-form-popup").popup("open");
+		$("#errors").empty();
+		$("#route-list").hide();
+		$(".title-box").html("เพิ่มรายการรถตู้");
+		$("#new-van-form-popup").popup("open");
+		$("#driver-section-form").show();
+		$("#vanregno").val("");
+		$("#vanno").val("");
+		$("#fname").val("");
+		$("#lname").val("");
+		$("#phone").val("");
+		$("#email").val("");
+		$("#promptpay").val("");
+	}
+
+	function closeNewVanPopUp() {
+		$("#new-van-form-popup").popup("close");
+	}
+
+	function loadRouteList(callback){
+		var items = [];
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("routes").where("cguid", "==", myemail).get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+ 				var ob = {};
+				ob.id = doc.id;
+				ob.beg = doc.data().beginter;
+				ob.end = doc.data().endter;
+				items.push(ob);
+			});
+			callback(items);
+		});
+	}
+
+
+/*
+	function openRouteVan(box) {
+		$("#heade-title").html("<b>รายการรถตู้เส้นทาง " + $(box).text() + "</b>");
+		$("#explain-text").html("<p>หากต้องการแก้ไขรายการใดๆ ให้คลิกบนรูปรถตู้หน้ารายการนั้นๆ </p>");
+		loadVanList(box.id);
+		$("#new-van-cmd").attr("onclick", "openNewVanPopup('" + box.id + "','" + $(box).text() + "')");
+	}
+
+	function loadVanList(routeid) {
+		btourid = routeid;
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("vans").get().then(function(tmquerySnapshot) {
+			var str = "";
+			$("#van-list-view").html("");
+			tmquerySnapshot.forEach(function(tmdoc) {
+				docpath = "terminals/" + myterminalid + "/vans/" + tmdoc.id;
+				var vanRef = db.doc(docpath);
+				vanRef.collection("routeids").where("routeid", "==", routeid).get().then(function(vnquerySnapshot) {
+					vnquerySnapshot.forEach(function(vndoc) {
+						str = "";
+						var y = (tmdoc.data().status==1? " วิ่ง " : "  หยุด ");
+						var x = (tmdoc.data().status==1? " style='background-color: #cc33cc; color: white;'" : " style='background-color:  #d7d7d7; color: white;'");
+						str = str.concat("<div class='van-item'>");
+						str = str.concat("<div id='item-icon'><img src='../../resources/imgs/vansideicon.png' width='50' height='40' onmouseover='this.style.cursor=\"pointer\";' onclick='editVan(\"" +  tmdoc.id + "\")'/>&nbsp;&nbsp;</div>");
+						str = str.concat("<p><b>ทะเบียนรถ : </b>" + tmdoc.data().vanregno + " &nbsp;</p>");
+						str = str.concat("<p><b>หมายเลขรถ : </b>" + tmdoc.data().vanno + " &nbsp;</p>");
+						str = str.concat("<p" + x + ">" + y + "</p>");
+						str = str.concat("</div>");
+						$("#van-list-view").append(str);
+					});
+				});
+			});
+		});
+	}
+
+*/
+
+	function saveNewVan() {
+		var vanstatus = 0;
+		if ($("#van-status").prop('checked') == true ){
+			vanstatus = 1;
+		}
+		var vanregno = $("#vanregno").val();
+		var vanno = $("#vanno").val();
+		var fname = $("#fname").val();
+		var lname = $("#lname").val();
+		var phone = $("#phone").val();
+		var vanemail = $("#email").val();
+		var promptpay = $("#promptpay").val();
+		var warnings = "";
+		if (vanregno.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนหมายเลขทะเบียนรถ' + '<br/>';
+		}
+		if (vanno.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนหมายเลขรถ' + '<br/>';
+		}
+		if (fname.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อคนขับรถ' + '<br/>';
+		}
+		if (lname.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนนามสกุลคนขับรถ' + '<br/>';
+		}
+		/*
+		if (!validateEmail(vanemail)) {
+		  warnings += 'Email คนขับรถไม่ถูกต้อง<br/>';
+		}
+		*/
+		if (warnings != "") {
+		  $("#errors").css("display", "block");
+		  $("#errors").html(warnings);
+		} else {
+			$("#errors").css("display", "none");
+			saveVan(vanregno, vanno, fname, lname, phone, vanemail, promptpay, vanstatus);
+			$("#new-van-form-popup").popup("close");
+			$("#van-list-view").html("");
+			setTimeout(function() {
+				//loadVanList();
+				loadAllVanList();
+			}, 2000);
+		}
+	}
+
+	function saveVan(vanregno, vanno, fname, lname, phone, email, prompt, status) {
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		var vanRef = terminalRef.collection("vans").doc();
+		vanRef.set({
+			vanregno: vanregno,
+			vanno: vanno,
+			status: status,
+			firstname : fname,
+			lastname : lname,
+			phonenumber: phone,
+			email: email,
+			promptpay: prompt,
+ 		});
+	}
+
+	function editVan(vanid) {
+		$(".title-box").html("แก้ไขข้อมูลรถตู้");
+		var docpath = "terminals/" + myterminalid + "/vans/" + vanid;
+		var vanRef = db.doc(docpath);
+		vanRef.get().then(function(doc) {
+			$("#new-van-form-popup").popup("open");
+			$("#driver-section-form").show();
+			$("#vanregno").val(doc.data().vanregno);
+			$("#vanno").val(doc.data().vanno);
+			$("#fname").val(doc.data().firstname);
+			$("#lname").val(doc.data().lastname);
+			$("#phone").val(doc.data().phonenumber);
+			$("#email").val(doc.data().email);
+			$("#promptpay").val(doc.data().promptpay);
+			if (doc.data().status == '1'){
+				$("#van-status").prop('checked', 'checked').trigger('change');
+			} else {
+				$("#van-status").prop('checked', '').trigger('change');
+			}
+			loadRoteOfVan(vanid, function(list, listHTML) {
+				$("#route-list").show();
+				$("#route-list").empty();
+				$("#route-list").html("<p><b>รายการเส้นทางที่รถวิ่ง :</b></p>");
+				$("#route-list").append(listHTML);
+				$("#route-list").append("<p><b>รายการเส้นทางที่รถไม่ได้วิ่ง :</b></p>");
+				$("#route-list").append("<div id='route-available'>");
+				routes.forEach(function(item) {
+					var have = list.find(ob => ob == item.id);
+					if (! have) {
+						$("#route-list").append("<p>" + item.beg + " - " + item.end + "&nbsp;&nbsp;<a href='#' onclick='addRouteItem(\"" + vanid + "\",\"" + item.id + "\")'>เพิ่ม</a></p>");
+					}
+				});
+				$("#route-list").append("</div>");
+			});
+			$("#ok-cmd").attr("onclick", "saveeditvan('" + vanid + "')");
+		});
+	}
+
+	function saveeditvan(vanid) {
+		var vanstatus = 0;
+		if ($("#van-status").prop('checked') == true ){
+			vanstatus = 1;
+		}
+		var vanregno = $("#vanregno").val();
+		var vanno = $("#vanno").val();
+		var drvfname = $("#fname").val();
+		var drvlname  = $("#lname").val();
+		var drvphone  = $("#phone").val();
+		var drvemail  = $("#email").val();
+		var drvprompt  = $("#promptpay").val();
+		var warnings = "";
+		if (vanregno.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนหมายเลขทะเบียนรถ' + '<br/>';
+		}
+		if (vanno.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนหมายเลขรถ' + '<br/>';
+		}
+		if (drvfname.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อคนขับรถ' + '<br/>';
+		}
+		if (drvlname.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนนามสกุลคนขับรถ' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#errors").css("display", "block");
+		  $("#errors").html(warnings);
+		} else {
+			$("#errors").css("display", "none");
+			saveEditVan(vanid, vanregno, vanno, vanstatus, drvfname, drvlname, drvphone, drvemail, drvprompt);
+			$("#new-van-form-popup").popup("close");
+			$("#van-list-view").html("");
+			setTimeout(function() {
+				//loadVanList();
+				loadAllVanList();
+			}, 2000);
+		}
+	}
+
+	function saveEditVan(vanid, vanregno, vanno, status, fname, lname, phone, email, prompt) {
+		var docpath = "terminals/" + myterminalid + "/vans/" + vanid;
+		var vanRef = db.doc(docpath);
+		vanRef.set({
+			vanregno: vanregno,
+			vanno: vanno,
+			status: status,
+			firstname : fname,
+			lastname : lname,
+			phonenumber: phone,
+			email: email,
+			promptpay: prompt,
+ 		}, { merge: true });
+	}
+</script>

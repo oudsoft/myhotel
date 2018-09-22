@@ -1,0 +1,317 @@
+<style>
+	#select-daterange {
+		margin-left: 10px; 
+		margin-right: 10px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+	}
+	#errors{
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+	#form-header{
+		text-align: center;
+	}
+ 	#cmdBox{
+		text-align: center;
+	}
+</style>
+
+<div  id='whobookingform'>
+	<div  id='whobooking-form' style="display: none;">
+		<p>โปรดตรวจสอบความถูกต้องของข้อมูลอีกครั้ง แล้วคลิกปุ่ม <b>ตกลง</b> หรือคลิกปุ่ม <b>กลับ</b> เพื่อกลับไปเลือกห้องพักใหม่</p>
+		<div id="form-header"><h4>ข้อมูลผู้จองห้องพัก</h4></div>
+		<div class="ui-field-contain">
+			<img id="user-pic"/>
+		</div>
+		<div class="ui-field-contain">
+			<label for="datepicker-th-start"><b>ชื่อ :</b></label> 
+			<input type="text" data-clear-btn="false" id="fname" size="20" placeholder="ชื่อ ของคุุณ"/>
+		</div>
+		<div class="ui-field-contain">
+			<label for="datepicker-th-start"><b>นามสกุล :</b></label> 
+			<input type="text" data-clear-btn="false" id="lname" size="20" placeholder="นามสกุลของคุุณ"/>
+		</div>
+		<div class="ui-field-contain">
+			<label for="datepicker-th-start"><b>Email :</b></label> 
+			<input type="text" data-clear-btn="false" id="email" size="20" placeholder="อีเมล์ของคุุณ"/>
+		</div>
+		<div class="ui-field-contain">
+			<label for="datepicker-th-start"><b>หมายเลขโทรศัพท์ :</b></label> 
+			<input type="text" data-clear-btn="false" id="phone" size="20" placeholder="หมายเลขโทรศัพท์ของคุุณ"/>
+		</div>
+		<div class="ui-field-contain">
+			<div class="ui-field-contain" id="cmdBox">
+				<button class="ui-btn" id="savebooking-cmd">   ตกลง     </button>
+				<button class="ui-btn" id="back-cmd">   กลับ     </button>
+			</div>
+ 		</div>
+		<div id="alert-msg" style="color:blue">&nbsp;</div>
+		<div id="errors" style="color:red">&nbsp;</div>
+	</div>
+</div>
+
+<div  id="google-login-box" style="text-align: center;">
+	<p>การจองห้องพักใกล้จะเสร็จแล้ว</p>
+	<p>โปรดเข้าสู่ระบบด้วยบัญชี Google ของคุณ โดยการคลิกปุ่ม <b>เข้าสู่ระบบด้วยบัญชี Google</b> เพื่อตรวจสอบความมีตัวตนของคุณ และเพื่อสร้างข้อมูลการจองครั้งนี้ให้สมบูรณ์</p>
+
+	<input type='button' id="google-login-cmd" value=' เข้าสู่ระบบด้วยบัญชี Google ' onclick='GoogleLogin()'/>
+	<!--<input type='button' id="facebook-login-cmd" value=' เข้าสู่ระบบด้วยบัญชี Facebook' onclick='FacebookLogin()'/>-->
+</div>
+
+<script>
+//ท่อนนี้ สำหรับ กรอกข้อมูลผู้จองห้องพัก
+var whobooking = {};
+ if (cuser) {
+	$("#google-login-box").hide();
+	$("#whobooking-form").show();
+	$("#user-pic").prop("src",  photoURL);
+	$("#user-pic").prop("width",80);
+	$("#user-pic").prop("height",80);
+	$("#fname").val(fname);
+	$("#lname").val(lname);
+	$("#email").val(cuser.email);
+	$("#phone").val(phoneNumber);
+
+ } else {
+	$("#google-login-box").show();
+	$("#whobooking-form").hide();
+ }
+
+$("#back-cmd").click(function(e) {
+	$.post("mselectroom.html", {},
+	function(data) {
+		$('#main').html(data);
+	});
+});
+
+$("#savebooking-cmd").click(function(e) {
+	var fname = $("#fname").val();
+	var lname = $("#lname").val();
+	var email = $("#email").val();
+	var phone = $("#phone").val();
+ 	var warnings = "";
+    if (fname.length == 0) {
+      warnings += 'คุณยังไม่ได้ชื่อผู้จอง<br/>';
+    }
+    if (lname.length == 0) {
+      warnings += 'คุณยังไม่ได้นามสกุลผู้จอง<br/>';
+    }
+    if (!validateEmail(email)) {
+      warnings += 'Email ผู้จอง ไม่ถูกต้อง<br/>';
+    }
+    if (phone.length == 0) {
+      warnings += 'โปรดช่วยกรอกหมายเลขโทรศัพท์เพื่อจะได้ใช้เอติดต่อกลับไป<br/>';
+    }
+    if (warnings != "") {
+      $("#errors").css("display", "block");
+      $("#errors").html(warnings);
+    } else {
+		$("#errors").css("display", "none");
+		$("#main").append(createSummaryDialog(fname, lname, email, phone));
+		//$("#summary-dialog").dialog({autoOpen : false, modal : true, show : "blind", hide : "blind" });
+		$("#summary-dialog").popup({ overlayTheme: "a"});
+		$("#summary-dialog").popup('open');
+	}
+ });
+
+ function saveBooking(roomnum, fname, lname, email, phone, token) {
+ /*
+	firebase.auth().signInAnonymously().then(function() {
+   // You're signed in, reads will work
+	})
+	.catch(function(error) {
+	  // Handle Errors here.
+	  // ...
+	});
+	*/
+	var docpath = "hotels/" + myhotelid;
+	var hotelRef = db.doc(docpath);
+	if (hotelRef) {
+		hotelRef.collection("rooms").where("num", "==",  roomnum).get()
+		.then(function(querySnapshot) {
+			querySnapshot.forEach(function(roomdoc) {
+				var roomRef =hotelRef.collection("rooms").doc(roomdoc.id);
+				roomRef.collection("loads").doc().set({
+					start: startDate,
+					to: toDate - 86400000, // ลบ ออกไป 1 วัน = 86400000
+					cguid: email,
+					ctel: phone,
+					cname: fname + " " + lname,
+					token: token,
+					lsts: 1,
+					bookdate: new Date()
+				})
+				.catch (function(e) {
+					console.log(e.message); ///log
+				});
+			});
+		});
+	} else {
+
+	}
+}
+
+var stt;
+
+function createSummaryDialog(fname, lname, email, phone) {
+	whobooking = {fname: fname, lname: lname, email: email, phone: phone};
+	var diff = (Math.abs(startDate-  toDate) / 86400000);
+	stt = 0;
+	var Str = "<div data-role='popup' id='summary-dialog' style='margin: 10px;'' title='สรุปข้อมูลการสั่งจอง'>";
+	Str =  Str.concat("<div style='text-align: center'><h3>สรุปข้อมูลการจองห้องพัก</h3></div>");
+	Str =  Str.concat("<b>ช่วงเวลาที่จอง : </b>");
+	Str =  Str.concat("<span id='std' style='display: inline;'>" + datetostring(startDate) + "</span> ถึง <span id='tod' style='display: inline;'>" + datetostring(toDate) +"</span> (จำนวน " + diff + " วัน)<br/>");
+	Str =  Str.concat("<b>รายการห้องพักที่จอง :</b><br/>");
+	for (var i=0; i<srooms.length; i++) {
+		var result = $.grep(trooms, function(e){ return e.num == srooms[i]; });
+		//console.log(JSON.stringify(result));
+		var tt = diff * result[0].price;
+		stt = stt + tt;
+		Str =  Str.concat((i+1) + ". " + result[0].num + " " +  result[0].name + " ขนาดผู้เข้าพัก " + result[0].size + " คน ราคาต่อวัน " + result[0].price + " บาท<br/>");
+	} 
+	Str =  Str.concat("<b>รวมจำนวนเงิน : </b>");
+	Str =  Str.concat(stt.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + " บาท<br/>");
+	Str =  Str.concat("<b>ผู้จองชื่อ : </b>");
+	Str =  Str.concat(fname + " " + lname + "<br/>");
+	Str =  Str.concat("<b>Email : </b>");
+	Str =  Str.concat(email + "<br/>");
+	Str =  Str.concat("<b>หมายเลขโทรศัพท์ : </b>");
+	Str =  Str.concat(phone + "<br/>");
+	Str =  Str.concat("<p>&nbsp;</p>");
+	tempMessage = Str.concat("</div>");
+	Str =  Str.concat("<div style='text-align: center;'><input type='button' value=' ตกลง ' onclick='bookingok()'/></div>");
+	Str =  Str.concat("<p>&nbsp;</p>");
+	Str =  Str.concat("</div>");
+	return Str;
+}
+
+function bookingok() {
+	$('#summary-dialog').popup('close');
+	showLoadingImageM();
+	$("#alert-msg").html("ระบบกำลังบันทึกข้อมูลการจอง โปรดรอสักครู่ ...");
+	$("#alert-msg").show();
+	var titlepage = $(document).find("title").text().split("::");
+	var hotelname = titlepage[0];
+	var message = "<b>" + hotelname + " ขอขอบคุณสำหรับการจองห้องพัก </b> <p>ตามรายละเอียดดังนี้ </p>";
+	message = message.concat(tempMessage);
+	messaging.getToken().then(function(currentToken) {
+		for (var i=0; i < srooms.length ; i++) {
+			saveBooking(srooms[i], whobooking.fname, whobooking.lname, whobooking.email, whobooking.phone, currentToken);
+			setTimeout(function() {
+				//
+			}, 2000);
+		}
+		//auto gen message after booking
+		//for customer
+		$.post("https://us-central1-myhotel-4746f.cloudfunctions.net/sendPushNotification", {
+			msg: message,
+			token: currentToken,
+			title: "ขอขอบคุณที่ใช้บริการจองห้องพักออนไลน์",
+			sender: hotelname 	},
+			function(data) {
+				//
+		});
+		//auto gen message after booking
+		//for hotel
+		myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+		var myhoteltoken = myhotelOB[0].hoteltoken;
+		$.post("https://us-central1-myhotel-4746f.cloudfunctions.net/sendPushNotification", {
+			msg: message,
+			token: myhoteltoken,
+			title: "มีการจองห้องพักผ่านทางออนไลน์",
+			sender: "ระบบจองห้องพักออนไลน์" 	},
+			function(data) {
+				//
+		});
+
+	});
+	setTimeout(function() {
+		myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+		var myhotelid = myhotelOB[0].hotelid;
+		$("#alert-msg").hide();
+		hideLoadingImageM();
+		window.location = "thanks.html?h=" + myhotelid + "&s=" + stt ;
+		//alert("การสั่งจองเสร็จสิ้นลงด้วยดี\nขอบคุณที่ใช้บริการ");
+	}, 6000);
+
+}
+
+if (myhotelurl !=""){
+	str = "<div style='text-align: center;'><a href='" + myhotelurl +"' target='_blank'>เยี่ยมชมเว็บไซด์หลักของเรา</a></div>";
+	$("#select-daterange").append(str);
+}
+
+function GoogleLogin(){
+	var provider = new firebase.auth.GoogleAuthProvider(); 
+	provider.addScope('https://www.googleapis.com/auth/plus.login');
+	firebase.auth().signInWithPopup(provider).then(function(result) {
+		cuser = result.user;
+		var token = result.credential.accessToken;
+		var displayname = cuser.displayName.split(" ");
+		photoURL = cuser.photoURL;
+		fname = displayname[0];
+		lname = "";
+		for (var i=1;i < displayname.length ; i++ ){
+			lname = lname.concat(displayname[i] + " ");
+		}
+		phoneNumber = user.phoneNumber;
+		$("#whobooking-form").show();
+		$("#user-pic").prop("src",  photoURL);
+		$("#user-pic").prop("width",80);
+		$("#user-pic").prop("height",80);
+		$("#fname").val(fname);
+		$("#lname").val(lname);
+		$("#email").val(user.email);
+		$("#phone").val(phoneNumber);
+		$("#google-login-box").hide();
+		console.log(token);
+		console.log(user.displayName);
+		console.log(user.email);
+		console.log(user.photoURL);
+		console.log(user.phoneNumber);
+	}).catch(function(error) {
+		var errorCode     = error.code;
+		var errorMessage  = error.message;
+		var email         = error.email;
+		var credential    = error.credential;
+		$("#errors").css("display",($("#errors").css("display") === "none" || $("#errors").css("display") === "") ? "block" : "none");
+		$("#errors").html(error.message + "<br/>");
+	 });         
+}
+
+function FacebookLogin() {
+	var provider = new firebase.auth.FacebookAuthProvider();
+	provider.addScope('user_birthday');
+	firebase.auth().languageCode = 'th_TH';
+	firebase.auth().signInWithPopup(provider).then(function(result) {
+		var token = result.credential.accessToken;
+		var user = result.user;
+		$("#whobooking-form").show();
+		$("#user-pic").prop("src", user.photoURL);
+		$("#fname").val(user.displayName);
+		$("#email").val(user.email);
+		$("#phone").val(user.phoneNumber);
+		$("#google-login-box").hide();
+		console.log(token);
+		console.log(user.displayName);
+		console.log(user.email);
+		console.log(user.photoURL);
+		console.log(user.phoneNumber);
+	}).catch(function(error) {
+		var errorCode     = error.code;
+		var errorMessage  = error.message;
+		var email         = error.email;
+		var credential    = error.credential;
+		$("#errors").css("display",($("#errors").css("display") === "none" || $("#errors").css("display") === "") ? "block" : "none");
+		$("#errors").html(error.message + "<br/>");
+	 });         
+}
+</script>

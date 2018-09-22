@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../resources/imgs/ico/hotelOS.ico">
+	<title>รบบจองห้องพัก</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+		#main-thanks{
+			margin-left: 10px; 
+			margin-right: 10px;
+			text-align: left;
+			padding: 10px;
+			border: blue 5px solid;
+			border-radius:10px;
+			box-shadow:0 0 3px #999;
+		}
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<h4>This is Header Panel.</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+		<div id="main-thanks">
+			<h2>การสั่งจองเสร็จสิ้นลงด้วยดี</h2>
+			<h3>ขอบคุณที่ใช้บริการ</h3>
+			<img id="qr-pic" src="https://promptpay.io/0816776292"/>
+			<p>คุณสามารถนำ QR Code นี้ ไปชำระเงินค่าจองห้องพัก จำนวน <b><span id="s"/></b> บาท ได้ที่ 7-Elevent ทุกสาขาภายในเวลา 3 วัน นับตั้งแต่วันนี้</p>
+			<p>เมื่อ 7-Elevent แจ้งการชำระเงินมาที่เรา เราจะส่งข้อความไปหาคุณอีกครั้ง</p>
+			<p>คลิกปุ่ม <b></b> เพื่อกลับไปเริ่มจองห้องพักใหม่</p>
+			<div class="ui-field-contain">
+				<div class="ui-field-contain" id="cmdBox">
+					<button class="ui-btn" id="goto-home-cmd">   ตกลง     </button>
+				</div>
+			</div>
+		</div>
+    </div>
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>This is Footer Panel.</b>
+		</div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="https://www.myshopman.com/shop/resource/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="https://www.myshopman.com/shop/resource/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="https://www.myshopman.com/shop/resource/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../resources/js/notify.js"></script>  
+ 
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+
+	 messaging.getToken().then(function(currentToken) {
+	   mytoken = currentToken;
+ 	 });
+
+    </script>
+
+	<script>
+		var tempMessage;
+		var myhotelid;
+		var myhotelurl;
+		var mytoken;
+
+		//?h=WHJcA29dBSwK9rPcyTTn
+		var hid = getParameterByName("h");
+		var docpath = "hotels/" + hid;
+		var hotelRef = db.doc(docpath);
+		hotelRef.get().then(function(doc) {
+			savemyhotelOB(hid, doc.data().token, doc.data().url);
+			document.title = doc.data().hotelname + " :: บริการจองห้องพัก";
+			$('#herder-conter').html("<h3>" + doc.data().hotelname + "</h3>");
+			$('#footer-conter').html("<h4>" + doc.data().hotelname + "</h4>");
+			myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+			myhotelid = myhotelOB[0].hotelid;
+			myhotelurl = myhotelOB[0].hotelurl;
+		});
+
+		$("#s").text(Number(getParameterByName("s")).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+
+		$("#goto-home-cmd").click(function(e) {
+			myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+			var myhotelid = myhotelOB[0].hotelid;
+			window.location = "mbook.html?h=" + myhotelid;
+ 		});
+ 
+		function savemyhotelOB(myhotelid, myhoteltoken, myurl){
+			var myhotel = {hotelid: myhotelid, hoteltoken: myhoteltoken, hotelurl: myurl}
+			myhotelOB.push(myhotel);
+			$.cookie("myhotelOB", JSON.stringify(myhotelOB));
+		}	
+		
+		if (myhotelurl !=""){
+			var str = "<div style='text-align: center;'><a href='" + myhotelurl +"' target='_blank'>เยี่ยมชมเว็บไซด์หลักของเรา</a></div>";
+			$("#main").append(str);
+		}
+
+		//ท่อนนี้ของ Notification และ Notify
+
+		$.notify.addStyle('myshopman', {
+			html: "<div class='superblue'><span data-notify-html/></div>",
+			classes: {
+				base: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "black",
+					"background-color": "white",
+					"padding": "20px"
+				},
+				green: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "green",
+					"padding": "20px"
+				},
+				red: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "red",
+					"padding": "20px"
+				}
+			}
+		});
+
+		messaging.onMessage(function(payload) {
+			console.log("Message received. ", payload);
+			var msg = "<h3>" + payload.notification.title + "</h3><h4>" + payload.notification.body +"</h4><p>จาก : " + payload.data.sendername + "</p>";
+			$.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'green'});
+			playsoundeffect();
+		});
+
+		function playsoundeffect() {
+			 $('#soundeffect')[0].play();
+		}
+
+		subscribeFCM();
+
+		function subscribeFCM() {
+			messaging.requestPermission().then(function() {
+				console.log("Thank you.");
+				//saveToken();
+			})
+			.catch(function(err) {
+				console.log('Unable to get permission to notify. ', err);
+			});
+		 }
+
+		messaging.onTokenRefresh(function() {
+			messaging.getToken()
+			.then(function(refreshedToken) {
+				console.log('Token refreshed. :: ' + refreshedToken);
+				//$("#token").val(refreshedToken);
+			})
+			.catch(function(err) {
+				console.log('Unable to retrieve refreshed token ', err);
+			});
+		});
+
+
+		$("#footer-conter").click(function(e) {
+			playsoundeffect();
+		});
+
+	</script>
+	</script>
+  </body>
+</html>

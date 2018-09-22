@@ -1,0 +1,64 @@
+<style>
+.collapsible {
+    background-color: #cc33cc;
+    color: white;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+}
+
+.active, .collapsible:hover {
+    background-color: #555;
+}
+
+.content {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+</style>
+
+
+<button class="collapsible">ตั๋ว และ บิล</button>
+<div class="content">
+  <p>บิล หรือ บิลชำระค่าโดยสาร ระบบจะออกให้ผู้จอง เมื่อจองสำเร็จ เพื่อให้ผู้จองดาวน์โหลดไปชำระค่าโดยสาร
+ตั๋ว หรือ ตั๋วโดยสาร ระบบจะออกให้ผู้จองที่ชำระเงินแล้ว โดยหลังจากชำระเงินเสร็จ ผู้จองแค่อัพโหลดสลิปหลักฐานการชำระเงินเข้าสู่ระบบ หากหลักฐานถูกต้อง ระบบจะสร้าง ตัํวโดยสาร ส่งไปให้ผู้จอง </p>
+</div>
+<button class="collapsible">การชำระค่าตั๋วโดยสาร</button>
+<div class="content">
+  <p>การชำระค่าตั๋วโดยสาร ผู้จองสามารถใช้แอพลิชั่นธนาคารใดๆ ก็ได้ ในโทรศัพท์มือถือ สแกน คิว-อาร์ โค้ด ที่ด้านล่างด้านล่างของบิล แล้วชำระค่าโดยสารตามยอดที่ปรากฏในบิล เมื่อชำระเสร็จ แอพลิเคชั่นธนาคาร จะออกสลิปการชำระเงินให้แก่ผู้จอง ให้ผู้จองนำสลิปดังกล่าว อัพโหลด เข้าสู่ระบบ เพื่อรับตั๋วโดยสารได้ในทันที</p>
+</div>
+<button class="collapsible">การแจ้งผลการชำระ</button>
+<div class="content">
+  <p>เพียงเข้าไปที่ https://goo.gl/ZaZYJs แล้วคลิก แจ้งผลชำระเงิน แล้วอัพโหลดรูปสลิปตามที่ได้กล่าวไปแล้วในหัวข้อ <b>ตั๋ว และ บิล</b>และ<b>การชำระค่าตั๋วโดยสาร</b></p>
+</div>
+<button class="collapsible">การรับตัํวโดยสาร</button>
+<div class="content">
+  <p>หากหลักฐานการชำระเงินถูกต้อง ระบบจะสร้าง ตัํวโดยสาร ส่งไปให้ผู้จอง  พร้องทั้งส่ง Notification ไปแจ้ง เพื่อให้ไปดาวน์โหลดตั๋วโดยสาร</p>
+</div>
+<button class="collapsible">ตอนมาขึ้นรถ</button>
+<div class="content">
+  <p>เมื่อมาขึ้นรถตามจุดหรือสถานีที่ระบุมาในตอนจอง ให้ใช้รูปตั๋วโดยสารที่บันทึกไว้ในหัวข้อ<b>การรับตัํวโดยสาร</b>แสดงให้คนขับรถหรือเจ้าหน้าที่ดู</p>
+</div>
+
+<script>
+	var coll = document.getElementsByClassName("collapsible");
+	var i;
+
+	for (i = 0; i < coll.length; i++) {
+		coll[i].addEventListener("click", function() {
+			this.classList.toggle("active");
+			var content = this.nextElementSibling;
+			if (content.style.display === "block") {
+				content.style.display = "none";
+			} else {
+				content.style.display = "block";
+			}
+		});
+	}
+</script>

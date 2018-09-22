@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../../resources/imgs/ico/vanOS.ico">
+	<title>บริการจองรถตู้</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 100%
+			float: left;
+
+			border: #cc33cc 5px solid;
+			border-radius:5px;
+			box-shadow:0 0 3px #999;
+			margin: 5px;
+			padding: 5px;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		padding: 10px;
+	}
+
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<img src="../../resources/imgs/vanOS.png" width="60" height="60"/>
+			<h4>&nbsp;</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+
+    </div>
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>&nbsp;</b>
+		</div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../../resources/js/notify.js"></script>  
+	<script src="../../resources/js/jquery-qrcode-0.14.0.js"></script>
+	<script src="../../resources/js/printThis.js"></script>
+	<script src="../../resources/js/easySelectable.js"></script>
+
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-storage.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+    </script>
+
+	<script>
+	//Your Code Here
+
+	//var dummyterminalid = "TDUwna6CbjjYJr65dQo1";
+	//var dummyroute = "6s4NgzVwiJWcVBJUvlVT";
+	var dummyterminalid = getParameterByName("t");
+	var dummyroute = getParameterByName("r");
+	var yrterminalOB = [];
+	var yrterminalid = "";
+	var yrtoken = "";
+	var handlePermisState;
+	var cuser = null;
+
+    $(document).ready(function() {
+		handlePermission(function (state) {
+			console.log(state);
+			if (state !== "granted"){ //ยังไม่เคยยอมรับการแจ้งเตือน
+				if (yrtoken==""){
+					subscribeFCM();
+					getcurrentToken(function(yrtk) {
+						//console.log(yrtk);
+						yrtoken = yrtk;
+						// ควรจะมีการแจ้งเตือนแค่ครั้งแรกครั้งเดียวที่ผู้ใช้ตกลงยอมรับการแจ้งเตือน
+						pushNoticationToken("ขอขอบคุณ","ขอขอบคุณที่ยอมรับการแจ้งเตือนจากเรา ซึ่งจะเป็นประโยชน์กับคุณในเรื่องของการเดินทาง",  "myVanBooking", yrtoken, function(res) {
+							//console.log(res);
+							//save cookei
+							yrterminalOB.push({terminalid: dummyterminalid, routeid: dummyroute, yrtoken: yrtoken});
+							$.cookie("yrterminalOB", JSON.stringify(yrterminalOB));
+							//open cookie
+							yrterminalOB = $.parseJSON($.cookie("yrterminalOB") || '[]');
+							//console.log(JSON.stringify(yrterminalOB)); //log
+
+							if (yrterminalOB.length > 0) {
+								yrterminalid  = yrterminalOB[0].terminalid;
+								yrtoken  = yrterminalOB[0].yrtoken;
+								brouteid = yrterminalOB[0].routeid;
+								initPage(function(doc) {
+									document.title = doc.data().name + " :: บริการจองรถตู้";
+									$('#herder-conter').html("<img src='../../resources/imgs/vanOS.png' width='60' height='60'/><h4>" + doc.data().name + "</h4>");
+									$('#footer-conter').html("<h4>" + doc.data().name + "</h4><p>" + doc.data().address + "</p><p>" + doc.data().tel + "</p>" + "<p>" + yrterminalid + "</p>");
+								});
+							} else {
+								//ส่งกลับไปหน้า Dashboard ใหม่ เพราะข้อมูล yrterminalid ไม่ถูกต้อง
+								window.location ="home.html";
+							}
+						});
+					});
+				}
+			} else { //เคยยอมรับการแจ้งเตือนมาแล้ว
+				getcurrentToken(function(yrtk) {
+					yrtoken = yrtk;
+					//save cookei
+					yrterminalOB.push({terminalid: dummyterminalid, routeid: dummyroute, yrtoken: yrtk});
+					$.cookie("yrterminalOB", JSON.stringify(yrterminalOB));
+					//open cookie
+					yrterminalOB = $.parseJSON($.cookie("yrterminalOB") || '[]');
+					//console.log(JSON.stringify(yrterminalOB)); //log
+
+					if (yrterminalOB.length > 0) {
+						yrterminalid  = yrterminalOB[0].terminalid;
+						yrtoken  = yrterminalOB[0].yrtoken;
+						brouteid = yrterminalOB[0].routeid;
+						initPage(function(doc) {
+							document.title = doc.data().name + " :: บริการจองรถตู้";
+							$('#herder-conter').html("<img src='../../resources/imgs/vanOS.png' width='60' height='60'/><h4>" + doc.data().name + "</h4>");
+							$('#footer-conter').html("<h4>" + doc.data().name + "</h4><p>" + doc.data().address + "</p><p>" + doc.data().tel + "</p>" + "<p>" + yrterminalid + "</p>");
+						});
+					} else {
+						//ส่งกลับไปหน้า Dashboard ใหม่ เพราะข้อมูล yrterminalid ไม่ถูกต้อง
+						window.location ="home.html";
+					}
+
+				});
+			}
+		});
+	});
+
+	</script>
+
+    <script>
+		//ท่อนนี้เป็น flow control page
+
+		/* -----------------------------------*/
+		//บริเวณประกาศตัวแปรเฉพาะงาน
+		/* -----------------------------------*/
+		
+		var brouteid;
+		var bdate;
+		var billOB;
+		var emptySeatList;
+		var bseatno = [];
+		var terNo;
+		var rouNo;
+
+		//เช็คสถานะการเข้าสู่ระบบของ User
+		firebase.auth().onAuthStateChanged(user => {  
+			//ในส่วนนี้ให้ระวัง การสั่ง redirect หาก uer != null เครื่องจะแฮ็งค์ได้
+			if (!user) {
+				//window.location = "login.html";
+				//popuplogin
+			} else {
+				cuser = user;
+				console.log(cuser.email);
+				//showUserData();
+			}
+		});
+
+		function signout() {
+			console.log(yrterminalid);
+			firebase.auth().signOut().then(function() {
+				cuser = null;
+				alert("คุณได้ออกจากระบบเรียบร้อยแล้ว");
+				//window.location = "home.html";
+			})
+			.catch(function(error) {
+				alert("มีความผิดพลาดเกิดขึ้น");
+			});
+		}
+
+		function initPage(callback) {
+			//console.log(yrterminalid);
+			if ((yrterminalid !== "undefined") && (yrterminalid !== "")) {
+				var docpath = "terminals/" + yrterminalid;
+				var terminalRef = db.doc(docpath);
+				terminalRef.get().then(function(doc) {
+					terNo = doc.data().terminalid;
+					callback(doc);
+					openBooking();
+				});
+			} else {
+				//ส่งกลับไปหน้า Dashboard ใหม่ เพราะข้อมูล yrterminalid ไม่ถูกต้อง
+				window.location ="home.html";
+			}
+		}
+
+ 		function openBooking() {
+			showLoadingImageMT();
+			$.post("elements/booking.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+
+	</script>
+
+	<script>
+	//ท่อนนี้ของ application
+
+		function getCurrentBillNo(callback) {
+			var result = [];
+			var billcurrentno = "";
+			var docpath  = "terminals/" + yrterminalid + "/routes/" + brouteid;
+			var tourRef  = db.doc(docpath);
+			tourRef.get().then(function(rdoc) {
+				billcurrentno = rdoc.data().billcurno;
+				if (billcurrentno == "") {
+					billcurrentno = "0";
+				}
+				result.push({billcurrentno: billcurrentno});
+				callback(result);
+			});
+		}
+
+		function buildBookingOB(order, pname, ptel, stationupid, stationdownid, nextnoText) {
+			var OB = {};
+			OB.order = order;
+			OB.cguid = pname;
+			OB.ptel = ptel;
+			OB.stationupid = stationupid;
+			OB.stationdownid = stationdownid;
+			OB.bstatus = 1;
+			OB.bdate = (new Date()).getTime();
+			OB.billno = nextnoText;
+			return OB;
+		}
+
+		function saveBillData(curno, userid, billDocPaths) {
+			//console.log(JSON.stringify(billDocPaths));
+			var ondate =  new Date().getTime();
+			var newBillRef = db.doc("terminals/" + yrterminalid + "/routes/" + brouteid).collection("bills").doc(curno);
+			newBillRef.set({
+				billno: curno,
+				date: datetostring(ondate),
+				tourdate: datetostring(bdate),
+				userid: userid,
+				status: 1
+			});
+			billDocPaths.forEach(function(item){
+				var billDocPathRef = db.doc("terminals/" + yrterminalid + "/routes/" + brouteid + "/bills/" + curno);
+				var blDocPath = billDocPathRef.collection("billDocPaths").doc();
+				blDocPath.set({
+					billDocPath: item.path,
+					seatno: item.seatno
+				});
+			});
+			//billDocPaths = [];
+		}
+
+		function updateCurrentBillNo(curno){
+			docpath  = "terminals/" + yrterminalid + "/routes/" + brouteid;
+			tourRef  = db.doc(docpath);
+			tourRef.set({
+				billcurno: parseInt(curno)
+			}, { merge: true });
+		}
+
+		function loadTerminalStaffToken(callback) {
+			var staffs = [];
+			var docpath = "terminals/" + yrterminalid;
+			var terminalRef = db.doc(docpath);
+			terminalRef.collection("emails").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(emaildoc) {
+					db.collection("users").where("email", "==", emaildoc.data().cguid).get().then(function(stffquerySnapshot) {
+						stffquerySnapshot.forEach(function(stffdoc) {
+							docpath = "users/" + stffdoc.id;
+							var userRef = db.doc(docpath);
+							userRef.collection("tokens").get().then(function(tkquerySnapshot) {
+								tkquerySnapshot.forEach(function(tkdoc) {
+									staffs.push(tkdoc.data().token);
+								});
+							});
+						});
+					});
+				});
+				timeout(2900).then(function() {
+					callback(unique(staffs));
+				});
+			});
+		}
+
+		function loadUserToken(email, callback) {
+			var users = [];
+			db.collection("users").where("email", "==", email).get().then(function(userquerySnapshot) {
+				userquerySnapshot.forEach(function(userdoc) {
+					//console.log(userdoc.id);
+					var docpath = "users/" + userdoc.id;
+					var userRef = db.doc(docpath);
+					userRef.collection("tokens").get().then(function(tkquerySnapshot) {
+						tkquerySnapshot.forEach(function(tkdoc) {
+							users.push(tkdoc.data().token);
+						});
+					});
+				});
+			});
+			timeout(2900).then(function() {
+				//console.log(JSON.stringify(users));
+				callback(unique(users));
+			});
+		}
+
+		function pushNotificationToStaff(title, body, sender) {
+			loadTerminalStaffToken(function(staffs) {
+				staffs.forEach(function(item) {
+					//console.log(item);
+					/*
+					pushNoticationStaffToken(title, body, sender, item.token, yrterminalid, function(res) {	
+						console.log(res);
+					});
+					*/
+					pushNoticationUserToken(title, body, sender, item, yrterminalid);
+				});
+			});
+		}
+
+		function pushNotificationToUser(email, title, body, sender) {
+			loadUserToken(email, function(users) {
+				users.forEach(function(item) {
+					pushNoticationUserToken(title, body, sender, item, yrterminalid);
+					saveNotify(email, title, body, sender, brouteid);
+				});
+			});
+		}
+
+		function saveNotify(email, title, body, sender, rid) {
+			var docpath = "terminals/" + yrterminalid + "/routes/" + rid;
+			var tourRef = db.doc(docpath);
+			var messageDoc = tourRef.collection("messages").doc();
+			messageDoc.set({
+				date: datetostring(new Date()),
+				time: datetotimestring(new Date()),
+				userid: email,
+				title: title,
+				body: body,
+				sender: sender
+			});
+		}
+
+	</script>
+
+	<script>
+	//ท่อนนี้ของ Notification และ Notify
+
+		$.notify.addStyle('myshopman', {
+			html: "<div class='superblue'><span data-notify-html/></div>",
+			classes: {
+				base: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "black",
+					"background-color": "white",
+					"padding": "20px"
+				},
+				green: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "green",
+					"padding": "20px"
+				},
+				red: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "red",
+					"padding": "20px"
+				},
+				purple: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "#cc33cc",
+					"padding": "20px"
+				}
+			}
+		});
+
+		messaging.onMessage(function(payload) {
+			//console.log("Message received. ", payload);
+			var msg = "<div id='notify-title'>";
+			msg = msg.concat(payload.notification.title);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div id='notify-body'>");
+			msg = msg.concat(payload.notification.body);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div div id='notify-from'> จาก : ");
+			msg = msg.concat(payload.data.sendername);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div id='buttons'><button onclick='opendetail(\"" + payload.notification.click_action + "\")'>รายละเอียด</button></div>");
+			$.notify(msg, {position: 'bottom right', autoHideDelay: 10000, clickToHide: true, style: 'myshopman', className: 'purple'});
+			playsoundeffect();
+		});
+
+		function opendetail(link) {
+			window.open(link , '_blank');
+		}
+
+		function playsoundeffect() {
+			 $('#soundeffect')[0].play();
+		}
+
+		function subscribeFCM() {
+			messaging.requestPermission().then(function() {
+				console.log("Thank you.");
+			})
+			.catch(function(err) {
+				console.log('Unable to get permission to notify. ', err);
+			});
+		 }
+
+		function getcurrentToken(callback) {
+			timeout(1100).then(function() {
+				 messaging.getToken().then(function(currentToken) {
+				   //mytoken = currentToken;
+				   callback(currentToken);
+				 });
+			});
+		}
+
+		messaging.onTokenRefresh(function() {
+			messaging.getToken()
+			.then(function(refreshedToken) {
+				yrtoken = refreshedToken;
+				console.log('Token refreshed. :: ' + refreshedToken);
+			})
+			.catch(function(err) {
+				console.log('Unable to retrieve refreshed token ', err);
+			});
+		});
+
+		$("#footer-conter").click(function(e) {
+			playsoundeffect();
+		});
+
+		function opendetail(link){
+			window.open(link , '_blank');
+		}
+
+	</script>
+
+	<script>
+		// ตรวจสอบว่า user เคยยอมรับการแจ้งเตือน Notification หรือยัง
+		function handlePermission(callback) {
+			return navigator.permissions.query({name:'notifications'}).then(function(result) {
+				//.catch(permissionError);
+				//.then(permissionQuery);
+					callback(result.state);
+			});
+		}
+
+		function permissionQuery(result) {
+			//console.debug({result});
+			handlePermisState = result.state;
+			var newPrompt;
+
+			if (result.state == 'granted') {
+				// notifications allowed, go wild
+
+			} else if (result.state == 'prompt') {
+				// we can ask the user
+				newPrompt = Notification.requestPermission();
+
+			} else if (result.state == 'denied') {
+				// notifications were disabled
+			}
+
+			result.onchange = () => console.debug({updatedPermission: result});
+
+			return newPrompt || result;
+		}
+
+
+	</script>
+  </body>
+</html>

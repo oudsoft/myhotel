@@ -1,0 +1,197 @@
+<html>
+
+<head>
+  <title>รบบจองห้องพัก</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+  <link rel="shortcut icon" type="image/x-icon" href="resources/imgs/ico/hotelOS.ico">
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+	<script src = "https://code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+</head>
+
+<body>
+<div class="mdl-layout mdl-js-layout">
+  <header class="mdl-layout__header mdl-layout__header--scroll">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">เข้าสู่ระบบ</span>
+      
+    </div>
+  </header>
+  <!--
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">Menu</span>
+    <nav class="mdl-navigation">
+      <a class="mdl-navigation__link" href="">Link</a>
+      <a class="mdl-navigation__link" href="">Link</a>
+      <a class="mdl-navigation__link" href="">Link</a>
+      <a class="mdl-navigation__link" href="">Link</a>
+    </nav>
+  </div>
+  -->
+  <main class="mdl-layout__content">
+    <div class="page-content" style="padding-top: 60px;" align="center">
+    <!-- Your content goes here -->
+      
+<form>
+    <table>
+	<!--
+       <thead>
+        <tr>
+          <th>เข้าสู่ระบบ เพื่อความปลอดภัย</th>
+          <th> &nbsp;</th>
+        </tr>
+      </thead>
+	  -->
+       <tbody>
+        <tr>
+          <td>Email</td>
+          <td>
+               <input type="email" id="email" size="40">
+           </td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td>
+              <input type="password" id="password" size="40">
+              <span class="mdl-textfield__error"></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <button id="sign-in" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+              Login
+            </button>
+          </td>
+          </tr>
+        <tr>
+          <td>
+		  <a href="#" target="_blank">ลืมรหัสผ่าน</a>
+           </td>
+		  <td style="text-align:right">
+			<a href="https://myhotel-4746f.firebaseapp.com/hotelregister.html" target="_blank">สมัครใช้งาน</a>
+			<!--<input type="button" onclick="baa()" value="สมัครใช้งาน"/>-->
+ 		  </td>
+         </tr>
+       <tr>
+          <td>
+				&nbsp;
+          </td>
+          <td colspan="4">
+            <div class="panel panel-danger" id ="errors" style='display: none; color: red;'></div>
+           </td>
+        </tr>
+
+       </tbody>
+    </table>
+    </form>
+	
+    </div>
+  </main>
+</div>
+
+<script src = "https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+
+<script type="text/javascript" src="resources/js/myhotel.js"></script>
+<script type="text/javascript" src="resources/js/jquery.cookie.js"></script>
+
+  <!--Configure firebase-->
+  <script>
+    // Visit https://console.firebase.google.com/project/<your project id>/overview and click on "Add Firebase to your web app"
+    // Initialize Firebase
+
+		  var config = {
+			apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+			authDomain: "myhotel-4746f.firebaseapp.com",
+			databaseURL: "https://myhotel-4746f.firebaseio.com",
+			projectId: "myhotel-4746f",
+			storageBucket: "myhotel-4746f.appspot.com",
+			messagingSenderId: "312890797074"
+		  };
+		  firebase.initializeApp(config);
+		  var db = firebase.firestore();
+  //Your Code Here
+
+ $("#sign-in").click(function(e) {
+    e.preventDefault();
+    handleSignIn();
+  });
+
+  function handleSignIn() {
+    var email = $("#email").val();
+    var url = $("#url").val();
+    var password = $("#password").val();
+    var warnings = "";
+
+    if (!validateEmail(email)) {
+      warnings += 'คุณยังไม่ได้ป้อน Email<br/>';
+    }
+    if (password.length == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน Password <br/>';
+    }
+
+    if (warnings != "") {
+		$("#errors").css("display","block");
+		$("#errors").html(warnings);
+    } else {
+		$("#errors").css("display","none");
+	     myProvideAuth_login(email, password); 
+	   //google_login_in();
+    }
+  }
+ 
+  function google_login_in(){
+        var provider = new firebase.auth.GoogleAuthProvider(); 
+        provider.addScope('https://www.googleapis.com/auth/plus.login');
+        firebase.auth().signInWithPopup(provider).then(function(result) {
+            var token = result.credential.accessToken;
+            var user = result.user;
+        }).catch(function(error) {
+            var errorCode     = error.code;
+            var errorMessage  = error.message;
+            var email         = error.email;
+            var credential    = error.credential;
+			$("#errors").css("display",($("#errors").css("display") === "none" || $("#errors").css("display") === "") ? "block" : "none");
+			$("#errors").html(error.message + "<br/>");
+         });         
+    }
+
+	function myProvideAuth_login(email, password) {
+		firebase.auth().signInWithEmailAndPassword(email, password)
+		.catch(function(error) {
+			$("#errors").css("display",($("#errors").css("display") === "none" || $("#errors").css("display") === "") ? "block" : "none");
+			$("#errors").html("มีความผิดพลาดเกิดขึ้น :" + error.message );
+		})
+		.then (function() {
+		   var usermail = email;
+			db.collection("hotels").where("email", "==", usermail).get()
+			.then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+					savemyhotelOB(doc.id, doc.data().token, doc.data().url);
+					window.location = "index.html";
+				});
+			})
+ 		});
+		/*
+        myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+		var myhotelid = myhotelOB[0].hotelid;
+		*/
+ 	}
+
+	function savemyhotelOB(myhotelid, myhoteltoken, myurl){
+		var myhotel = {hotelid: myhotelid, hoteltoken: myhoteltoken, hotelurl: myurl}
+        myhotelOB.push(myhotel);
+		$.cookie("myhotelOB", JSON.stringify(myhotelOB));
+	}	
+  </script>
+
+</body>
+
+</html>

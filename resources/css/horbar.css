@@ -1,0 +1,196 @@
+.horbar {
+    width: 100%;
+    height: auto;
+}
+
+.horbar .y-labels {
+    width: 10%;
+    float: left;
+}
+
+.horbar .x-labels {
+    width: 100%;
+    height: auto;
+    clear: both;
+    float: left;
+}
+
+.horbar .x-labels .x-label-refill {
+    width: 10%;
+    height: auto;
+    float: left;
+    text-align: right;
+}
+
+.horbar .x-labels .x-label-container {
+    position: relative;
+    width: 90%;
+    /*background-color: lightblue;*/
+    float: left;
+}
+
+.horbar .x-labels .x-label-container .x-label {
+    float: left;
+    /*outline: #000000 solid 1px;*/
+    /*word-break: break-all;*/
+    text-align: right;
+}
+
+.horbar .content {
+    position: relative;
+    width: 90%;
+    min-height: 300px;
+    height: auto;
+    float: left;
+    outline: #000000 solid 1px;
+    background: -o-linear-gradient(white, #DDD);
+    /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(white, #DDD);
+    /* For Firefox 3.6 to 15 */
+    background: linear-gradient(white, #DDD);
+    /* Standard syntax */
+}
+
+.horbar .content .bar-row {
+    position: relative;
+    width: 100%;
+    clear: both;
+    height: 50px;
+    border-bottom: 1px solid #888;
+    box-sizing: border-box;
+}
+
+.horbar .y-labels .y-label {
+    height: auto;
+    text-align: right;
+    padding-right: 1em;
+    clear: both;
+}
+
+.horbar .y-labels .y-label .label-text {
+    display: inline-block;
+    width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    height: auto;
+    text-align: right;
+    margin-right: 1em;
+}
+
+.horbar .content .bar-row .bar-container {
+    position: relative;
+    float: left;
+    width: 100%;
+    height: 50%;
+    /*background-color: lightgreen;*/
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    vertical-align: middle;
+}
+
+.horbar .content .bar-row .bar-container .bar {
+    width: 100%;
+    height: 100%;
+    float: left;
+    /*background-color: lightgreen;*/
+}
+
+.horbar .content .bar-row .bar-container .bar .bar-segment {
+    position: relative;
+    float: left;
+    height: 100%;
+    opacity: 0.6;
+    -webkit-box-shadow: inset 0px 0px 0px 2px;
+    -moz-box-shadow: inset  0px 0px 0px 2px;
+    box-shadow:  inset 0px 0px 0px 2px;
+    /*box-shadow-color is the color property.*/
+}
+
+.horbar .content .bar-row .bar-container .bar .bar-segment:hover {
+    opacity: 0.8;
+}
+
+
+/* Legends */
+
+.horbar .content .legends {
+    position: absolute;
+    outline: black solid 1px;
+    background-color: white;
+    z-index: 1000;
+    opacity: 0.7;
+    /*background-color: lightgreen;*/
+}
+
+
+/*TODO: Implement other cardinal points*/
+
+.horbar .content .legends.ne {
+    top: calc(0% + 1em);
+    right: calc(0% + 1em);
+}
+
+.horbar .content .legends.se {
+    bottom: calc(0% + 1em);
+    right: calc(0% + 1em);
+}
+
+.horbar .content .legends .legend {
+    clear: both;
+    padding: 2px;
+}
+
+.horbar .content .legends .legend > * {
+    float: left;
+}
+
+.horbar .content .legends .legend-color {
+    width: 10px;
+    height: 10px;
+    border: 1px solid black;
+    margin-right: 1em;
+    /*background-color: lightgreen;*/
+}
+
+/* Grid */
+.horbar .content .vertical-grid {
+  position: relative;
+  float: left;
+  height: 100%;
+  border-right: 1px solid grey;
+  box-sizing: border-box;
+}
+
+/* Popover */
+
+#horbar-popover {
+    display: none;
+    position: absolute;
+    min-width: 50px;
+    min-height: 50px;
+    background-color: #444;
+    opacity: 0.8;
+    border-radius: 5px;
+    padding: 5px;
+    color: white;
+    z-index: 100;
+}
+
+
+/* Segment values */
+.horbar .content .bar-row .bar-container .bar .bar-segment .segment-value
+{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    float: left;
+    font-size: calc(6px + 0.2vw);
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    line-height: 25px; /* Half the value of bar-row height property */
+}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../../resources/imgs/ico/vanOS.ico">
+	<title>บริการจองรถตู้</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 100%
+			float: left;
+
+			border: #cc33cc 5px solid;
+			border-radius:5px;
+			box-shadow:0 0 3px #999;
+			margin: 5px;
+			padding: 5px;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		padding: 10px;
+	}
+
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<img src="../../../resources/imgs/vanOS.png" width="60" height="60"/>
+			<h4>This is Header Panel.</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+		<!--
+		<div class="title-box">เมนูหลัก</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="tour-mng-cmd" onclick="openRouteMng()">   จัดการเส้นทางเดินรถ     </button>
+		</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="van-mng-cmd" onclick="openVanMng()">   จัดการรถตู้     </button>
+		</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="logout-cmd" onclick="UserLogout()">   ออกจากระบบ     </button>
+		</div>
+		-->
+		<!--<a href="info.html?t=TDUwna6CbjjYJr65dQo1">InfoMan</a>-->
+		<button onclick="notifyMe()">Notify me!</button>
+    </div>
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>This is Footer Panel.</b>
+		</div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../../../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="../../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../../../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../../../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../../../resources/js/notify.js"></script>  
+	<!--<script src="//code.jquery.com/jquery-1.12.2.min.js"></script>-->
+	<script src="../../../resources/js/on-off-switch.js"></script>
+	<script src="../../../resources/js/on-off-switch-onload.js"></script>
+	<script src="../../../resources/js/jquery.timepicker.min.js"></script>
+	<script src="../../../resources/js/mdtimepicker.js"></script>
+	<script src="../../../resources/js/chosen.jquery.min.js"></script>
+	<script src="../../../resources/js/easySelectable.js"></script>
+	<!--
+	<script src="../../../resources/js/pdfmake.js"></script>
+	<script src="../../../resources/js/vfs_fonts.js"></script>
+	-->
+	<script src="../../../resources/js/jquery-qrcode-0.14.0.js"></script>
+	<script src="../../../resources/js/printThis.js"></script>
+
+	<link rel="stylesheet" href="../../../resources/css/on-off-switch.css">
+	<link rel="stylesheet" href="../../../resources/css/jquery.timepicker.min.css">
+	<link rel="stylesheet" href="../../../resources/css/mdtimepicker.css">
+	<link rel="stylesheet" href="../../../resources/css/chosen.min.css">
+
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-storage.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+    </script>
+
+	<script>
+
+		if ('serviceWorker' in navigator) {
+		  navigator.serviceWorker.register('service-worker.js');
+		}
+
+		function notify() {
+			Notification.requestPermission(function(result) {
+				if (result === 'granted') {
+				   navigator.serviceWorker.ready.then(function(registration) {
+						registration.showNotification('ทดสอบนะเจ้าค่ะ', {
+							body: 'สวัสดีเจ้าค่ะ นายใหญ่!',
+							icon: '../../../resources/imgs/vanOS.png',
+						});
+					});
+				}
+			});
+		}
+
+		notify();
+
+	</script>
+
+	<script>
+
+		function playsoundeffect() {
+			 $('#soundeffect')[0].play();
+		}
+
+		$("#footer-conter").click(function(e) {
+			playsoundeffect();
+		});
+
+	</script>
+  </body>
+</html>
+

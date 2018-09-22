@@ -1,0 +1,1277 @@
+<style>
+	#booking-errors, #signup-popup-errors, #signin-mothod-errors, #signup-signin-errors, #get-new-telephone-errors {
+		display: none;
+		color: red;
+	}
+	#explain-box {
+		color: blue;
+	}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		/* height: 40px; */
+		padding: 10px;
+	}
+	.input-step {
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		padding: 10px;
+		text-align: left;
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+	}
+	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 140px;
+		vertical-align: middle;
+	}
+	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#schedule-select-bar, #seat-select-bar, #stationup-select-bar, #stationdown-select-bar, #select-sing-in-bar {
+		display: none;
+	}
+	#ex-before-signin-popup, #signin-mothod-popup, #signup-signin-popup, #signup-popup {
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+	#seat-selectable {
+	  -webkit-user-select:none;
+	  -moz-user-select:none;
+	  -ms-user-select: none;
+	}
+	#seat-selectable {display: flex; flex-wrap: wrap;}
+	#seat-selectable li {margin: 0 10px 10px 0; background: #fff; transition: background 0.2s; width: 50px; height: 50px; color: #222; font-weight: bold; text-align: center; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0px 1px 1px #ccc;}
+	#seat-selectable li.es-selected {background: #cc33cc; color: white}
+</style>
+
+<div  id='bookman-main'>
+	<div class="title-box"><b>จองตั๋ว</b></div>
+	<div id="explain-box">โปรดเลือกข้อมูลแล้วคลิกปุ่ม <b>ตกลง</b> </div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เส้นทาง :</b></div> <div class="step-bar"><input type="text" id="route-text" size="30" class="input-step" readOnly/></div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>วันที่เดินทาง :</b></div><div class="step-bar"><input type="text" id="date-text" size="30" class="input-step" placeholder="คลิก เพื่อเลือกวันที่เดินทางจากปฏิทิน" readOnly/></div>
+	</div>
+	<div id="schedule-select-bar" class="step-box">
+		<div class="step-bar-label"><b>เที่ยวเวลาเดินทาง :</b></div><div class="step-bar"><select id="schedule-select" class="input-step"></select></div>
+	</div>
+	<div id="seat-select-bar" class="step-box">
+		<div class="step-bar-label"><b>ที่นั่ง :</b></div><div class="step-bar"><ol id="seat-selectable"></ol></div>
+	</div>
+	<div id="stationup-select-bar" class="step-box">
+		<div class="step-bar-label"><b>สถานีขึ้นรถ :</b></div><div class="step-bar"><select id="stationup-select" class="input-step"></select></div>
+	</div>
+	<div id="stationdown-select-bar" class="step-box">
+		<div class="step-bar-label"><b>สถานีขึ้นรถ :</b></div><div class="step-bar"><select id="stationdown-select" class="input-step"></select></div>
+	</div>
+	<div id="select-sing-in-bar" class="step-box">
+		<div class="step-bar-label"><b>เข้าสู่ระบบ :</b></div>
+		<div class="step-bar">
+			<select id="select-sing-in" class="input-step">
+				<option value="1">ด้วยบัญชี Facebook</option>
+				<option value="2">ด้วยบัญชี Google</option>
+				<option value="3">เปิดบัญชีใช้งานใหม่</option>
+			</select>
+		</div>
+	</div>
+	</div>
+ 	<div class="ui-field-contain">
+		<button class="ui-btn" id="next-cmd">   ตกลง     </button>	
+		<button class="ui-btn" id="back-cmd">   กลับ     </button>	
+	</div>
+	<p id="booking-errors"></p>
+</div>
+
+<div data-role='popup' id='ex-before-signin-popup' style='padding: 20px;'>
+	<div class="title-box">การจองรถตู้ของคุณใกล้จะเสร็จลงแล้ว อดใจรออีดนิดเดียว</div>
+	<div id="explian-text" style="margin-top: 10px;">
+		<p>ดูเหมือนมันอาจจะไม่ทันใจคุณสักเท่าไหร่!! แต่เพื่อให้การจองของคุณมีความถูกต้องและสมบูรณ์ ขอได้โปรดอ่านคำชี้แจงด้านล่างนี้ให้เข้าใจ เพื่อเลือกวิธีเข้าสู่ระบบ ก่อนการบันทึกข้อมูล และออกบิลชำระค่าโดยสารที่ระบบจะดำเนินการในลำดับต่อไป</p>
+		<p><i>(หากคุณเข้าใจในคำชี้แจงนี้ดีหมดแล้ว คุณสามารถข้ามคำชี้แจงนี้ได้โดยคลิกที่ปุ่ม <b>เข้าสู่ระบบ</b> เพื่อไปเลือกวิธีเข้าสู่ระบบได้ทันที)</i></p>
+		<p>ในขั้นตอนนี้ เรามีวิธีให้คุณเลือกเข้าสู่ระบบได้ 3 วิธี ได้แก่</p>
+		<p><b>1. ด้วยบัญชี Facbook</b> ในกรณีที่คุณเปิดใช้งาน Facebook อยู่แล้ว คุณสามารถเลือกวิธีนี้เพื่อเข้าสู่ระบบด้วยบัญชี Facebook ได้ในทันที หรือ</p>
+		<p><b>2. ด้วยบัญชี Google</b> หากคุณไม่มีบัญชี Facbook แต่คุณมีบัญชี Google คุณก็สามารถเข้าสู่ระบบได้ด้วยบัญชี Google เช่นเดียวกัน แต่ถ้าหากคุณไม่มีทั้งสองอย่าง เรามีทางเลือกเหลือให้คุณอีกหนึ่งวิธี คือ</p>
+		<p><b>3. ใช้บัญชีที่เคยเปิดไว้ / เปิดบัญชีใหม่</b> หากคุณเลือกวิธีนี้ ในกรณีที่คุณเคยเปิดบัญชีมาก่อนแล้ว คุณสามารถเข้าสู่ระบบได้เช่นเดียวกัน โดยใช้ EMail และ Password แต่ในกรณีที่คุณยังไม่เคยเปิดบัญชีมาก่อน เราจำเป็นต้องขอความความร่วมมือจากคุณ ให้เปิดบัญชีใช้งานกับเราก่อน เมื่อเปิดเสร็จแล้วก็สามารถเข้าสู่ระบบได้ทันทีเช่นเดียวกัน</p>
+		<p>ทั้งนี้ ที่ต้องเป็นแบบนี้ ก็เพราะว่า เราคำนึงถึงความปลอดภัยต่อข้อมูลการจองของคุณ และเราต้องการทราบความมีตัวตนที่แท้จริงของคุณ หวังว่าคุณคงเข้าใจ</p>
+		<p>หากคุณเข้าใจทั้งหมดแล้ว คลิกที่ปุ่ม <b>เข้าสู่ระบบ</b> เพื่อไปเลือกวิธีเข้าสู่ระบบตามที่ได้กล่าวมาแล้วได้เลย</p>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="signin-cmd" onclick="closeAndSignin()">   เข้าสู่ระบบ     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='signin-mothod-popup' style='padding: 20px;'>
+	<div class="title-box">เลือกวิธีเข้าสู่ระบบ ก่อนบันทึกข้อมูลและออกบิลชำระค่าโดยสาร</div>
+	<div id="explian-text" style="margin-top: 10px;"><p>คลิกที่ปุ่มวิธีเข้าสู่ระบบตามที่คุณต้องการ</p></div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="facebook-cmd" onclick="facebookMethod()">   Facebook     </button>	
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="google-cmd" onclick="googleMethod()">   Google     </button>	
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="signup-cmd" onclick="signupMethod()">   ใช้บัญชีที่เคยเปิดไว้ / เปิดบัญชีใหม่     </button>	
+	</div>
+	<div id="signin-mothod-errors" onclick="signout()"></div>
+</div>
+
+<div data-role='popup' id='signup-signin-popup' style='padding: 20px;'>
+	<div class="title-box">เข้าสู่ระบบ</div>
+	<div id="explian-text" style="margin-top: 10px;">
+	<p> ในกรณีที่คุณเคยเปิดบัญชีใช้งานมาก่อนแล้ว ป้อน Email และ Password แล้วคลิก <b>Login</b> เพื่อเข้าสู่ระบบได้ทันที</p>
+	<p> ในกรณีที่คุณยังไม่เคยเปิดบัญชีใช้งานมาก่อน และต้องการเปิดบัญชีใช้งานใหม่ คลิกปุ่ม <b>เปิดบัญชีใหม่</b> เพื่อเปิดบัญชีและเข้าสู่ระบบ</p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Email :</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="loginemail" size="40" placeholder="example@example.com" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Password :</b></div>
+		<div class="step-bar">
+			<input type="password" data-clear-btn="false" id="loginpassword" size="40" placeholder="......" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<div class="ui-field-contain">
+			<button class="ui-btn" id="booking-login-cmd" onclick="userLogin()">   Login     </button>
+			<button class="ui-btn" id="booking-signup-cmd" onclick="userSignup()">   เปิดบัญชีใหม่     </button>
+			<button class="ui-btn" id="booking-signup-back-cmd" onclick="back2SelectMethod()">   กลับ    </button>
+		</div>
+	</div>
+	<div id="signup-signin-errors">&nbsp;</div>
+</div>
+		
+<div data-role='popup' id='signup-popup' style='padding: 20px;'>
+	<div class="title-box">เปิดบัญชีใหม่</div>
+	<div id="explian-text" style="margin-top: 10px;">
+	<p>ป้อน ชื่อ-นามสกุล, เบอร์โทรศัพท์, Email และ Password 2 ครั้ง(ให้เหมือนกัน) แล้วคลิกปุ่ม <b>เปิดบัญชี</b></p>
+	<p><b>หมายเหตุ</b> Email จะต้องเป็น Email ที่ใช้งานได้จริงๆ เท่านั้น ทั้งนี้หากระบบตรวจสอบและพบว่าเป็น Email ที่ใช้งานไม่ได้ ก็จะไม่สามารถเปิดบัญชีใหม่ได้ ส่วนเบอร์โทรศัพท์ก็เช่นเดียวกัน จะต้องเป็นหมายเลขที่ใช้งานได้จริงๆ เท่านั้น</p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>ชื่อ-นามสกุล :</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="displayname" size="40" placeholder="ชื่อ-นามสกุล จะไปปราฎในบิลชำระค่าโดยสาร และตัํวโดยสาร ที่มีการจองเสมอ" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เบอร์โทรศัพท์ :</b></div>
+		<div class="step-bar">
+			<input type="numbert" data-clear-btn="false" id="telephone" size="40" placeholder="0xxxxxxxxx" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Email :</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="email" size="40" placeholder="example@example.com" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Password :</b></div>
+		<div class="step-bar">
+			<input type="password" data-clear-btn="false" id="password" size="40" placeholder="......" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>ยืนยัน Password :</b></div>
+		<div class="step-bar">
+			<input type="password" data-clear-btn="false" id="confirmpassword" size="40" placeholder="......" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<div class="ui-field-contain">
+			<button class="ui-btn" id="booking-login-cmd" onclick="validateSignup()">    เปิดบัญชี    </button>
+		</div>
+	</div>
+	<div id="'signup-popup-errors">&nbsp;</div>
+</div>
+
+<div data-role='popup' id='get-new-telephone-popup' style='padding: 20px;'>
+	<div class="title-box">เบอร์โทรศัพท์ของคุณ</div>
+	<div id="new-telephone-explian-text" style="margin-top: 10px;">
+	<p>โปรดป้อน เบอร์โทรศัพท์ที่สามารถติดต่อคุณได้จริงๆ แล้วคลิกปุ่ม <b>ตกลง</b></p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เบอร์โทรศัพท์ :</b></div>
+		<div class="step-bar">
+			<input type="number" data-clear-btn="false" id="new-telephone" size="40" placeholder="0xxxxxxxxx" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<div class="ui-field-contain">
+			<button class="ui-btn" id="booking-login-cmd" onclick="closeAndSaveBooking()">    ตกลง    </button>
+			<button class="ui-btn" id="booking-login-cmd" onclick="cancelBooking()">    ยกเลิก    </button>
+		</div>
+	</div>
+	<div id="get-new-telephone-errors">&nbsp;</div>
+</div>
+
+
+<script>
+
+    $(document).ready(function() {
+		billOB = {};
+		seatNotEmptylist = [];
+		setuproutetext();
+		$("#date-text").datepicker({dateFormat: 'yy-mm-dd'});
+		$("#date-text").datepicker().datepicker("setDate", new Date());
+		$("#explain-box").html("โปรดเลือกวันที่เดินทาง แล้วคลิกปุ่ม <b>ตกลง</b>");
+		$("#next-cmd").attr("onclick", "toSelectSchedule()");
+		$("#back-cmd").attr("onclick", "openBooking()");
+		$("#ex-before-signin-popup").popup({ overlayTheme: "a"});
+		$("#signin-mothod-popup").popup({ overlayTheme: "a"});
+		$("#signup-signin-popup").popup({ overlayTheme: "a"});
+		$("#signup-popup").popup({ overlayTheme: "a"});
+		$("#get-new-telephone-popup").popup({ overlayTheme: "a"});
+    });
+
+	function setuproutetext() {
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			defaultPrice = doc.data().price;
+			rouNo = doc.data().routeno;
+			$("#route-text").val(doc.data().beginter + " - " + doc.data().endter);
+			billOB.route = $("#route-text").val();
+		});
+	}
+
+	function toSelectSchedule() {
+		$("#seat-select").empty();
+		$("#seat-select-bar").hide();
+		$("#booking-errors").hide();
+		bdate = new Date($("#date-text").val());
+		var today = new Date();
+		today.setHours(0,0,0,0);
+		if ($("#date-text").val() == "")	{
+			$("#booking-errors").text("คุณยังไม่ได้เลือกวันที่เดินทาง");
+			$("#booking-errors").show();
+		} else if (bdate.getTime() <= today.getTime()) {
+			$("#booking-errors").text("วันที่เดินทางไม่สามารถจองย้อนกลับหลังได้");
+			$("#booking-errors").show();
+		/* ในกรณีเป็นวันที่ปัจจุบัน จะต้องเลือก Schedule ที่มากกว่าเวลาปัจจุบัน */
+		} else {
+			$("#booking-errors").hide();
+			showLoadingImageMT();
+			bdate = new Date($("#date-text").val());
+			billOB.date = formatDate(bdate);
+			var dow = bdate.getDay();
+			$("#next-cmd").attr("onclick", "toSelectSeat()");
+			$("#back-cmd").attr("onclick", "back2SelectDate()");
+			$( "#date-text" ).datepicker( "option", "disabled", true );
+			$("#schedule-select").prop('disabled', false);
+			loadScheduleOption(dow2Text(dow), $("#schedule-select"));
+			$("#explain-box").html("โปรดเลือกเที่ยวเวลาเดินทาง แล้วคลิกปุ่ม <b>ตกลง</b>");
+			$("#schedule-select-bar").show();
+			timeout(500).then(function() {
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function loadScheduleOption(day, selector){
+		selector.empty();
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("schedules").where("day", "==", day).orderBy("time", "asc").get()
+		.then(function(querySnapshot) {
+ 			querySnapshot.forEach(function(doc) {
+				var d = new Date();
+				if (!(isSameDate(bdate, d))) {
+					selector.append("<option value='" + doc.id + "'>" + doc.data().time + "</option>");
+				} else {
+					var hh = d.getHours();
+					var mm = d.getMinutes();
+					var tm = doc.data().time.split(":");
+					if (Number(tm[0]) > hh){
+						selector.append("<option value='" + doc.id + "'>" + doc.data().time + "</option>");
+					} else if ((Number(tm[0]) == hh) && (Number(tm[1]) > mm)) {
+						selector.append("<option value='" + doc.id + "'>" + doc.data().time + "</option>");
+					}
+				}
+			});
+		});
+	}
+
+	function back2SelectDate(){
+		$("#schedule-select").html("");
+		$("#schedule-select-bar").hide();
+		$( "#date-text" ).datepicker( "option", "disabled", false );
+		$("#explain-box").html("โปรดเลือกวันที่เดินทาง แล้วคลิกปุ่ม <b>ตกลง</b>");
+		$("#next-cmd").attr("onclick", "toSelectSchedule()");
+		$("#back-cmd").attr("onclick", "openBooking()");
+	}
+
+	function toSelectSeat() {
+		$("#stationup-select").empty();
+		$("#stationup-select-bar").hide();
+		$("#booking-errors").hide();
+		if ($("#schedule-select").prop('selectedIndex') < 0){
+			$("#booking-errors").text("คุณยังไม่ได้เลือกเที่ยวเวลาเดินทาง");
+			$("#booking-errors").show();
+		} else {
+			$("#booking-errors").hide();
+			$("#schedule-select").prop('disabled', 'disabled');
+			bscheduleid = $("#schedule-select").val();
+			billOB.schedule = $("#schedule-select option:selected").text();
+			/* LOGIC การค้นหา */
+			//แค่ค้นหาว่า ยังมีที่นั่งว่างอีกกี่ที่ จากจำนวนเต็มคันมีกี่ที่ searchSeatEmp()
+			//ถ้าเต็ม แจ้งว่า เต็ม พร้อมเสนอทางเลือก
+			//ถ้ายังมีที่ว่าง โหลดที่ว่างมาให้เลือก
+			//เมื่อเลือกเสร็จ นำเข้าสู่ การเลือกสถานีขึ้นรถ / การเลือกสถานีลงรถ
+			//กรอกข้อมูลผู้โดยสาร
+			//บันทึกการจอง
+			//ออกตั๋ว ให้ผู้โดยสาร ชำระเงิน
+
+			showLoadingImageMT();
+			howManySeatEmpty(bdate, bscheduleid, function(full, notEmptyList) {
+				console.log("จำนวนที่นั่งทั้งหมดของรถเที่ยวนี้ : " + full);
+				console.log("รายการที่นั่งที่ถูกจอง(ออกตั๋วโดยสารแล้ว) : " + JSON.stringify(notEmptyList.sort()));
+				emptySeatList = [];
+				for (var k=0; k < full; k++)	{
+					if (notEmptyList.findIndex(x => x ==String(k+1)) < 0)	{
+						emptySeatList.push(String(k+1));
+					}
+				}
+				console.log("รายการที่นั่งว่างที่เหลืออยู่ : " + JSON.stringify(emptySeatList));
+				var empty = full - notEmptyList.length;
+				if (empty == 0)	{
+					//แจ้งว่าเต็ม พร้อมเสนอทางเลือกอื่น
+					$("#booking-errors").html("รถเที่ยวนี้ที่นั่งเต็มแล้ว จะเป็นไปได้ไหม หากว่าคุณจะลองเปลี่ยนเที่ยวเวลาใหม่หรือเปลี่ยนวันที่เดินทางใหม่");
+					$("#booking-errors").show();
+				} else {
+					$("#seat-select-bar").show();
+					$("#booking-errors").empty();
+					$("#seat-selectable").empty();
+					for (var i=0;i < emptySeatList.length ;i++ ){
+						$("#seat-selectable").append("<li class='ui-state-default'>" + emptySeatList[i] + "</li>");
+					}
+					$( "#date-text" ).datepicker( "option", "disabled", true );
+					$( "#seat-selectable" ).selectable({ disabled: false });
+					$("#explain-box").html("รถเที่ยวนี้มีที่นั่งว่างเหลืออยู่ " + empty + " ที่นั่ง โปรดเลือกที่นั่งที่คุณต้องการจอง แล้วคลิกปุ่ม <b>ตกลง</b>");
+					$("#seat-select-bar").show();
+					bseatno = []; //หากไม่เคลียร์ bseatno จะมีผลกับการจองรอบใหม่ โดยไม่รีเฟรชหน้านี้
+				}
+				$("#next-cmd").attr("onclick", "toSelectUpStation()");
+				$("#back-cmd").attr("onclick", "toSelectSchedule()");
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function getPassangerSize(dschedule, callback) {
+		var pssg = 0;
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/schedules/" + dschedule;
+		var scheduleRef = db.doc(docpath);
+		scheduleRef.get().then(function(doc) {
+			pssg = parseInt(doc.data().passanger);
+			callback(pssg);
+		});
+	}
+
+	function getTourId(ddate, dschedule, callback) {
+		var yrtourid = null;
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("tours").where("traveldate", "==", ddate.getTime()).get().then(function(querySnapshot) {
+			if (querySnapshot.size > 0){
+				querySnapshot.forEach(function(tourdoc) {
+					if (tourdoc.data().scheduleid == dschedule) {
+						yrtourid = tourdoc.id;
+					} 
+				});
+			}
+			callback(yrtourid);
+		});
+	}
+
+	function howManySeatEmpty(ddate, dschedule, callback) {
+		var bookingedList = [];
+		var pssg = 0;
+		getPassangerSize(dschedule, function(size) {
+			pssg = size;
+		});
+
+		getTourId(ddate, dschedule, function(id) {
+			console.log("tourid = " + id);
+			if (id != null)	{
+				var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + id;
+				var tourRef = db.doc(docpath);
+				tourRef.collection("passangers").get().then(function(psgquerySnapshot) {
+					//console.log(psgquerySnapshot.size); //log
+					psgquerySnapshot.forEach(function(psgdoc) {
+						docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + id + "/passangers/" + psgdoc.id;
+						var passangerRef = db.doc(docpath);
+						passangerRef.get().then(function(pgdoc) {
+							var seatno = pgdoc.data().seatno;
+							passangerRef.collection("bookings").where("bstatus", "==", "2").get().then(function(bkquerySnapshot) {
+								//console.log(bkquerySnapshot.size); //log
+								if (bkquerySnapshot.size > 0){
+									bookingedList.push(seatno);
+								}
+							});
+						});
+					});
+				});
+			}
+		});
+		/*
+			} else {
+				alert("การสื่อสารข้อมูลอาจจะล่าช้า ทำให้บรรจุข้อมูลบางส่วนไม่ทัน\nระบบจะทำการรีเฟรชแอพลิเคชั่นอีกครั้ง ต้องขออภัยความเคารพจริงๆ");
+				window.location.reload(true); 
+		*/
+		//ยังจำเป็นต้องเบรคด้วย timeout เพราะ ในฟังก์ชั่นค้นหา มีลูปที่ต้องรอข้อมูลจนครบทุกรายการ คือ psgquerySnapshot.forEach(function(psgdoc) { ... });
+		timeout(5900).then(function() {
+			callback(pssg, bookingedList);
+		});
+	}
+
+	function toSelectUpStation() {
+		$("#stationdown-select").empty();
+		$("#stationdown-select-bar").hide();
+		if (bseatno.length == 0)	{
+			$("#booking-errors").text("คุณยังไม่ได้เลือกจำนวนที่นั่ง");
+			$("#booking-errors").show();
+		} else {
+			console.log("รายการที่นั่งที่คุณเลือก : " + JSON.stringify(bseatno.sort()));
+			showLoadingImageMT();
+			billOB.seats = bseatno;
+			$("#booking-errors").hide();
+			$( "#seat-selectable" ).selectable({ disabled: true });
+			$("#next-cmd").attr("onclick", "toSelectDownStation()");
+			$("#back-cmd").attr("onclick", "toSelectSeat()");
+			$("#stationup-select").prop('disabled', false);
+			$("#stationup-select-bar").show();
+			$("#explain-box").html("โปรดเลือกสถานีขึ้นรถ แล้วคลิกปุ่ม <b>ตกลง</b>");
+			loadStaionOption($("#stationup-select"), 1);
+			hideLoadingImageM();
+		}
+	}
+
+	function loadStationAllList(callback) {
+		var items = [];
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("stations").where("status","==", 1).get().then(function(querySnapshot) {
+ 			querySnapshot.forEach(function(doc) {
+				var obP = {};
+				obP.id = doc.id;
+				obP.updown = doc.data().updown;
+				obP.name = doc.data().name;
+				items.push(obP);
+			});
+			callback(items);
+			return items;
+		});
+	}
+
+	function loadStaionOption(selector,UpDown){
+		//UpDown [0/1] 0=ลง / 1= ขึ้น
+		selector.empty();
+		loadStationAllList(function(stx) {
+			var items = $.grep(stx, function(e){ return (e.updown == UpDown); });
+			for (var i=0; i< items.length; i++){
+				selector.append("<option value='" + items[i].id + "'>" + items[i].name + "</option>");
+			}
+		});
+	}
+
+	function toSelectDownStation() {
+		$("#select-sing-in-bar").hide();
+		if ($("#stationup-select").prop('selectedIndex') < 0)	{
+			$("#booking-errors").text("คุณยังไม่ได้เลือกสถานีขึ้นรถ");
+			$("#booking-errors").show();
+		} else {
+			showLoadingImageMT();
+			billOB.stationupid = $("#stationup-select").val();
+			billOB.stationup = $("#stationup-select option:selected").text();
+			$("#booking-errors").hide();
+			$("#next-cmd").attr("onclick", "toSelectSignin()");
+			$("#back-cmd").attr("onclick", "toSelectUpStation()");
+			$("#stationdown-select").prop('disabled', false);
+			$("#stationdown-select-bar").show();
+			$("#explain-box").html("โปรดเลือกสถานีลงรถ แล้วคลิกปุ่ม <b>ตกลง</b>");
+			loadStaionOption($("#stationdown-select"), 0);
+			hideLoadingImageM();
+		}
+	}
+
+	function toSelectSignin() {
+		if ($("#stationdown-select").prop('selectedIndex') < 0)	{
+			$("#booking-errors").text("คุณยังไม่ได้เลือกสถานีลงรถ");
+			$("#booking-errors").show();
+		} else {
+			billOB.stationdownid = $("#stationdown-select").val();
+			billOB.stationdown = $("#stationdown-select option:selected").text();
+			$("#booking-errors").hide();
+			$("#next-cmd").attr("onclick", "toSignin()");
+			$("#back-cmd").attr("onclick", "toSelectDownStation()");
+			if (cuser == null){
+				$("#ex-before-signin-popup").popup("open");
+			} else {
+				updateUserToken(cuser.email, yrtoken);
+				var confirmText = "การจองในครั้งนี้ เป็นการจองในนามของบัญชี " + cuser.email + " (" + cuser.displayName + ") " + "\nใช่หรือไม่";
+				confirmText = confirmText.concat("\nคลิก OK หรือ ตกลง เพื่อตอบ ใช่");
+				confirmText = confirmText.concat("\nคลิก Cancel หรือ ยกเลิก เพื่อตอบ ไม่ใช่ และสลับไปเป็นบัญชีอื่น");
+				if (confirm(confirmText) == true)	{
+					showLoadingImageMT();
+					loadUserData(cuser.email, function(displayname, telephone) {
+						if (displayname) 	{
+							billOB.pname = displayname;
+						} else {
+							billOB.pname = cuser.displayName;
+						}
+						if (telephone){
+							billOB.ptel = telephone;
+							saveAndCreateBill(billOB.pname, billOB.ptel, billOB.schedule, billOB.stationupid, billOB.stationdownid, cuser.email);
+							hideLoadingImageM();
+						} else {
+							var exText = "<p>ระบบไม่พบข้อมูลเบอร์โทรศัพท์ของคุณ</p>";
+							var exText = "<p>โปรดป้อน เบอร์โทรศัพท์ที่สามารถติดต่อคุณได้จริงๆ แล้วคลิกปุ่ม <b>ตกลง</b></p>";
+							$("#get-new-telephone-popup").popup("open");
+							$("#new-telephone-explian-text").html(exText);
+							hideLoadingImageM();
+						}
+					});
+				} else {
+					signout();
+					$("#ex-before-signin-popup").popup("open");
+					hideLoadingImageM();
+				}
+			}
+		}
+	}
+
+	//ส่วนของการ Sign-In
+
+	function closeAndSignin() {
+		showLoadingImageMT();
+		$("#ex-before-signin-popup").popup("close");
+		timeout(1900).then(function() {
+			$("#signin-mothod-popup").popup("open");
+			hideLoadingImageM();
+		});
+	}
+
+	//กรณีที่ 1 user ขอ singin ด้วย Facebook Method
+	// https://myhotel-4746f.firebaseapp.com/__/auth/handler
+	function facebookMethod(){
+		$("#signin-mothod-errors").empty();
+		$("#signin-mothod-errors").hide();
+		var provider = new firebase.auth.FacebookAuthProvider();
+	   firebase.auth().signInWithPopup(provider).then(function(result) {
+			showLoadingImageMT();
+			var token = result.credential.accessToken;
+			var user = result.user;
+			cuser = user;
+			//console.log(token)
+			//console.log(user)
+			saveUserData(user.displayName, user.phoneNumber, user.email, "facebook");
+			timeout(1500).then(function() {
+				updateUserToken(cuser.email, yrtoken);
+			});
+			// console.log(cuser);
+			// load ข้อมูล user มาใส่ billOB.pname และ .ptel
+			// save Booking data 
+			// create bill
+			// push notification
+				// 1.  แจ้งรายละเอียดการจองไปให้นายคิว 
+				// 2 . แจ้งวิธีชำระเงิน วิธีแจ้งผลการชำระเงิน ไปให้ user ผู้จอง
+			loadUserData(cuser.email, function(displayname, telephone) {
+				console.log(displayname);
+				console.log(telephone);
+				if (displayname) 	{
+					billOB.pname = displayname;
+				} else {
+					billOB.pname = cuser.displayName;
+				}
+				if (telephone){
+					billOB.ptel = telephone;
+					saveAndCreateBill(billOB.pname, billOB.ptel, billOB.schedule, billOB.stationupid, billOB.stationdownid, cuser.email);
+					$("#signin-mothod-popup").popup("close");
+					openBooking();
+					hideLoadingImageM();
+				} else {
+					var exText = "<p>สวัสดีคุณ " + billOB.pname + "</p>";
+					exText = exText.concat("<p>เนื่องจากระบบไม่พบข้อมูลเบอร์โทรศัพท์ของคุณ</p>");
+					exText = exText.concat("<p>กรุณาป้อน เบอร์โทรศัพท์ที่สามารถติดต่อคุณได้จริงๆ แล้วคลิกปุ่ม <b>ตกลง</b></p>");
+					$("#signin-mothod-popup").popup("close");
+					timeout(1900).then(function() {
+						$("#get-new-telephone-popup").popup("open");
+						$("#new-telephone-explian-text").html(exText);
+						hideLoadingImageM();
+					});
+				}
+			});
+	   }).catch(function(error) {
+            var errorCode     = error.code;
+            var errorMessage  = error.message;
+            var email         = error.email;
+			console.log(email);
+            var credential    = error.credential;
+			$("#signin-mothod-errors").css("display",($("#signin-mothod-errors").css("display") === "none" || $("#signin-mothod-errors").css("display") === "") ? "block" : "none");
+			$("#signin-mothod-errors").html(error.message + "<br/>");
+	   });
+	}
+
+	//กรณีที่ 2 user ขอ singin ด้วย Google Method
+	function googleMethod(){
+		$("#signin-mothod-errors").empty();
+		$("#signin-mothod-errors").hide();
+        var provider = new firebase.auth.GoogleAuthProvider(); 
+        provider.addScope('https://www.googleapis.com/auth/plus.login');
+        firebase.auth().signInWithPopup(provider).then(function(result) {
+			showLoadingImageMT();
+			//console.log(result.user);
+            var token = result.credential.accessToken;
+            var user = result.user;
+			cuser = user;
+			saveUserData(user.displayName, user.phoneNumber, user.email, "google");
+			timeout(1500).then(function() {
+				updateUserToken(cuser.email, yrtoken);
+			});
+			// console.log(cuser);
+			// load ข้อมูล user มาใส่ billOB.pname และ .ptel
+			// save Booking data 
+			// create bill
+			// push notification
+				// 1.  แจ้งรายละเอียดการจองไปให้นายคิว 
+				// 2 . แจ้งวิธีชำระเงิน วิธีแจ้งผลการชำระเงิน ไปให้ user ผู้จอง
+			loadUserData(cuser.email, function(displayname, telephone) {
+				console.log(displayname);
+				console.log(telephone);
+				if (displayname) 	{
+					billOB.pname = displayname;
+				} else {
+					billOB.pname = cuser.displayName;
+				}
+				if (telephone){
+					billOB.ptel = telephone;
+					saveAndCreateBill(billOB.pname, billOB.ptel, billOB.schedule, billOB.stationupid, billOB.stationdownid, cuser.email);
+					$("#signin-mothod-popup").popup("close");
+					openBooking();
+					hideLoadingImageM();
+				} else {
+					var exText = "<p>สวัสดีคุณ " + billOB.pname + "</p>";
+					exText = exText.concat("<p>เนื่องจากระบบไม่พบข้อมูลเบอร์โทรศัพท์ของคุณ</p>");
+					exText = exText.concat("<p>กรุณาป้อน เบอร์โทรศัพท์ที่สามารถติดต่อคุณได้จริงๆ แล้วคลิกปุ่ม <b>ตกลง</b></p>");
+					$("#signin-mothod-popup").popup("close");
+					timeout(1900).then(function() {
+						$("#get-new-telephone-popup").popup("open");
+						$("#new-telephone-explian-text").html(exText);
+						hideLoadingImageM();
+					});
+				}
+			});
+        }).catch(function(error) {
+			console.log(error);
+            var errorCode     = error.code;
+            var errorMessage  = error.message;
+            var email         = error.email;
+            var credential    = error.credential;
+			$("#signin-mothod-errors").css("display",($("#signin-mothod-errors").css("display") === "none" || $("#signin-mothod-errors").css("display") === "") ? "block" : "none");
+			$("#signin-mothod-errors").html(error.message + " == " + error.code + " == " + error.email);
+         });         
+    }
+
+	//กรณีที่ 3 user ขอ singin ด้วย signup Method
+	function signupMethod() {
+		$("#signin-mothod-errors").empty();
+		$("#signin-mothod-errors").hide();
+		showLoadingImageMT();
+		$("#signin-mothod-popup").popup("close");
+		timeout(1900).then(function() {
+			//$("#booking-signup-cmd-Div").show();
+			$("#signup-signin-popup").popup("open");
+			hideLoadingImageM();
+		});
+	}
+
+	function userLogin() {
+		var email = $("#loginemail").val();
+		var password = $("#loginpassword").val();
+		var warnings = "";
+		if (!validateEmail(email)) {
+		  warnings += 'Email ผู้ใช้งาน ไม่ถูกต้อง<br/>';
+		}
+		if (password.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนรหัสผ่าน<br/>';
+		}
+		 if (warnings != "") {
+		  $("#signup-signin-errors").css("display", "block");
+		  $("#signup-signin-errors").html(warnings);
+		} else {
+			showLoadingImageMT();
+			$("#signup-signin-errors").css("display", "none");
+			userSignin(email, password);
+			timeout(3900).then(function() {
+				openBooking();
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function userSignin(email, password) {
+		firebase.auth().signInWithEmailAndPassword(email, password)
+		.catch(function(error) {
+			var errorCode = error.code;
+			var errorMsg;
+			if (errorCode == "auth/wrong-password"){
+				errorMsg = "Password ไม่ถูกต้อง";
+			} else {
+				errorMsg = error.message;
+			}
+			$("#signup-signin-errors").css("display","block");
+			$("#signup-signin-errors").html("มีความผิดพลาดเกิดขึ้นคือ :" + errorMsg);
+		})
+		.then (function (checkVerify) {
+			firebase.auth().onAuthStateChanged(firebaseUser => {
+				cuser = firebaseUser;
+				if (firebaseUser.emailVerified) {
+					showLoadingImageMT();
+					console.log("Email is verified");
+					console.log("Success");
+					updateUserToken(cuser.email, yrtoken);
+					timeout(1000).then(function() {
+						console.log(cuser);
+						// load ข้อมูล user มาใส่ billOB.pname และ .ptel
+						// save Booking data 
+						// create bill
+						// push notification
+							// 1.  แจ้งรายละเอียดการจองไปให้นายคิว 
+							// 2 . แจ้งวิธีชำระเงิน วิธีแจ้งผลการชำระเงิน ไปให้ user ผู้จอง
+						loadUserData(cuser.email, function(displayname, telephone) {
+							if (displayname) 	{
+								billOB.pname = displayname;
+							} else {
+								billOB.pname = cuser.displayName;
+							}
+							if (telephone){
+								billOB.ptel = telephone;
+								saveAndCreateBill(billOB.pname, billOB.ptel, billOB.schedule, billOB.stationupid, billOB.stationdownid, cuser.email);
+								$("#signup-signin-popup").hide();
+								openBooking();
+								hideLoadingImageM();
+							} else {
+								var exText = "<p>สวัสดีคุณ " + billOB.pname + "</p>";
+								exText = exText.concat("<p>เนื่องจากระบบไม่พบข้อมูลเบอร์โทรศัพท์ของคุณ</p>");
+								exText = exText.concat("<p>กรุณาป้อน เบอร์โทรศัพท์ที่สามารถติดต่อคุณได้จริงๆ แล้วคลิกปุ่ม <b>ตกลง</b></p>");
+								$("#get-new-telephone-popup").popup("open");
+								$("#new-telephone-explian-text").html(exText);
+							hideLoadingImageM();
+							}
+						});
+					});
+				} else {
+					console.log("Email is not verified");
+					alert("คุณยังไม่ได้ Active Email โปรดคลิกบนลิงค์ที่ระบบส่งไปให้ทาง Email เพื่อ Active Email\nหากยังไม่ดำเนินการตามนี้ คุณก็ยังคงเข้าสู่ระบบไม่ได้");
+				}
+			});
+		});
+	}
+
+	function userSignup() {
+		showLoadingImageMT();
+		$("#signup-signin-popup").popup("close");
+		timeout(1900).then(function() {
+			$("#signup-popup").popup("open");
+			hideLoadingImageM();
+		});
+	}
+
+	function back2SelectMethod() {
+		showLoadingImageMT();
+		$("#signup-signin-popup").popup("close");
+		timeout(1900).then(function() {
+			$("#signin-mothod-popup").popup("open");
+			hideLoadingImageM();
+		});
+	}
+
+	function validateSignup() {
+		var displayname = $("#displayname").val();
+		var telephone = $("#telephone").val();
+		var email = $("#email").val();
+		var password = $("#password").val();
+		var confirmpassword = $("#confirmpassword").val();
+		var warning = "";
+		if (displayname.length < 0) 	{
+			warning += "กรุณาป้อนชื่อ-นามสกุลก่อน\n";
+		} 
+		if (! (isPhoneNo(telephone))) {
+			warning += "เบอร์โทรศัพท์ไม่ถูกต้อง\n";
+		}
+		if (!validateEmail(email)) {
+			warning += "Email ไม่ถูกต้อง\n";
+		}
+		if (password != confirmpassword){
+			warning += "Password และ ยืนยัน Password ไม่เหมือนกัน\n";
+		}
+		if (warning != "")	{
+			  $("#signup-popup-errors").css("display", "block");
+			  $("#signup-popup-errors").html(warning);
+		} else {
+			$("#signup-popup-errors").css("display", "none");
+			console.log("OK ข้อมูลการสมัครที่ป้อนมาถูกต้อง");
+			alert("โปรดจำ Email และ Password เอาไว้\nเพื่อใช้ในการจองครั้งต่อไปจะได้ไม่เสียเวลาเปิดบัญชีใหม่อีก");
+			showLoadingImageMT();
+			signup(email, password, yrtoken, displayname, telephone);
+			$("#signup-popup").popup("close");
+			timeout(1900).then(function() {
+				$("#signup-signin-popup").popup("open");
+				//$("#booking-signup-cmd-Div").hide();
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function signup(email, password, token, displayname, telephone){
+	  firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+		  var errorCode = error.code;
+		  var errorMessage = error.message;
+		  if (errorCode ==='auth/weak-password') {
+			$("#signup-popup-errors").css("display",(errors.css("display") === "none" || errors.css("display") === "") ? "block" : "none");
+			$("#signup-popup-errors").html("<p>Password ของคุณมีความเสี่ยงที่ผู้ไม่หวังดีคาดเดาได้!!</p>" + "<br/>" + "<p>ลองเพิ่ม Password ให้ยาวไม่ต่่ำกว่า 8 ตัวอักษร และใน password ควรมีทั้งตัวอักษรและตัวเลขปนกัน</p>");
+		  }
+	  })
+	  .then(function (sendEmailVerify) {
+			if (sendEmailVerify === false) {
+				return false;
+			} else {
+				alert("โปรดอย่าลืมว่า ระบบจะทำการตรวจสอบความมีตัวตนของคุณ\nดังนั้นขอได้โปรดจง Active Email โดยการคลิกบนลิงค์ที่ระบบส่งไปให้ทาง Email " +  email + "  หากไม่ Active Email บัญชีของคุณจะยังคงใช้งานไม่ได้\nหากดำเนินการ Active Email เรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบด้วย Email และ Password ตามที่ได้เปิดบัญชีใหม่ไปแล้วทันที");
+				firebase.auth().currentUser.sendEmailVerification();
+				saveUserData(displayname, telephone, email, "signup");
+			}
+	  });
+	}
+
+	function saveUserData(displayname, telephone, email, signin) {
+		var saveData;
+		if (telephone) {
+			saveData = {displayname : displayname, telephone : telephone, email: email, signin: signin};
+		} else {
+			saveData = {displayname : displayname, email: email, signin: signin};
+		}
+		db.collection("users").where("email", "==", email).get().then(function(querySnapshot) {
+			if (querySnapshot.size <= 0){
+				db.collection("users").add(saveData);
+			} else {
+				querySnapshot.forEach(function(doc) {
+					var docpath = "users/" + doc.id;
+					var userRef = db.doc(docpath);
+					userRef.set(saveData, { merge: true });
+				});
+			}
+		});
+	}
+
+	function updateUserToken(email, currenttoken){
+		getUdocId(email, function(udocid) {
+			var docpath = "users/" + udocid;
+			var userRef = db.doc(docpath);
+			userRef.collection("tokens").get().then(function(tquerySnapshot) {
+				if (tquerySnapshot.size < 10){
+					var newDoc = userRef.collection("tokens").doc();
+					newDoc.set({
+						seq: tquerySnapshot.size + 1,
+						token: currenttoken,
+						date: datetostring(new Date()),
+						time: datetotimestring(new Date()),
+					});
+				} else {
+					deleteSeq1(udocid, function() {
+						decressSeq(udocid, function() {
+							inserNewSeq(udocid, currenttoken);
+						});
+					});
+				}
+			});
+		});
+	}
+
+	function getUdocId(email, callback) {
+		var udocid;
+		db.collection("users").where("email", "==", email).get().then(function(uquerySnapshot) {
+			uquerySnapshot.forEach(function(udoc) {
+				udocid = udoc.id;
+			});
+		});
+		timeout(1500).then(function() {
+			callback(udocid);
+		});
+	}
+
+	function deleteSeq1(udocid, callback){
+		var docpath = "users/" + udocid;
+		var userRef = db.doc(docpath);
+		userRef.collection("tokens").where("seq", "==", 1).get().then(function(ttquerySnapshot) {
+			ttquerySnapshot.forEach(function(seqDoc) {
+				var deletepath = "users/" + udocid + "/tokens/" + seqDoc.id;
+				db.doc(deletepath).delete();
+			});
+		});
+		timeout(1000).then(function() {
+			callback();
+		});
+	}
+
+	function decressSeq(udocid, callback){
+		var docpath = "users/" + udocid;
+		var userRef = db.doc(docpath);
+		userRef.collection("tokens").get().then(function(ttkquerySnapshot) {
+			ttkquerySnapshot.forEach(function(seqdoc) {
+				var tokenpath = "users/" + udocid + "/tokens/" + seqdoc.id;
+				var tkDocRef = db.doc(tokenpath);
+				tkDocRef.get().then(function(doc) {
+					var seq = doc.data().seq;
+					tkDocRef.set({
+						seq: seq-1,
+					}, {merge: true});
+				});
+			});
+		});
+		timeout(700).then(function() {
+			callback();
+		});
+	}
+
+	function inserNewSeq(udocid, currenttoken) {
+		var docpath = "users/" + udocid;
+		var userRef = db.doc(docpath);
+		var newDoc = userRef.collection("tokens").doc();
+		newDoc.set({
+			seq: 5,
+			token: currenttoken,
+			date: datetostring(new Date()),
+			time: datetotimestring(new Date()),
+		});
+	}
+
+	function loadUserData(email, callback) {
+		db.collection("users").where("email", "==", email).get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				callback(doc.data().displayname, doc.data().telephone);
+			});
+		});
+	}
+
+	function cancelBooking() {
+		if (confirm("น่าเสียดายจัง!!!\nคุณต้องการยกเลิกการจองจริงหรือไม่?") == true){
+			$("#get-new-telephone-popup").popup("close");
+			openBooking();
+		}
+	}
+
+	function closeAndSaveBooking(){
+		var warning = "";
+		var newtelephone = $("#new-telephone").val();
+		if (! (isPhoneNo(newtelephone))) {
+			warning += "เบอร์โทรศัพท์ไม่ถูกต้อง\n";
+		}
+		if (warning != ""){
+			$("#get-new-telephone-errors").show();
+			$("#get-new-telephone-errors").html(warning);
+		} else {
+			$("#get-new-telephone-errors").hide();
+			showLoadingImageMT();
+			billOB.ptel = newtelephone;
+			updateUserTelephoneNumber(newtelephone, cuser.email, function() {
+				saveAndCreateBill(billOB.pname, billOB.ptel, billOB.schedule, billOB.stationupid, billOB.stationdownid, cuser.email);
+				$("#get-new-telephone-popup").popup("close");
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function saveAndCreateBill(pname, ptel, schedule, stationupid, stationdownid, userid){
+		showLoadingImageMT();
+		saveBookingMain(pname, ptel, schedule, stationupid, stationdownid, userid, function(curno, attourid) {
+			alert("บันทึกข้อมูลการจองของคุณเรียบร้อยแล้ว\nโปรดดาวน์โหลด บิลชำระค่าโดยสาร เพื่อใช้ชำระค่าโดยสารตามคำแนะนำที่ปรากฏอยู่ในบิล");
+			executeAsync(3900, function() {
+				pushNotificationToUser(userid, "ขอขอบคุณสำหรับการจองตั๋ว","การจองตั๋วของคุณได้เสร็จสิ้นลงแล้ว เราขอขอบคุณสำหรับความไว้วางใจที่ให้เกียรติจองตั๋วโดยสารกับเรา คุณจะได้รับตั๋วโดยสารทันที หลังจากที่คุณได้แจ้งผลการชำระเงินค่าโดยสารกลับมาที่ https://goo.gl/ZaZYJs",  "myVanBooking");
+				pushNotificationToStaff("โปรดทราบ ขณะนี้มีลูกค้าจองตั๋วออนไลน์เข้ามาแล้ว", "บิลหมายเลข " + buildPrefixRef(terNo, rouNo) + curno[0].currentno + " คลิกที่ปุ่มหรือคลิกที่นี่เพื่อเปิดรายละเอียด", "myVanBooking");
+
+				var yrBillParamOB = [];
+				var yrparam = {blno: curno[0].currentno, rtid: brouteid};
+				yrBillParamOB.push(yrparam);
+				//console.log(JSON.stringify(yrBillParamOB));
+				$.removeCookie("yrBillParamOB");
+				$.cookie("yrBillParamOB", JSON.stringify(yrBillParamOB));
+
+				executeAsync(1900, function() {
+					hideLoadingImageM();
+					openBooking();
+					window.open("bill.html", '_blank');
+				});
+			});
+		});
+	}
+
+// ส่วนของการ Save Booking
+/* กรณีที่ 1 ยังไม่มี booking ใดๆ ของ tour ที่เลือก (tourid=null)
+	กรณีที่ 2 เคยมี booking ของ tour ที่เลือก (tour !=null) มาแล้ว แต่ที่นั่งที่เลือกยังไม่มี booking มาก่อน
+	กรณีที่ 3 เคยมี booking ของ tour ที่เลือก (tour !=null) มาแล้ว แต่ที่นั่งที่เลือก มี booking อยู่ก่อนแล้ว จะต้องจัดลำดับคิวการจองเข้าไปด้วย
+*/
+
+	function saveBookingMain(pname, ptel, schedule, stationupid, stationdownid, userid, callback) {
+		var last = [];
+		var lastno = "";
+		var nextnoText;
+		var result = [];
+		getCurrentBillNo(function(last) {
+			lastno = last[0].billcurrentno;
+			nextnoText = nextSeqNo(parseInt(lastno));
+			var returnOB = {};
+			returnOB.currentno = nextnoText;
+			result.push(returnOB);
+			var returnTourid;
+			getTourId(bdate, bscheduleid, function(selectedTourid) {
+				if (selectedTourid == null){
+					// เข้ากรณีที่ 1
+					saveBookingFirstCase(pname, ptel, schedule, stationupid, stationdownid, nextnoText, bseatno, function(docPathList, newTourid) {
+						returnTourid =  newTourid;
+						saveBillData(nextnoText, userid, docPathList);
+						var nextno = String(parseInt(nextnoText));
+						updateCurrentBillNo(nextno);
+					});
+				} else {
+					// เข้ากรณีที่ 2 หรือ 3
+					returnTourid =  selectedTourid;
+					loadQue(selectedTourid, bseatno, function(hmbk) {
+						saveBookingOtherCase(selectedTourid, pname, ptel, stationupid, stationdownid, nextnoText, hmbk, function(docPathList) {
+							saveBillData(nextnoText, userid, docPathList);
+							var nextno = String(parseInt(nextnoText));
+							updateCurrentBillNo(nextno);
+						});
+					});
+				}
+				callback(result, returnTourid);
+			});
+		});
+	}
+
+	function loadQue(tourid, seatnos, callback){
+		var hmbkq = [];
+		for (var i=0;i< seatnos.length ;i++ ) {  //รอบเดินตัวเปล่า
+			var bsno = String(seatnos[i]);
+			var hm = {};
+			hm.sno = bsno;
+			hm.bcnt = 0;
+			hm.tourid = tourid;
+			hmbkq.push(hm);
+		}
+		//console.log(JSON.stringify(hmbkq));
+		hmbkq.forEach(function(item) { // รอบใส่ load
+			var bsno = item.sno;
+			docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + tourid;
+			var tourRef = db.doc(docpath);
+			tourRef.collection("passangers").get().then(function(querySnapshot) {
+ 				querySnapshot.forEach(function(doc) {
+					if (doc.data().seatno == bsno){
+						tourRef.collection("passangers").doc(doc.id).collection("bookings").get().then(function(bquerySnapshot) {
+							item.bcnt = bquerySnapshot.size;
+						});
+					}
+				});
+			});
+		});
+		//ยังจำเป็นต้องเบรคด้วย timeout เพราะ ในฟังก์ชั่นมีลูปที่ต้องรอข้อมูลจนครบทุกรายการ คือ hmbkq.forEach(function(item) { ... });
+		timeout(3900).then(function() {
+			//console.log(JSON.stringify(hmbkq));
+			callback(hmbkq);
+		});
+	}
+
+	function howmanyQue(tourid, sno, callback) {
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + tourid;
+		var tourRef = db.doc(docpath);
+		tourRef.collection("passangers").where("seatno", "==", String(sno)).get().then(function(bquerySnapshot) {
+			if (bquerySnapshot.size > 0){
+				bquerySnapshot.forEach(function(pssgDocRef) {
+					var bookingRef = db.doc("terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + tourid + "/passangers/" + pssgDocRef.id);
+					bookingRef.collection("bookings")	.get().then(function(bkquerySnapshot) {
+						docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + tourid +"/passangers/" + pssgDocRef.id;
+						callback(bkquerySnapshot.size, docpath, pssgDocRef.id);
+					});
+				});
+			} else {
+				callback(bquerySnapshot.size, docpath, "400");
+			}
+		});
+	}
+
+	function saveBookingFirstCase(pname, ptel, scheduletext, stationupid, stationdownid, nextnoText, seateds, callback) {
+		var docPathList = [];
+		var passangerid;
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		var tourDoc = routeRef.collection("tours").doc();
+		tourDoc.set({
+			traveldate: bdate.getTime(),
+			traveldatetext: datetostring(bdate),
+			scheduleid: bscheduleid,
+			scheduletext: scheduletext
+		});
+		docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + tourDoc.id;
+		tourRef = db.doc(docpath);
+		seateds.forEach(function(bitem) { 
+			//var bsno = String(bitem);
+			var passangerDocRef = tourRef.collection("passangers").doc();
+			passangerDocRef.set({
+				seatno: String(bitem)
+			});
+			passangerid = passangerDocRef.id;
+			var bookDocRef = passangerDocRef.collection("bookings").doc();
+			bookDocRef.set(
+				buildBookingOB(1, pname, ptel, stationupid, stationdownid, nextnoText)
+			);
+			var idx = docPathList.findIndex(x => x.seatno == String(bitem));
+			if (idx < 0)	{
+				var OB = {};
+				OB.path = "/tours/" + tourDoc.id + "/passangers/" + passangerid + "/bookings/" + bookDocRef.id;
+				OB.seatno = String(bitem);
+				docPathList.push(OB);
+			}
+		});
+		timeout(3900).then(function() {
+			callback(docPathList, tourDoc.id);
+			//console.log(JSON.stringify(docPathList));
+			//saveBillData(nextnoText, docPathList);
+			//var nextno = String(parseInt(nextnoText));
+			//updateCurrentBillNo(nextno);
+		});
+	}
+
+	function saveBookingOtherCase(tourid, pname, ptel, stationupid, stationdownid, nextnoText, hmbk, callback) {
+		var docPathList = [];
+		var docpath;
+		var tourRef;
+		hmbk.forEach(function(item) {
+			if (item.bcnt == 0) {
+				// เข้ากรณีที่ 2 
+				docpath = "terminals/" + yrterminalid + "/routes/" + brouteid + "/tours/" + tourid;
+				tourRef = db.doc(docpath);
+				//var bsno = item.sno;
+				var passangerDocRef = tourRef.collection("passangers").doc();
+				passangerDocRef.set({
+					seatno: String(item.sno)
+				});
+				var bookDocRef = passangerDocRef.collection("bookings").doc();
+				bookDocRef.set(
+					buildBookingOB(1, pname, ptel, stationupid, stationdownid, nextnoText)
+				);
+				var idx = docPathList.findIndex(x => x.seatno == String(item.sno));
+				if (idx < 0)	{
+					var OB = {};
+					OB.path = "/tours/" + tourid + "/passangers/" + passangerDocRef.id + "/bookings/" + bookDocRef.id;
+					OB.seatno =String(item.sno);
+					docPathList.push(OB);
+				}
+			} else {
+				// เข้ากรณีที่ 3
+				howmanyQue(item.tourid, item.sno, function(xx, path, pssgid) {
+					//console.log(xx);
+					//console.log(path);
+					if (pssgid != "400")	{
+						var bookingRef = db.doc(path);
+						var bookDocRef = bookingRef.collection("bookings").doc();
+						bookDocRef.set(
+							buildBookingOB(xx + 1, pname, ptel, stationupid, stationdownid, nextnoText)
+						).then(function() {
+							var idx = docPathList.findIndex(x => x.seatno == String(item.sno));
+							if (idx < 0)	{
+								var OB = {};
+								OB.path = "/tours/" + tourid + "/passangers/" + pssgid + "/bookings/" + bookDocRef.id;
+								OB.seatno = String(item.sno);
+								docPathList.push(OB);
+								//console.log(JSON.stringify(docPathList));
+							}
+						});
+					} else {
+						console.log("แย่แล้ว!!! ค้นหาลำดับคิวไม่เจอเจ้าค่ะ"); /* ในกรณีนี้แสดงว่า ผิดมาตั้งแต่แรก เพราะถ้ายังไม่มีคิว มันต้องวิ่งเข้าเงื่อนไขแรก*/
+					}
+				});
+			}
+		});
+		timeout(6900).then(function() {
+			callback(docPathList);
+		});
+	}
+
+	function updateUserTelephoneNumber(newtelephone, email, callback) {
+		var docpath;
+		db.collection("users").where("email", "==", email).get().then(function(userquerySnapshot) {
+			userquerySnapshot.forEach(function(doc) {
+				docpath = "users/" + doc.id;
+				var userRef = db.doc(docpath);
+				userRef.set({
+					telephone : newtelephone
+				}, { merge: true });		
+			});
+		});
+		timeout(1900).then(function() {
+			callback();
+		});
+	}
+
+	function getRouteNo(routeid, callback) {
+		var docpath = "terminals/" + yrterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			callback(doc.data().routeno);
+		});
+	}
+</script>
+
+<script>
+	//easySelectable
+	$( function() {
+		$( "#seat-selectable" ).easySelectable({
+			'item': 'li',
+			'state': true,
+			onSelected: function(el){
+				bseatno.push(el.text());
+			},
+			onUnSelected: function(el){
+				var val = el.text();
+				var idx = bseatno.findIndex(x => x ==val);
+				bseatno.splice(idx, 1);
+			 }
+		});
+	});
+</script>
+
+<script>
+	//SDK of Facebook Auth
+   window.fbAsyncInit = function() {
+	  FB.init ({
+		 appId      : '366354197101403',
+		 xfbml      : true,
+		 version    : 'v2.6'
+	  });
+   };
+
+   (function(d, s, id) {
+	  var js, fjs = d.getElementsByTagName(s)[0];
+	  if (d.getElementById(id)) {return;}
+	  js = d.createElement(s); js.id = id;
+	  js.src = "//connect.facebook.net/en_US/sdk.js";
+	  fjs.parentNode.insertBefore(js, fjs);
+   } (document, 'script', 'facebook-jssdk'));
+	
+</script>

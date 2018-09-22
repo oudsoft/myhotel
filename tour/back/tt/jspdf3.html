@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+ <head>
+	<style>
+		@font-face {
+			font-family: THSarabunNew;
+			font-weight: normal;
+			font-style: normal;
+			src: url('../../../resources/fonts/THSarabunNew.ttf');
+		}
+		#content {
+			text-align: left;
+			font-family: THSarabunNew;
+			src: url('../../../resources/fonts/THSarabunNew.ttf');  
+		}
+		h1 {
+			font-size: x-large;
+		}
+		p {
+			font-size: large;
+		}
+	</style>
+	<!--
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.0.272/jspdf.debug.js"></script>
+	-->
+	<script src="../../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script src="../../../resources/js/jspdf.debug.js"></script>
+	<script src="../../../resources/js/html2canvas041.js"></script>
+
+  <title>ทดสอบภาษาไทยด้วย jspdf</title>
+ </head>
+ <body>
+	<div id="content">
+		<h1> นี่คือการทดสอบภาษาไทยด้วย jspdf  </h1>
+		<p style="color:red;"> นี่คือการทดสอบภาษาไทยด้วย jspdf  </p>
+	</div>
+ </body>
+</html>
+
+<script>
+	//let doc = new jsPDF('p','pt','a4');
+	//let doc = new jsPDF('p', 'mm', [297, 210]);
+	let doc = new jsPDF('p', 'mm', [80, 297]);
+	doc.addHTML($('body'), function() {
+		doc.save('html.pdf');
+		//doc.autoPrint();
+	});
+
+</script>

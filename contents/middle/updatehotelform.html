@@ -1,0 +1,212 @@
+<style>
+	.content-middle {
+		position: relative;
+		margin-left: 150px; 
+		margin-right: 20px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+		float: left;
+		width: 85%;
+	}
+	#errors-msg {
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+</style>
+
+<div class='content-middle' id='event-news-content'>
+<form>
+    <table>
+	<!--
+      <thead>
+        <tr>
+          <th colspan="5" style="text-align:center">&nbsp;</th>
+        </tr>
+      </thead>
+	  -->
+      <tbody>
+        <tr>
+          <td>ชื่อที่พัก(รีสอร์ท)</td>
+          <td colspan="4">
+            <div>
+              <input type="text" id="hname" size="100"/>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ชื่อ</td>
+          <td>
+            <div>
+              <input type="text" id="fname"/>
+            </div>
+          </td>
+		  <td>&nbsp;</td>
+           <td>นามสกุล</td>
+          <td>
+            <div>
+              <input type="text" id="lname">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ตำแหน่ง</td>
+          <td>
+            <div>
+              <input type="text" id="pname">
+            </div>
+          </td>
+		  <td>&nbsp;</td>
+           <td>หมายเลขโทรศัพท์</td>
+          <td>
+            <div>
+              <input  type="text" id="phone">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ที่อยู่</td>
+          <td colspan="4">
+            <div>
+                 <textarea  id="address" cols="100" rows="4"></textarea>
+            </div>
+          </td>
+        </tr>
+        <tr>
+           <td>URL</td>
+          <td colspan="4">
+            <div>
+              <input  type="text" id="url" size="100">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:center">
+            <button id="save-cmd" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+              บันทึก
+            </button>
+          </td>
+      </tr>
+        <tr>
+          <td colspan="5" style="text-align:center">
+			<div id="errors-msg"/>
+			<div id="alert-msg"/>
+          </td>
+      </tr>
+       </tbody>
+    </table>
+    </form>
+</div>
+
+<script>
+
+	loadhoteldata();
+
+	function loadhoteldata() {
+		var user = firebase.auth().currentUser;
+		db.collection("hotels").where("email", "==", user.email).get()
+		.then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				$("#hname").val(doc.data().hotelname);
+				$("#fname").val(doc.data().firstname);
+				$("#lname").val(doc.data().lastname);
+				$("#pname").val(doc.data().posname);
+				$("#address").val(doc.data().address);
+				$("#phone").val(doc.data().phonenumber);
+				$("#url").val(doc.data().url);
+				$("#alert-msg").html("ข้อมูลพร้อมแก้ไข");
+				$("#alert-msg").show();
+				setTimeout(function() {
+					$("#alert-msg").hide();
+				}, 1000);
+			});
+		})
+		.catch(function(error) {
+			$("#errors-msg").html("เกิดข้อผิดพลาด!");
+			$("#errors-msg").show();
+			setTimeout(function() {
+				$("#errors-msg").hide();
+			}, 1000);
+		}); 
+	}
+	
+	 $("#save-cmd").click(function(e) {
+		e.preventDefault();
+		updatehotel();
+	  });
+
+	  function updatehotel() {
+		var warnings = "";
+		var hname = $("#hname").val();
+		var fname = $("#fname").val();
+		var lname = $("#lname").val();
+		var pname = $("#pname").val();
+		var address = $("#address").val();
+		var phone = $("#phone").val();
+		var url = $("#url").val();
+		if (hname.length == 0){
+		  warnings += 'คุณยังไม่ได้กรอกชื่อที่พัก(รีสอร์ท)<br/>';
+		}
+		if (fname.length == 0){
+		  warnings += 'คุณยังไม่ได้กรอกชื่อ<br/>';
+		}
+		if (lname.length == 0){
+		  warnings += 'คุณยังไม่ได้กรอกนามสกุล<br/>';
+		}
+		if (pname.length == 0){
+		  warnings += 'คุณยังไม่ได้กรอกตำแหน่ง<br/>';
+		}
+		if (address.length == 0){
+		  warnings += 'คุณยังไม่ได้กรอกที่อยู่<br/>';
+		}
+		if ((phone.length == 0) ||  (phone.length > 10)) {
+		  warnings += 'คุณยังไม่ได้กรอกหมายเลขโทรศัพท์ หรือหมายเลขโทรศัพท์ไม่ถูกต้อง<br/>';
+		}
+		if (warnings != "") {
+		  $("#errors-msg").css("display", "block");
+		  $("#errors-msg").html(warnings);
+		} else {
+			savehoteldata(hname, fname, lname, pname, address, phone, url);
+ 		}
+	}
+
+	function savehoteldata(hname, fname, lname, pname, address, phone, url) {
+		var user = firebase.auth().currentUser;
+		var email = user.email;
+		db.collection("hotels").where("email", "==", email).get()
+		.then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				var hotelRef = db.collection("hotels").doc(doc.id);
+				hotelRef.set({
+					hotelname : hname,
+					firstname: fname,
+					lastname: lname,
+					posname: pname,
+					address: address,
+					phonenumber: phone,
+					url: url
+				}, { merge: true });
+				$("#alert-msg").html("บันทึกข้อมูลเรียบร้อยแล้ว");
+				$("#alert-msg").show();
+				setTimeout(function() {
+					$("#alert-msg").hide();
+				}, 1000);
+			});
+		})
+		.catch(function(error) {
+			console.log(error.message);
+			$("#errors-msg").html("เกิดข้อผิดพลาด : " + error.message);
+			$("#errors-msg").show();
+			setTimeout(function() {
+				$("#errors-msg").hide();
+			}, 1000);
+		}); 
+
+	}
+</script>

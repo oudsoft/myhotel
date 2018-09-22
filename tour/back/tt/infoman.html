@@ -1,0 +1,231 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../../resources/fonts/THSarabunNew.ttf');
+    }
+
+ 	#content {
+		text-align: left;
+        font-family: THSarabunNew;
+		src: url('../../resources/fonts/THSarabunNew.ttf');  
+	}
+	#input {
+		width: 50%;
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 100%;
+		text-align: center:
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 50%;
+		text-align: left:
+	}
+ 	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 140px;
+		vertical-align: middle;
+	}
+</style>
+<div class="ui-field-contain">
+	<button class="ui-btn" id="back-cmd" onclick="openInfoView()">   ดูข้อมูลในระบบ     </button>
+</div>
+<div id="content">
+	<div style="text-align: center"><h1>ป้อนข้อมูลเข้าระบบ</h1></div>
+	<div id="input">
+		<div class="step-box">
+			<div class="step-bar-label"><h3>หมายเลขเส้นทาง :</h3></div> 
+			<div class="step-bar">
+				<input type="text" id="routeno" size="30" class="input-step"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ชื่อเส้นทาง :</h3></div> 
+			<div class="step-bar">
+				<input type="text" id="routename" size="30" class="input-step"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดต้นทาง :</h3></div> 
+			<div class="step-bar">
+				<input type="text" id="routebegin" size="30" class="input-step"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดปลายทาง :</h3></div> 
+			<div class="step-bar">
+				<input type="text" id="routedest" size="30" class="input-step"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ชื่อผู้ประกอบการ :</h3></div> 
+			<div class="step-bar">
+				<input type="text" id="providername" size="30" class="input-step"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดทางผ่าน :</h3></div> 
+			<div class="step-bar">
+				<textarea id="routemiddle" class="input-step" cols="30" rows="8"></textarea>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>รวมระยะทาง :</h3></div> 
+			<div class="step-bar">
+				<input type="number" id="distanct" size="30" class="input-step"/>&nbsp;&nbsp;ก.ม.
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดจอดให้ผู้โดยสารขึ้น :</h3></div> 
+			<div class="step-bar">
+				<textarea id="pointup" class="input-step" cols="30" rows="8"></textarea>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>เที่ยวเวลาเดินรถ :</h3></div> 
+			<div class="step-bar">
+				<textarea id="schedule" class="input-step" cols="30" rows="8"></textarea>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ค่าโดยสาร :</h3></div> 
+			<div class="step-bar">
+				<textarea id="price" class="input-step" cols="30" rows="8"></textarea>&nbsp;&nbsp; บาท 
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>เบอร์โทร :</h3></div> 
+			<div class="step-bar">
+				<textarea id="phoneno" class="input-step" cols="30" rows="8"></textarea>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>เฟสบุคลิงค์ :</h3></div> 
+			<div class="step-bar">
+				<input type="text" id="link" size="30" class="input-step"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ข้อมูลอื่นๆ  :</h3></div> 
+			<div class="step-bar">
+				<textarea id="remark" class="input-step" cols="30" rows="8"></textarea>
+			</div>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="saveData()">   บันทึกข้อมูล     </button>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="backtohome()">   กลับไปเมนูหลัก     </button>
+	</div>
+</div>
+
+<script>
+
+	clearInput();
+
+	function saveData() {
+		showLoadingImageMT();
+		setTimeout(function() {
+			save(); 
+			hideLoadingImageM();
+			$('html, body').animate({scrollTop: '0px'}, 300);
+		}, 1000);
+	}
+
+	function save(){
+		var routeno = $("#routeno").val();
+		var routename = $("#routename").val();
+		var routebegin = $("#routebegin").val();
+		var routedest = $("#routedest").val();
+		var routemiddle = $("#routemiddle").val();
+		var distanct = $("#distanct").val();
+		var providername = $("#providername").val();
+		var schedule = $("#schedule").val();
+		var pointup = $("#pointup").val();
+		var price = $("#price").val();
+		var phoneno = $("#phoneno").val();
+		var link = $("#link").val();
+		var remark = $("#remark").val();
+		/*
+		console.log(routeno);
+		console.log(routename);
+		console.log(routebegin);
+		console.log(routedest);
+		console.log(routemiddle);
+		console.log(distanct);
+		console.log(providername);
+		console.log(schedule);
+		console.log(pointup);
+		console.log(price);
+		console.log(phoneno);
+		console.log(link);
+		console.log(remark);
+*/
+		showLoadingImageMT();
+		setTimeout(function() {
+			infoRef = db.collection("infos");
+			infoRef.doc(routeno).set({
+				routeno: routeno,
+				routename: routename,
+				routebegin: routebegin,
+				routedest: routedest,
+				routemiddle: routemiddle,
+				distanct: distanct,
+				providername: providername,
+				schedule: schedule,
+				pointup: pointup,
+				price: price,
+				phoneno: phoneno,
+				link: link,
+				remark: remark
+			});
+			clearInput();
+			hideLoadingImageM();
+		}, 1000);
+	}
+
+	function clearInput() {
+		$("#routeno").val("");
+		$("#routename").val("");
+		$("#routebegin").val("");
+		$("#routedest").val("");
+		$("#routemiddle").val("");
+		$("#distanct").val("");
+		$("#providername").val("");
+		$("#schedule").val("");
+		$("#pointup").val("");
+		$("#price").val("");
+		$("#phoneno").val("");
+		$("#link").val("");
+		$("#remark").val("");
+	}
+
+	function backtohome() {
+		showLoadingImageMT();
+		setTimeout(function() {
+			hideLoadingImageM();
+			window.location ="index.html?t=" + myterminalid;
+		}, 1000);
+	}
+
+	$("#routemiddle").bind("paste", function(e){
+		/*
+		var pastedData = e.originalEvent.clipboardData.getData('text');
+		var parts = pastedData .split(" ");
+		var result = "";
+		for (var i=0; i< parts.length; i++){
+			result = result.concat(parts[i]);
+			result = result.concat("\n");
+		}
+		$("#routemiddle").val(result);
+	*/
+	} );
+</script>

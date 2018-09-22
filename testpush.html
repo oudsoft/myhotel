@@ -1,0 +1,299 @@
+<html>
+
+<head>
+  <title>รบบจองห้องพัก</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+  <link rel="shortcut icon" type="image/x-icon" href="resources/imgs/ico/hotelOS.ico">
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</head>
+
+<body>
+<div class="mdl-layout mdl-js-layout">
+  <header class="mdl-layout__header mdl-layout__header--scroll">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">หน้าหลัก</span>
+      
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">เมนู</span>
+    <nav class="mdl-navigation">
+		<!--	  	-->
+      <a class="mdl-navigation__link" href="roommng.html">จัดการห้องพัก</a>
+      <a class="mdl-navigation__link" href="">จองห้องพัก</a>
+      <a class="mdl-navigation__link" href="">จัดการลูกค้า</a>
+      <a class="mdl-navigation__link" href="#" onclick="signout()">ออกจากระบบ</a>
+    </nav>
+	<div id="userdata">&nbsp;</div>
+  </div>
+  <main class="mdl-layout__content">
+    <div class="page-content" style="padding-top: 60px;" align="center">
+    <!-- Your content goes here -->
+	  <div id="content-middle">
+			<div id="rec"></div>
+			<div  id='add-new-form'>
+				<form>
+					<table>
+					  <thead>
+						<tr>
+						  <th colspan="2" style="text-align:center">ข้อมูลการส่ง notification</th>
+						</tr>
+					  </thead>
+					  <tbody>
+						<tr>
+						  <td>Token</td>
+						  <td>
+							<div>
+								<input type="text" id="token" size="100"/> <input type="button" id="get-token-cmd" value=" ... " onclick="showToken()"/>
+							<!--
+							  <input type="text" id="token" size="100" value="fe7ftqv3Lf4:APA91bH-s9MAvZktroXN1btApMsuDh28MlUtDYLtZxOa92SSdjQZMkwulEiXHMTrYNuyq9JrJoIj2bXwS4Uf812puMG-fi2BNhE9EJWp0wAAW_KjMdRpL2xsDYXEWMQAXcfRMS28u0yt"/> <input type="button" id="get-token-cmd" value=" ... " onclick="getToken()"/>-->
+							</div>
+						  </td>
+						</tr>
+						<tr>
+						  <td>Sender</td>
+						  <td>
+							<div>
+							  <input type="text" id="sender" size="40"/>
+							</div>
+						  </td>
+						</tr>
+						<tr>
+						  <td>Title</td>
+						  <td>
+							<div>
+							  <input type="text" id="title" size="40"/>
+							</div>
+						  </td>
+						  </tr>
+						<tr>
+						  <td>Message</td>
+						  <td>
+							<div>
+							  <input type="text" id="msg" size="100"/>
+							</div>
+						  </td>
+						  </tr>
+						</tbody>
+					</table>
+					</form>
+
+				<button id="push-cmd" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+				Push
+				</button>
+			</div>
+		 <ul>
+			<li><a href="javascript:subscribeFCM()">Subscribe</a></li>
+			<li><a href="javascript:showToken()">Show Token</a></li>
+		 </ul>
+		 <div id="token-text"></div>
+	  </div>
+    </div>
+  </main>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script type="text/javascript" src="resources/js/notify.js"></script>  
+<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+<script type="text/javascript" src="resources/js/myhotel.js"></script>
+<script type="text/javascript" src="resources/js/jquery.cookie.js"></script>
+
+  <!--Configure firebase-->
+  <script>
+    // Visit https://console.firebase.google.com/project/<your project id>/overview and click on "Add Firebase to your web app"
+    // Initialize Firebase
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+
+	//Your Code Here
+
+    var cuser = firebase.auth().currentUser;
+	myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+	var myhotelid = myhotelOB[0].hotelid;
+	var docpath = "hotels/" + myhotelid;
+	var hotelRef = db.doc(docpath);
+	hotelRef.get().then(function(doc) {
+		document.title = doc.data().hotelname + " :: บริการจองห้องพัก";
+	});
+
+	firebase.auth().onAuthStateChanged(user => {  
+		if (!user) {
+			window.location = "login.html";
+		} else {
+			cuser = user;
+			showUserData();
+		}
+	});
+
+	function signout() {
+		firebase.auth().signOut()
+		.then(function() {
+			alert("คุณได้ออกจากระบบเรียบร้อยแล้ว");
+			window.location = "login.html";
+		})
+		.catch(function(error) {
+			alert("มีความผิดพลาดเกิดขึ้น");
+		});
+	}
+ 
+	function showUserData() {
+	   var userdata = "";
+	   if (cuser != null) {
+			db.collection("users").where("email", "==", cuser.email).get()
+			.then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+						userdata = userdata.concat("<h3>ข้อมูลผู้ใช้งาน</h3>"); 
+						userdata = userdata.concat("<div>");
+						userdata = userdata.concat("<p><b>ชื่อที่พัก(รีสอร์ท) :</b> " + doc.data().hotelname + "</p>"); 
+						userdata = userdata.concat("<p><b>ชื่อ นามสกุล :</b> " + doc.data().firstname + " " + doc.data().lastname + "</p>"); 
+						userdata = userdata.concat("<p><b>ตำแหน่ง :</b> " + doc.data().posname + "</p>"); 
+						userdata = userdata.concat("<p><b>ที่อยู่ :</b> " + doc.data().address  + "</p>"); 
+						userdata = userdata.concat("<p><b>หมายเลขโทรศัพท์ : </b>" + doc.data().phonenumber + "</p>");
+						userdata = userdata.concat("<p><b>Email : </b>" + doc.data().email + "</p>");
+						userdata = userdata.concat("<input type='button' value=' แก้ไข ' onclick='openupdateuserdata()'/>");
+						userdata = userdata.concat("</div>");
+						userdata = userdata.concat("<h3>URL</h3><div>");
+						userdata = userdata.concat("<p><b>URL 1 : </b>" + doc.data().url + "</p>");
+						userdata = userdata.concat("</div>");
+						$("#userdata").html(userdata);
+						$("#userdata" ).accordion();
+				});
+			})
+			.catch(function(error) {
+					userdata = "มีความผิดพลาด";
+					$("#userdata").html(userdata);
+					$("#userdata" ).accordion();
+			});
+	   }
+	}
+
+/*
+	$.post("contents/middle/testpush.html", {},
+	function(data) {
+		$('#content-middle').html(data);
+  	});
+*/
+
+	function openupdateuserdata() {
+		$('#content-middle').load("contents/middle/updatehotelform.html");
+	}
+
+</script>
+
+<script>
+//ท่อนนี้เป็นของ Firebase Notification Messagging และ Notfy
+
+	$.notify.addStyle('myshopman', {
+		html: "<div class='superblue'><span data-notify-html/></div>",
+		classes: {
+			base: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "black",
+				"background-color": "white",
+				"padding": "20px"
+			},
+			green: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "green",
+				"padding": "20px"
+			},
+			red: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "red",
+				"padding": "20px"
+			}
+		}
+	});
+
+	messaging.onMessage(function(payload) {
+		console.log("Message received. ", payload);
+		var msg = "<h2>" + payload.notification.title + "</h2><h4>" + payload.notification.body +"</h4><p>จาก : " + payload.data.sendername + "</p>";
+        $.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'green'});
+        playsoundeffect();
+	});
+
+	messaging.onTokenRefresh(function() {
+		messaging.getToken()
+		.then(function(refreshedToken) {
+			console.log('Token refreshed.');
+			$("#token").val(refreshedToken);
+		})
+		.catch(function(err) {
+			console.log('Unable to retrieve refreshed token ', err);
+		});
+	});
+
+	function playsoundeffect() {
+		 $('#soundeffect')[0].play();
+	}
+
+	 function subscribeFCM() {
+		messaging.requestPermission()
+		.then(function() {
+			console.log('Notification permission granted.');
+		})
+		.catch(function(err) {
+			console.log('Unable to get permission to notify. ', err);
+		});
+	 }
+
+	function showToken() {
+		// Get Instance ID token. Initially this makes a network call, once retrieved
+		// subsequent calls to getToken will return from cache.
+		messaging.getToken()
+		.then(function(currentToken) {
+			if (currentToken) {
+				console.log("currentToken", currentToken);
+				$("#token-text").html(currentToken);
+				$("#token").val(currentToken);
+			} else {
+				// Show permission request.
+				console.log('No Instance ID token available. Request permission to generate one.');
+			$("#token-text").html("foo");
+			}
+		})
+		.catch(function(err) {
+			console.log('An error occurred while retrieving token. ', err);
+		});
+	}
+
+	$("#push-cmd").click(function(e) {
+		$.post("https://us-central1-myhotel-4746f.cloudfunctions.net/sendPushNotification", 
+			{msg: $("#msg").val(),
+			token: $("#token").val(),
+			title: $("#title").val(),
+			sender: $("#sender").val(),
+			},
+			function(data) {
+				$("#rec").html(data);
+		});
+	});
+
+ </script>
+ 
+ <audio id="soundeffect" src="resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+ 
+</body>
+
+</html>

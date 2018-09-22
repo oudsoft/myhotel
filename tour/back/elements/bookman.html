@@ -1,0 +1,678 @@
+<style>
+	#errors{
+		display: none;
+		color: red;
+	}
+	#explain-box {
+		color: blue;
+	}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		/* height: 40px; */
+		padding: 10px;
+	}
+	.input-step {
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		padding: 10px;
+		text-align: left;
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+	}
+	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 140px;
+		vertical-align: middle;
+	}
+	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#schedule-select-bar, #seat-select-bar, #stationup-select-bar, #stationdown-select-bar, #book-detail-bar {
+		display: none;
+	}
+	#seat-selectable {
+	  -webkit-user-select:none;
+	  -moz-user-select:none;
+	  -ms-user-select: none;
+	}
+	#seat-selectable {display: flex; flex-wrap: wrap;}
+	#seat-selectable li {margin: 0 10px 10px 0; background: #fff; transition: background 0.2s; width: 100px; height: 100px; color: #222; font-weight: bold; text-align: center; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0px 1px 1px #ccc;}
+	#seat-selectable li.es-selected {background: #2196F3; color: #fff;}
+
+</style>
+
+<div  id='bookman-main'>
+	<div class="title-box"><b>ขายตั๋ว</b></div>
+	<div id="explain-box"></div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เส้นทาง :</b></div> <div class="step-bar"><input type="text" id="route-text" size="30" class="input-step" readOnly/></div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>วันที่เดินทาง :</b></div><div class="step-bar"><input type="text" id="date-text" size="30" class="input-step" placeholder="คลิก เพื่อเลือกวันที่เดินทางจากปฏิทิน" readOnly/></div>
+	</div>
+	<div id="schedule-select-bar" class="step-box">
+		<div class="step-bar-label"><b>เที่ยวเวลาเดินทาง :</b></div><div class="step-bar"><select id="schedule-select" class="input-step"></select></div>
+	</div>
+	<div id="seat-select-bar" class="step-box">
+		<div class="step-bar-label"><b>ที่นั่ง :</b></div><div class="step-bar"><ol id="seat-selectable"></ol></div>
+	</div>
+	<div id="stationup-select-bar" class="step-box">
+		<div class="step-bar-label"><b>สถานีขึ้นรถ :</b></div><div class="step-bar"><select id="stationup-select" class="input-step"></select></div>
+	</div>
+	<div id="stationdown-select-bar" class="step-box">
+		<div class="step-bar-label"><b>สถานีขึ้นรถ :</b></div><div class="step-bar"><select id="stationdown-select" class="input-step"></select></div>
+	</div>
+	<div id="book-detail-bar">
+		<div class="step-box">
+			<div class="step-bar-label"><b>ชื่อ ผู้โดยสาร:</b></div><div class="step-bar"> <input type="text" id="pass-name" size="30" class="input-step"/></div>
+ 		</div>
+		<div class="step-box">
+ 			<div class="step-bar-label"><b>เบอร์โทร ผู้โดยสาร:</b></div><div class="step-bar"> <input type="text" id="pass-tel" size="30" class="input-step"/></div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><b>ขาย/จอง</b></div><div class="step-bar"><input type="checkbox" data-role="flipswitch" id="action-switch" checked /></div>
+		</div>
+
+	</div>
+ 	<div class="ui-field-contain">
+		<button class="ui-btn" id="next-cmd">   ตกลง     </button>	
+		<button class="ui-btn" id="back-cmd">   กลับ     </button>	
+	</div>
+	<p id="errors"></p>
+</div>
+
+<script>
+
+	var hmbk;
+
+	preLoadCurrentNo();
+
+    $(document).ready(function() {
+		setuproutetext();
+		$("#date-text").datepicker({dateFormat: 'yy-mm-dd'});
+		$("#date-text").datepicker().datepicker("setDate", new Date());
+			/*
+			$("#date-text").on("change", function() {
+				display(this.name, $(this).val());
+			});
+			*/
+		 $("#explain-box").html("โปรดเลือกวันที่เดินทาง แล้วคลิกปุ่ม <b>ตกลง</b>");
+		 $("#next-cmd").attr("onclick", "toSelectSchedule()");
+		 $("#back-cmd").attr("onclick", "openRouteMng()");
+		 
+		new DG.OnOffSwitch({
+			el: '#action-switch',
+			textOn: 'ขาย',
+			textOff: 'จอง',
+			trackColorOn:'#cc33cc'
+		});
+    });
+
+	function setuproutetext() {
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			defaultPrice = doc.data().price;
+			$("#route-text").val(doc.data().beginter + " - " + doc.data().endter);
+			bticketOB.route = $("#route-text").val();
+		});
+	}
+
+	function toSelectSchedule() {
+		bdate = new Date($("#date-text").val());
+		var today = new Date();
+		today.setHours(0,0,0,0);
+		if ($("#date-text").val() == "")	{
+			$("#errors").text("คุณยังไม่ได้เลือกวันที่เดินทาง");
+			$("#errors").show();
+		} else if (bdate.getTime() <= today.getTime()) {
+			$("#errors").text("วันที่เดินทางไม่สามารถจองย้อนกลับหลังได้");
+			$("#errors").show();
+		/* ในกรณีเป็นวันที่ปัจจุบัน จะต้องเลือก Schedule ที่มากกว่าเวลาปัจจุบัน */
+		} else {
+			$("#errors").hide();
+			showLoadingImageMT();
+			bdate = new Date($("#date-text").val());
+			bticketOB.date = formatDate(bdate);
+			var dow = bdate.getDay();
+			$("#next-cmd").attr("onclick", "toSelectSeat()");
+			$("#back-cmd").attr("onclick", "back2SelectDate()");
+			$( "#date-text" ).datepicker( "option", "disabled", true );
+			$("#schedule-select").prop('disabled', false);
+			loadScheduleOption(dow2Text(dow), $("#schedule-select"));
+			$("#explain-box").html("โปรดเลือกเที่ยวเวลาเดินทาง แล้วคลิกปุ่ม <b>ตกลง</b>");
+			$("#schedule-select-bar").show();
+			setTimeout(function() {
+				hideLoadingImageM();
+			}, 1000);
+		}
+	}
+
+	function loadScheduleOption(day, selector){
+		selector.html("");
+		scheduleItem = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("schedules").where("day", "==", day).orderBy("time", "asc").get()
+		.then(function(querySnapshot) {
+ 			querySnapshot.forEach(function(doc) {
+				var obS = {};
+				obS.id = doc.id;
+				obS.time = doc.data().time;
+				scheduleItem.push(obS);
+				selector.append("<option value='" + doc.id + "'>" + doc.data().time + "</option>");
+			});
+		});
+	}
+
+	function back2SelectDate(){
+		$("#schedule-select").html("");
+		$("#schedule-select-bar").hide();
+		$( "#date-text" ).datepicker( "option", "disabled", false );
+		$("#explain-box").html("โปรดเลือกวันที่เดินทาง แล้วคลิกปุ่ม <b>ตกลง</b>");
+		$("#next-cmd").attr("onclick", "toSelectSchedule()");
+		$("#back-cmd").attr("onclick", "openRouteMng()");
+	}
+
+	function toSelectSeat() {
+		if ($("#schedule-select").prop('selectedIndex') < 0){
+			$("#errors").text("คุณยังไม่ได้เลือกเที่ยวเวลาเดินทาง");
+			$("#errors").show();
+		} else {
+			$("#errors").hide();
+			$("#schedule-select").prop('disabled', 'disabled');
+			bscheduleid = $("#schedule-select").val();
+			var sitem = scheduleItem.find(ob => ob.id == bscheduleid);
+			bticketOB.schedule = sitem.time;
+			//ค้นหาที่นั่งว่าง searchSeatEmp() เก็บแบบ array
+			//ถ้าเต็ม (array ว่าง) แจ้งว่า เต็ม พร้อมเสนอทางเลือก
+			//ถ้ายังมีที่ว่าง โหลดที่ว่างมาให้เลือก
+			//เมื่อเลือกเสร็จ นำเข้าสู่ การเลือกสถานีขึ้นรถ
+			//กรอกข้อมูลผู้โดยสาร
+			//บันทึกการจอง
+			//ออกตั๋ว ให้ผู้โดยสาร ชำระเงิน
+
+			showLoadingImageMT();
+			var result = [];
+			//result = searchSeatEmp();
+			searchSeatEmp(function(result) {
+				timeout(7500).then(function() {
+					//console.log(JSON.stringify(result));
+					result = $.grep(result, function(e){ return (e.bsts !=2); });
+					//console.log(JSON.stringify(result));
+					if (result.length == 0)	{
+						//แจ้งว่า เต็ม พร้อมเสนอทางเลือก
+						$("#seat-select-bar").show();
+						$("#seat-select-bar").html("รถเที่ยวนี้ที่นั่งเต็มแล้ว จะเป็นไปได้ไหม หากว่าคุณจะลองเปลี่ยนเที่ยวเวลาใหม่หรือเปลี่ยนวันที่เดินทางใหม่");
+						$("#seat-select-bar").css("color", "red");
+					} else {
+						$( "#date-text" ).datepicker( "option", "disabled", true );
+						$("#explain-box").html("โปรดเลือกที่นั่งว่าง แล้วคลิกปุ่ม <b>ตกลง</b>");
+						$("#seat-select-bar").show();
+						$("#seat-selectable").html("");
+						for (var i=0;i < result.length ;i++ ){
+							$("#seat-selectable").append("<li class='ui-state-default'>" + result[i].sno + "</li>");
+						}
+					}
+					$("#next-cmd").attr("onclick", "toSelectUpStation()");
+					$("#back-cmd").attr("onclick", "back2SelectSchedule()");
+					hideLoadingImageM();
+					//console.log(JSON.stringify(result))
+				});
+			});
+		}
+	}
+
+	function back2SelectSeat() {
+		$("#next-cmd").attr("onclick", "toSelectUpStation()");
+		$("#back-cmd").attr("onclick", "back2SelectSchedule()");
+		$("#explain-box").html("โปรดเลือกที่นั่งที่ยังว่าง แล้วคลิกปุ่ม <b>ตกลง</b>");
+		$( "#seat-selectable" ).selectable({ disabled: false });
+		$("#stationup-select-bar").hide();
+	}
+
+	function searchSeatEmp(callback) {
+		btourid = "";
+		var seats = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/schedules/" + bscheduleid;
+		var scheduleRef = db.doc(docpath);
+		scheduleRef.get().then(function(doc) {
+			var pssg = parseInt(doc.data().passanger);
+			for (var i=1;i<=pssg ;i++ )	{
+				var ob = {};
+				ob.sno = String(i);
+				ob.bsts = 0;
+				seats.push(ob);
+			}
+			seats.forEach(function(item) {
+				docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+				var routeRef = db.doc(docpath);
+				routeRef.collection("tours").where("traveldate", "==", bdate.getTime()).get()
+				.then(function(querySnapshot) {
+					querySnapshot.forEach(function(doc) {
+						if (doc.data().scheduleid == bscheduleid){
+							btourid = doc.id;
+							routeRef.collection("tours").doc(doc.id).collection("passangers").where("seatno", "==", String(item.sno)).get()
+							.then(function(psquerySnapshot) {
+								psquerySnapshot.forEach(function(psdoc) {
+									bpassangerid = psdoc.id;
+									var sno = psdoc.data().seatno;
+									var psRef = db.doc("terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + btourid + "/passangers/" + bpassangerid);
+									//psRef.collection("bookings").where("bstatus", "==", 2).get().then(function(bquerySnapshot) {
+									psRef.collection("bookings").get().then(function(bquerySnapshot) {
+										bquerySnapshot.forEach(function(bkdoc) {
+											//var item = seats.find(ob => ob.sno == sno);
+											if (bkdoc.data().bstatus == 2) {
+												item.bsts = bkdoc.data().bstatus;
+											}
+											item.tourid = btourid,
+											item.passangerid = bpassangerid;
+											//seats = $.grep(seats, function(e){ return (e.bsts !=1); });
+											//console.log(JSON.stringify(seats));
+										});
+									});
+								});
+							});
+						}
+					});
+				});
+			});
+			callback(seats);
+			return seats;
+		});
+	}
+
+	function back2SelectSchedule() {
+		$("#schedule-select").prop('disabled', false);
+		$("#next-cmd").attr("onclick", "toSelectSeat()");
+		$("#back-cmd").attr("onclick", "back2SelectDate()");
+		$("#explain-box").html("โปรดเลือกเที่ยวเวลาเดินทาง แล้วคลิกปุ่ม <b>ตกลง</b>");
+		$("#seat-select-bar").css("color", "black");
+		$("#seat-select-bar").hide();
+		bseatno = [];
+	}
+
+	function toSelectUpStation() {
+		if (bseatno.length == 0)	{
+			$("#errors").text("คุณยังไม่ได้เลือกที่นั่ง");
+			$("#errors").show();
+		} else {
+			showLoadingImageMT();
+			bticketOB.seats = bseatno;
+			$("#errors").hide();
+			$("#next-cmd").attr("onclick", "toSelectDownStation()");
+			$("#back-cmd").attr("onclick", "back2SelectSeat()");
+			$( "#seat-selectable" ).selectable({ disabled: true });
+			$("#stationup-select").prop('disabled', false);
+			$("#stationdown-select-bar").hide();
+			$("#stationup-select-bar").show();
+			$("#explain-box").html("โปรดเลือกสถานีขึ้นรถ แล้วคลิกปุ่ม <b>ตกลง</b>");
+			loadStaionUpOption($("#stationup-select"));
+			setTimeout(function() {
+				if (btourid != "")	{
+					hmbk = [];
+					hmbk = loadQue(btourid, bseatno);
+					setTimeout(function() {
+						hideLoadingImageM();
+					}, 1200);
+				} else {
+					hmbk = [];
+					var hm = {tourid: ""};
+					hmbk.push(hm);
+					hideLoadingImageM();
+				}
+			}, 1200);
+		}
+	}
+
+	function loadStationAllList(callback) {
+		var items = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("stations").where("status","==", 1).get().then(function(querySnapshot) {
+ 			querySnapshot.forEach(function(doc) {
+				var obP = {};
+				obP.id = doc.id;
+				obP.updown = doc.data().updown;
+				obP.name = doc.data().name;
+				items.push(obP);
+			});
+			callback(items);
+			return items;
+		});
+	}
+
+	function loadStaionUpOption(selector){
+		selector.html("");
+		stations = [];
+		loadStationAllList(function(stx) {
+			stations = stx;
+			for (var i=0; i< stations.length; i++){
+				if (stations[i].updown == 1){
+					selector.append("<option value='" + stations[i].id + "'>" + stations[i].name + "</option>");
+				}
+			}
+		});
+	}
+
+	function toSelectDownStation(){
+		if ($("#stationup-select").prop('selectedIndex') < 0){
+			$("#errors").text("คุณยังไม่ได้เลือกสถานีขึ้นรถ");
+			$("#errors").show();
+		} else {
+			showLoadingImageMT();
+			$("#errors").hide();
+			$("#next-cmd").attr("onclick", "toBookDetail()");
+			$("#back-cmd").attr("onclick", "toSelectUpStation()");
+			$("#stationup-select").prop('disabled', 'disabled');
+			$("#book-detail-bar").hide();
+			$("#stationdown-select-bar").show();
+			$("#stationdown-select").prop('disabled', false);
+			$("#explain-box").html("โปรดเลือกสถานีลงรถ แล้วคลิกปุ่ม <b>ตกลง</b>");
+			loadStaionDownOption($("#stationdown-select"));
+			setTimeout(function() {
+				bstationupid = $("#stationup-select").val();
+				var sitem = stations.find(ob => ob.id == bstationupid);
+				bticketOB.stationup = sitem.name;
+				hideLoadingImageM();
+			}, 3000);
+		}
+	}
+
+	function loadStaionDownOption(selector){
+		selector.html("");
+		stations = [];
+		loadStationAllList(function(stx) {
+			stations = stx;
+			for (var i=0; i< stations.length; i++){
+				if (stations[i].updown == 0){
+					selector.append("<option value='" + stations[i].id + "'>" + stations[i].name + "</option>");
+				}
+			}
+		});
+	}
+/*
+	function back2SelectStation() {
+		$("#stationup-select").prop('disabled', false);
+		$("#next-cmd").attr("onclick", "toBookDetail()");
+		$("#back-cmd").attr("onclick", "back2SelectSeat()");
+		$("#explain-box").html("โปรดเลือกสถานีขึ้นรถ แล้วคลิกปุ่ม <b>ตกลง</b>");
+		$("#book-detail-bar").hide();
+	}
+*/
+	function toBookDetail() {
+		if ($("#stationdown-select").prop('selectedIndex') < 0){
+			$("#errors").text("คุณยังไม่ได้เลือกสถานีลงรถ");
+			$("#errors").show();
+		} else {
+			$("#errors").hide();
+			bstationdownid =  $("#stationdown-select").val();
+			var sitem = stations.find(ob => ob.id == bstationdownid);
+			bticketOB.stationdown = sitem.name;
+			$("#stationdown-select").prop('disabled', 'disabled');
+			$("#next-cmd").attr("onclick", "toSaveBooking()");
+			$("#back-cmd").attr("onclick", "toSelectDownStation()");
+			$("#explain-box").html("โปรดป้อนชื่อ เบอร์โทร ผู้โดยสาร แล้วคลิกปุ่ม <b>ตกลง</b>");
+			$("#book-detail-bar").show();
+		}
+	}
+
+	function loadQue(tid, seatnos){
+		var hmbkq = [];
+		for (var i=0;i< seatnos.length ;i++ ) {  //รอบเดินตัวเปล่า
+			var bsno = String(seatnos[i]);
+			var hm = {};
+			hm.sno = bsno;
+			hm.bcnt = 0;
+			hm.tourid = tid;
+			hmbkq.push(hm);
+		}
+		//console.log(JSON.stringify(hmbkq));
+		hmbkq.forEach(function(item) { // รอบใส่ load
+			var bsno = item.sno;
+			docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + tid;
+			var tourRef = db.doc(docpath);
+			tourRef.collection("passangers").get().then(function(querySnapshot) {
+ 				querySnapshot.forEach(function(doc) {
+					//console.log(doc.data().seatno + "==>" + bsno);
+					if (doc.data().seatno == bsno){
+						tourRef.collection("passangers").doc(doc.id).collection("bookings").get().then(function(bquerySnapshot) {
+							if (item) {
+								item.bcnt = bquerySnapshot.size;
+							} else {
+								console.log("Oppp!!");
+							}
+						});
+					}
+				});
+			});
+		});
+		//console.log(JSON.stringify(hmbkq));
+		return hmbkq;
+	}
+
+	function toSaveBooking() {
+		var action = 1;
+		if ($("#action-switch").prop('checked') == true ){
+			action = 2;
+		}
+		if ($("#pass-name").val() == ""){
+			$("#errors").text("คุณยังไม่ได้ป้อนชื่อผู้โดยสาร ");
+			$("#errors").show();
+		} else {
+			$("#errors").hide();
+			showLoadingImageMT();
+			var scheduletext = $("#schedule-select option:selected").text();
+			//var curno = saveBooking($("#pass-name").val(), $("#pass-tel").val(), scheduletext, action, function(curno) { });
+			saveBooking($("#pass-name").val(), $("#pass-tel").val(), scheduletext, action, function(curno) { 
+				timeout(5900).then(function() {
+					//console.log(JSON.stringify(curno));
+					alert("บันทึกข้อมูลเรียบร้อย\nโปรดดาวน์โหลด " + (action == 1 ? "บิลจ่ายค่าโดยสาร" : "โหลดตัํวโดยสาร") + " ที่ระบบกำลังออกให้เพื่อส่งไปให้ " +  (action == 1 ? "ผู้จอง" : "ผู้โดยสาร"));
+
+					if (action == 1){
+						var myBillParamOB = [];
+						var myparam = {blno: curno[0].currentno, rtid: brouteid};
+						myBillParamOB.push(myparam);
+						//console.log(JSON.stringify(myBillParamOB));
+						$.removeCookie("myBillParamOB");
+						$.cookie("myBillParamOB", JSON.stringify(myBillParamOB));
+						window.open("bill2.html", '_blank');
+					} else if (action == 2)	{
+						var myTicketParamOB = [];
+						var myparam = {tkno: curno[0].currentno, rtid: brouteid};
+						myTicketParamOB.push(myparam);
+						//console.log(JSON.stringify(myTicketParamOB));
+						$.removeCookie("myTicketParamOB");
+						$.cookie("myTicketParamOB", JSON.stringify(myTicketParamOB));
+						window.open("ticket2.html", '_blank');
+					}
+					hmbk = [];
+					bseatno = [];
+					openBookMan(brouteid)
+					hideLoadingImageM();
+				});
+			});
+		}
+	}
+
+	function saveBooking(pname, ptel, scheduletext, action, callback) {
+
+/* LOGIC การบันทึก booking
+	กรณีที่หนึ่ง วันที่จอง เป็นวันใหม่ไม่มีในฐานข้อมูลที --> เปิด tour ใหม่ ลงวันที[bdate] ลงเที่ยวเวลา[bschedule] ใหม ทุกอย่างใหม่หมด
+
+	กรณีที่สอง วันที่จอง เป็นวันที่เดิมที่มีในฐานข้อมูลแล้ว
+		ไม่ต้องเปิด tour ใหม่ ใช้ค่า tourid นั้นได้เลย
+		ไล่หา หมายเลขที่นั่งที่จอง มีหรือยัง
+			ถ้ามีแล้ว ให้ไปเพิ่ม booking ใน passanger นั้นเลย พร้อมทั้งระบุุค่าลำดับคิวการจอง
+			ถ้าไม่มีที เปิด passanger ใหม่ แล้วเพิ่ม booking เข้าไป
+
+	hmbk คือ อาร์เรย์ เก็บ que load  การจองตั๋ว
+*/	
+		var docPathList = [];
+		var passangerid;
+		var last = [];
+		var lastno = "";
+		var nextnoText;
+		var nextno;
+		var result = [];
+
+		//console.log(docPathList.length);
+
+		//last = getCurrentNo(action);
+		getCurrentNo(action, function(last) {
+			lastno = last[0].currentno;
+			nextnoText = nextSeqNo(parseInt(lastno));
+			nextno = String(parseInt(nextnoText));
+			var returnOB = {};
+			returnOB.currentno = nextnoText;
+			result.push(returnOB);
+
+			docPathList = [];
+			var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+			var routeRef = db.doc(docpath);
+
+			if (btourid == ""){ // กรณีที่ยังไม่เคยเปิด tour ของวันที่และเวลาเที่ยวรถที่ผู้ใช้เลือก มาก่อน เป็น tour ใหม่
+				var tourDoc = routeRef.collection("tours").doc();
+				tourDoc.set({
+					traveldate: bdate.getTime(),
+					traveldatetext: datetostring(bdate),
+					scheduleid: bscheduleid,
+					scheduletext: scheduletext
+				});
+				btourid = tourDoc.id;
+				docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + btourid;
+				tourRef = db.doc(docpath);
+				bseatno.forEach(function(bitem) { //ต้องมาใช bseatno แทน (hmbk) เพราะ ในกรณีนี้ hmbk มีค่าเป้น [{"tourid":""}]
+					//var bsno = String(bitem);
+					var passangerDocRef = tourRef.collection("passangers").doc();
+					passangerDocRef.set({
+						seatno: String(bitem)
+					});
+					passangerid = passangerDocRef.id;
+					var bookDocRef = passangerDocRef.collection("bookings").doc();
+					bookDocRef.set(
+						buildBookingOB(1, pname, ptel, bstationupid, bstationdownid, action, nextnoText)
+					);
+					var idx = docPathList.findIndex(x => x.seatno == String(bitem));
+					if (idx < 0)	{
+						var OB = {};
+						OB.path = "/tours/" + btourid + "/passangers/" + passangerid + "/bookings/" + bookDocRef.id;
+						OB.seatno = String(bitem);
+						docPathList.push(OB);
+					}
+				});
+				timeout(3900).then(function() {
+					saveBillAndTicketData(action, nextno, nextnoText, cuser.email, docPathList);
+					//console.log(JSON.stringify(docPathList));
+				});
+			} else { //กรณีเคยเปิด tour มาแล้ว เป็น tour เดิม
+				//console.log(JSON.stringify(hmbk));
+				hmbk.forEach(function(item) {
+					if (item.bcnt == 0) /* หรือ item.tourid == ""*/{ //หมายเลขที่นั่งยังไม่ยังไม่มีการจอง
+						docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + btourid;
+						tourRef = db.doc(docpath);
+						//var bsno = item.sno;
+						var passangerDocRef = tourRef.collection("passangers").doc();
+						passangerDocRef.set({
+							seatno: String(item.sno)
+						});
+						var bookDocRef = passangerDocRef.collection("bookings").doc();
+						bookDocRef.set(
+							buildBookingOB(1, pname, ptel, bstationupid, bstationdownid, action, nextnoText)
+						);
+						var idx = docPathList.findIndex(x => x.seatno == String(item.sno));
+						if (idx < 0)	{
+							var OB = {};
+							OB.path = "/tours/" + btourid + "/passangers/" + passangerDocRef.id + "/bookings/" + bookDocRef.id;
+							OB.seatno =String(item.sno);
+							docPathList.push(OB);
+						}
+					} else { //หมายเลขที่นั่งได้เปิดการจองมาแล้ว จำเป็นจะต้องหาว่า อยู่ในคิวจองลำดับที่เท่าไหร่แล้ว
+						howmanyQue(item.tourid, item.sno, function(xx, path, pssgid) {
+							//console.log(xx);
+							//console.log(path);
+							if (pssgid != "400")	{
+								var bookingRef = db.doc(path);
+								var bookDocRef = bookingRef.collection("bookings").doc();
+								bookDocRef.set(
+									buildBookingOB(xx + 1, pname, ptel, bstationupid, bstationdownid, action, nextnoText)
+								).then(function() {
+									var idx = docPathList.findIndex(x => x.seatno == String(item.sno));
+									if (idx < 0)	{
+										var OB = {};
+										OB.path = "/tours/" + btourid + "/passangers/" + pssgid + "/bookings/" + bookDocRef.id;
+										OB.seatno = String(item.sno);
+										docPathList.push(OB);
+										//console.log(JSON.stringify(docPathList));
+									}
+								});
+							} else {
+								console.log("แย่แล้ว!!! ค้นหาลำดับคิวไม่เจอเจ้าค่ะ"); /* ในกรณีนี้แสดงว่า ผิดมาตั้งแต่แรก เพราะถ้ายังไม่มีคิว มันต้องวิ่งเข้าเงื่อนไขแรก*/
+							}
+						});
+					}
+					//console.log(JSON.stringify(docPathList));
+				});
+				timeout(4900).then(function() {
+					//console.log(JSON.stringify(docPathList));
+					saveBillAndTicketData(action, nextno, nextnoText, cuser.email, docPathList);
+				});
+			}
+			callback(result);
+			return result;
+		});
+/*
+		timeout(9800).then(function() {
+		});
+		*/
+	}
+
+	function howmanyQue(tourid, sno, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + tourid;
+		var tourRef = db.doc(docpath);
+		tourRef.collection("passangers").where("seatno", "==", String(sno)).get().then(function(bquerySnapshot) {
+			if (bquerySnapshot.size > 0){
+				bquerySnapshot.forEach(function(pssgDocRef) {
+					var bookingRef = db.doc("terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + tourid + "/passangers/" + pssgDocRef.id);
+					bookingRef.collection("bookings")	.get().then(function(bkquerySnapshot) {
+						docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + tourid +"/passangers/" + pssgDocRef.id;
+						callback(bkquerySnapshot.size, docpath, pssgDocRef.id);
+					});
+				});
+			} else {
+				callback(bquerySnapshot.size, docpath, "400");
+			}
+		});
+	}
+
+</script>
+
+<script>
+	$( function() {
+		$( "#seat-selectable" ).easySelectable({
+			'item': 'li',
+			'state': true,
+			onSelected: function(el){
+				bseatno.push(parseInt(el.text()));
+			},
+			onUnSelected: function(el){
+				var val = parseInt(el.text());
+				var idx = bseatno.findIndex(x => x ==val);
+				bseatno.splice(idx, 1);
+			 }
+		});
+	});
+</script>
+
+

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../resources/imgs/ico/hotelOS.ico">
+	<title>รบบจองห้องพัก</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+		#main-utils{
+			margin-left: 10px; 
+			margin-right: 10px;
+			text-align: left;
+			padding: 10px;
+			border: blue 5px solid;
+			border-radius:10px;
+			box-shadow:0 0 3px #999;
+		}
+		#bar{
+			text-align: center;
+		}
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<h4>This is Header Panel.</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+		<div id="main-utils">
+			<div id="bar">
+				<h2>Utilies ดีๆ </h2>
+				<h3>เพื่อชีวิตที่ดีกว่า</h3>
+			</div>
+			<div class="ui-field-contain">
+				<label for="dvalue"><b>ค่า Date :</b></label> 
+				<input type="number" data-clear-btn="false" id="dvalue" size="20" placeholder="ค่า date ที่ต้องการแปลง"/>
+				<div class="ui-field-contain">
+					<button class="ui-btn" id="date-conv-cmd">   ตกลง     </button>
+				</div>
+			</div>
+			<div class="ui-field-contain">
+				<label for="listroom"><b>ห้อง :</b></label> 
+				<select id="listroom"></select>
+				<div class="ui-field-contain">
+					<button class="ui-btn" id="get-load-cmd">   ตกลง     </button>
+				</div>
+			</div>
+			<div id="result"></div>
+ 		</div>
+    </div>
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>This is Footer Panel.</b>
+		</div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="https://www.myshopman.com/shop/resource/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="https://www.myshopman.com/shop/resource/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="https://www.myshopman.com/shop/resource/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../resources/js/notify.js"></script>  
+ 
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+
+	 messaging.getToken().then(function(currentToken) {
+	   mytoken = currentToken;
+ 	 });
+
+    </script>
+
+	<script>
+		var tempMessage;
+		var mytoken;
+
+		//?h=WHJcA29dBSwK9rPcyTTn
+		var hid = getParameterByName("h");
+		var docpath = "hotels/" + hid;
+		var hotelRef = db.doc(docpath);
+		hotelRef.get().then(function(doc) {
+			savemyhotelOB(hid, doc.data().token, doc.data().url);
+			document.title = doc.data().hotelname + " :: บริการจองห้องพัก";
+			$('#herder-conter').html("<h3>" + doc.data().hotelname + "</h3>");
+			$('#footer-conter').html("<h4>" + doc.data().hotelname + "</h4>");
+		});
+
+		listAllRoom();
+
+		$("#date-conv-cmd").click(function(e) {
+			var dd = $("#dvalue").val();
+			$("#result").text(datetostring(Number(dd)));
+ 		});
+ 
+ 		$("#get-load-cmd").click(function(e) {
+			//var hid = getParameterByName("h");
+			var rid = $("#listroom").val();
+			var docpath = "hotels/" + hid + "/rooms/" + rid;
+			var roomRef = db.doc(docpath);
+			var beginD = new Date();
+			beginD = beginD.getTime();
+			console.log(beginD);
+			console.log(rid);
+			$(".load").remove();
+			//roomRef.collection("loads").where("to", ">", beginD).get().then(function(querySnapshot) {
+			roomRef.collection("loads").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(loaddoc) {
+					var par = "<p class='load'>" + datetostring(loaddoc.data().start) + " : " + datetostring(loaddoc.data().to) + " : "  + loaddoc.data().cname +  " : "  + loaddoc.data().ctel +  " : "  + loaddoc.data().cguid +  " : "  + datetostring(loaddoc.data().bookdate) + " : " + datetotimestring(loaddoc.data().bookdate) + " : " + loaddoc.data().lsts;
+					if (loaddoc.data().lsts==0) {
+						par = par.concat(" : <input type='button' value=' reset ' onclick='resetlsts(\"" + rid + "\",\"" + loaddoc.id + "\")'/></p>");
+					} else {
+						par = par.concat("</p>");
+					}
+					$("#result").append(par);
+				});
+			});
+ 		});
+
+		function listAllRoom() {
+			var docpath = "hotels/" + hid;
+			var hotelRef = db.doc(docpath);
+			hotelRef.collection("rooms").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(roomdoc) {
+					$("#listroom").append("<option value='" + roomdoc.id + "'>" + roomdoc.data().name +"</option>");
+				});
+			});
+		}
+		function resetlsts(rid, lid) {
+			showLoadingImage();
+			var loadRef = db.doc("hotels/" + hid + "/rooms/" + rid +"/loads/" + lid);
+			loadRef.set({
+				lsts : 1
+			}, { merge: true })
+			.then(function() {
+ 				setTimeout(function() {
+
+ 					hideLoadingImage();
+				}, 4000);
+			});
+		}
+		function savemyhotelOB(myhotelid, myhoteltoken, myurl){
+			var myhotel = {hotelid: myhotelid, hoteltoken: myhoteltoken, hotelurl: myurl}
+			myhotelOB.push(myhotel);
+			$.cookie("myhotelOB", JSON.stringify(myhotelOB));
+		}	
+
+		//ท่อนนี้ของ Notification และ Notify
+
+		$.notify.addStyle('myshopman', {
+			html: "<div class='superblue'><span data-notify-html/></div>",
+			classes: {
+				base: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "black",
+					"background-color": "white",
+					"padding": "20px"
+				},
+				green: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "green",
+					"padding": "20px"
+				},
+				red: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "red",
+					"padding": "20px"
+				}
+			}
+		});
+
+		messaging.onMessage(function(payload) {
+			console.log("Message received. ", payload);
+			var msg = "<h3>" + payload.notification.title + "</h3><h4>" + payload.notification.body +"</h4><p>จาก : " + payload.data.sendername + "</p>";
+			$.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'green'});
+			playsoundeffect();
+		});
+
+		function playsoundeffect() {
+			 $('#soundeffect')[0].play();
+		}
+
+		subscribeFCM();
+
+		function subscribeFCM() {
+			messaging.requestPermission().then(function() {
+				console.log("Thank you.");
+				//saveToken();
+			})
+			.catch(function(err) {
+				console.log('Unable to get permission to notify. ', err);
+			});
+		 }
+
+		messaging.onTokenRefresh(function() {
+			messaging.getToken()
+			.then(function(refreshedToken) {
+				console.log('Token refreshed. :: ' + refreshedToken);
+				//$("#token").val(refreshedToken);
+			})
+			.catch(function(err) {
+				console.log('Unable to retrieve refreshed token ', err);
+			});
+		});
+
+
+		$("#footer-conter").click(function(e) {
+			playsoundeffect();
+		});
+
+	</script>
+	</script>
+  </body>
+</html>

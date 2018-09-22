@@ -1,0 +1,58 @@
+<style>
+	.mainmess{
+
+	}
+	.title{
+		color: blue;
+	}
+	.msg{
+
+	}
+	.time{
+
+	}
+	#errors{
+		display: none;
+		color: red;
+	}
+</style>
+
+<div  id='push-notification-view'>
+
+</div>
+<div class="ui-field-contain">
+	<button class="ui-btn" id="reply-cmd">   ตอบกลับ     </button>	
+</div>
+<div id="errors"></div>
+<script>
+	FamilyChatRoomRef = db.doc("/chats/KEYae3aLTsDdYnIJYIfG/rooms/ZgzOTZ1PKGc0Om8gSGhK");
+	FamilyChatRoomRef.collection("messages").where("to", "==", mmes).orderBy("time", "desc").get()
+	.then(function(querySnapshot) {
+		var str = "";
+		querySnapshot.forEach(function(doc) {
+			str = str.concat("<div class='mainmess'>"); 
+			str = str.concat("<div class='title'>"); 
+			str = str.concat("พาดหัว : <b>" + doc.data().title + "</b>");
+			str = str.concat("</div>");
+			str = str.concat("<div class='msg'>"); 
+			str = str.concat("ข้อความ : " + doc.data().msg);
+			str = str.concat("</div>");
+			str = str.concat("<div class='from'>"); 
+			str = str.concat("จาก : " + doc.data().from);
+			str = str.concat("</div>");
+			str = str.concat("<div class='time'>"); 
+			str = str.concat("เมื่อ : " + datetostring(doc.data().time) + " เวลา : " + datetotimestring(doc.data().time));
+			str = str.concat("</div>");
+			str = str.concat("</div>");
+ 		});
+		$("#push-notification-view").html(str);
+	}).catch(function(error) {
+		$("#errors").css("display",  "block");
+		$("#errors").html(error.message + "<br/>");
+	});
+
+	$("#reply-cmd").click(function(e) {
+		//$.mobile.changePage("mtestpush.html");
+		window.location = "mtestpush.html"; 
+	});
+</script>

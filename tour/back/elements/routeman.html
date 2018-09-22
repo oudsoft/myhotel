@@ -1,0 +1,1038 @@
+<style>
+	#routeman-main{
+		text-align: center;
+	}
+	#route-list-view{
+
+	}
+	.route{
+		border-radius: 25px;
+		background: #cc33cc;
+		padding: 10px; 
+		width: 97%;
+		height: 30px; 
+		color: white;
+		margin-top: 10px;
+	}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		/* height: 40px; */
+		padding: 10px;
+	}
+	#errors{
+		display: none;
+		color: red;
+	}
+	#new-schedule-errors{
+		display: none;
+		color: red;
+	}
+	#new-station-errors, #new-pricechart-errors {
+		display: none;
+		color: red;
+	}
+	.schedule-item, .station-item {
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	    display: table;
+	}
+	.schedule-item p, .station-item p {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#item-icon{
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#main-day-select {
+	    display: table;
+	}
+	#label-day-select{
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#day-select {
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#new-form, #new-route-form-popup, #station-new-form, #pricechart-new-form, #pricechart-man-popup, #route-man-cmd-popup, #route-config-cmd-popup, #schedule-man-popup, #station-man-popup {
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+
+</style>
+
+<div  id='routeman-main'>
+	<b>รายการเส้นทางเดินรถของคุณ</b>
+	<div id="route-list-view">
+
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="new-route-cmd">   เพิ่มเส้นทาง     </button>	
+		<button class="ui-btn" id="back-cmd">   กลับ     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='new-route-form-popup' style='padding: 20px;'>
+	<div class="title-box">เปิดเส้นทางเดินรถใหม่</div>
+	<p>ป้อน <b>ชื่อสถานีต้นทาง</b>,  <b>ชื่อสถานีปลายทาง</b> </p>
+	<p>และเลือกการเปิดให้ผู้โดยสารจองคิว แล้วคลิกปุ่ม <b>ตกลง</b></p>
+	<div class="ui-field-contain">
+		<label for="beginterName"><b>ชื่อสถานีต้นทาง :</b></label> 
+		<input type="text" data-clear-btn="false" id="beginterName" size="20" />
+	</div>
+	<div class="ui-field-contain">
+		<label for="endterName"><b>ชื่อสถานีปลายทาง :</b></label> 
+		<input type="text" data-clear-btn="false" id="endterName" size="20" />
+	</div>
+	<div class="ui-field-contain">
+		<label for="price"><b>ค่าโดยสาร(ตลอดเส้นทาง) :</b></label> 
+		<input type="number" data-clear-btn="false" id="price" size="20" />
+	</div>
+	<div class="ui-field-contain">
+		<label><input type="checkbox" id="autobook-option" checked>เปิดให้ผู้โดยสารจองคิวได้โดยอัตโนมัติ</label>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="ok-cmd" onclick="saveNewRoute()">   ตกลง     </button>	
+	</div>
+	<p id="errors"></p>
+</div>
+
+<div data-role='popup' id='route-man-cmd-popup' style='padding: 20px;'>
+	<div class="title-box">คุณต้องการทำสิ่งใดกับเส้นทางที่คุณเลือก</div>
+</div>
+
+<div data-role='popup' id='route-config-cmd-popup' style='padding: 20px;'>
+	<div class="title-box">คุณต้องการตั้งค่าสิ่งใดกับเส้นทางที่คุณเลือก</div>
+</div>
+
+<div data-role='popup' id='schedule-man-popup' style='padding: 20px;'>
+	<div class="title-box">จัดการตารางเดินรถ</div>
+	<div class="ui-field-contain" id="main-day-select">
+		<label for="day-select" id="label-day-select"><b>วัน :</b>&nbsp;&nbsp;</label>
+		<select id="day-select" onchange="daychange()">
+	        <option value="MON">วันจันทร์</option>
+	        <option value="TUE">วันอังคาร</option>
+	        <option value="WED">วันพุธ</option>
+	        <option value="THU">วันพฤหัสบดี</option>
+	        <option value="FRI">วันศุกร์</option>
+	        <option value="SAT">วันเสาร์</option>
+	        <option value="SUN">วันอาทิตย์</option>
+    	</select>
+	</div>
+	<div id="schedule-items"></div>
+	<div id="new-form" style="display: none;">
+		<p>ป้อนข้อมูลให้ครบทั้งสามรายการ แล้วคลิกปุ่ม <b>บันทึก</b></p>
+		<div class="ui-field-contain">
+			<label for="time-picker"><b>เวลาออกเดินรถ :</b></label> 
+			<input type="text" data-clear-btn="false" id="time-picker" size="10"/>&nbsp;น.
+		</div>	
+		<div class="ui-field-contain">
+			<label for="passanger"><b>จำนวนผู้โดยสารสูงสุด :</b></label> 
+			<input type="number" data-clear-btn="false" id="passanger" size="10"/>&nbsp;คน
+		</div>	
+ 		<div class="ui-field-contain">
+			<label for="status"><b>เปิด/ปิดใช้งาน</b></label>
+			<input type="checkbox" data-role="flipswitch" id="status" checked />
+		</div>
+  		<div class="ui-field-contain">
+			<button class="ui-btn" id="save-cmd" onclick="saveNewSchedule()">   บันทึก    </button>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="schedule-ok-cmd" onclick="closeScheduleManPopup()">   ตกลง    </button>
+	</div>
+	<p id="new-schedule-errors"></p>
+</div>
+
+<div data-role='popup' id='station-man-popup' style='padding: 20px;'>
+	<div class="title-box">จัดการสถานีระหว่างทาง</div>
+	<div id="station-items"></div>
+	<div id="station-new-form" style="display: none;">
+		<p>ป้อนข้อมูลที่สำคัญให้ครบ แล้วคลิกปุ่ม <b>บันทึก</b></p>
+		<div class="ui-field-contain">
+			<label for="station-name"><b>ชื่อสถานี :</b></label> 
+			<input type="text" data-clear-btn="false" id="station-name" size="20"/>
+		</div>	
+		<div class="ui-field-contain">
+			<label for="map-lat"><b>ค่าละติจูดบนแผนที่ :</b></label> 
+			<input type="number" data-clear-btn="false" id="map-lat" size="10"/>
+		</div>	
+		<div class="ui-field-contain">
+			<label for="map-long"><b>ค่าลองติจูดบนแผนที่ :</b></label> 
+			<input type="number" data-clear-btn="false" id="map-long" size="10"/>
+		</div>	
+		<div class="ui-field-contain">
+			<label for="station-status"><b>ประเภทสถานี</b></label>
+			<input type="checkbox" data-role="flipswitch" id="station-updown" checked />
+		</div>
+		<div class="ui-field-contain">
+			<label for="station-status"><b>เปิด/ปิดใช้งาน</b></label>
+			<input type="checkbox" data-role="flipswitch" id="station-status" checked />
+		</div>
+		<div class="ui-field-contain">
+			<button class="ui-btn" id="station-save-cmd" onclick="saveNewStation()">   บันทึก    </button>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="station-ok-cmd" onclick="closeStationManPopup()">   ตกลง    </button>
+	</div>
+	<p id="new-station-errors"></p>
+</div>
+
+<div data-role='popup' id='pricechart-man-popup' style='padding: 20px;'>
+	<div class="title-box">จัดการตารางค่าโดยสาร</div>
+	<div id="pricechart-items"></div>
+	<div id="pricechart-new-form" style="display: none;">
+		<p>เลือกและป้อนข้อมูลที่สำคัญให้ครบ แล้วคลิกปุ่ม <b>บันทึก</b></p>
+		<div class="ui-field-contain">
+			<label for="fr-station-select"><b>จากสถานี :</b></label> 
+			<select id="fr-station-select" class="input-step"></select>
+		</div>	
+		<div class="ui-field-contain">
+			<label for="tostation-name"><b>ถึงสถานี :</b></label> 
+			<select id="to-station-select" class="input-step"></select>
+		</div>	
+		<div class="ui-field-contain">
+			<label for="map-long"><b>ค่าโดยสาร :</b></label> 
+			<input type="number" data-clear-btn="false" id="chartprice" size="10"/>&nbsp;&nbsp;บาท
+		</div>	
+ 
+		<div class="ui-field-contain">
+			<button class="ui-btn" id="pricechart-save-cmd" onclick="saveNewPriceChart()">   บันทึก    </button>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="pricechart-ok-cmd" onclick="closePriceChartManPopup()">   ตกลง    </button>
+	</div>
+	<p id="new-pricechart-errors"></p>
+</div>
+
+<script>
+
+   $(document).ready(function() {
+		$("#new-route-form-popup").popup({ overlayTheme: "a"});
+		$("#route-man-cmd-popup").popup({ overlayTheme: "a"});
+		$("#route-config-cmd-popup").popup({ overlayTheme: "a"});
+		$("#schedule-man-popup").popup({ overlayTheme: "a"});
+		$("#station-man-popup").popup({ overlayTheme: "a"});
+		$("#pricechart-man-popup").popup({ overlayTheme: "a"});
+		$('#time-picker').mdtimepicker({
+			timeFormat: 'hh:mm:ss.000', 
+			format: 'hh:mm',      
+			theme: 'blue',        
+			readOnly: true,       
+			hourPadding: false     			
+		});
+		new DG.OnOffSwitch({
+			el: '#status',
+			textOn: 'เปิด',
+			textOff: 'ปิด',
+			trackColorOn:'#cc33cc'
+		});
+		new DG.OnOffSwitch({
+			el: '#station-status',
+			textOn: 'เปิด',
+			textOff: 'ปิด',
+			trackColorOn:'#cc33cc'
+		});
+		new DG.OnOffSwitch({
+			el: '#station-updown',
+			textOn: 'ขึ้น',
+			textOff: 'ลง',
+			trackColorOn:'#cc33cc'
+		});
+ 		loadRouteList();
+		$('#status').prop('checked', true);
+	});
+
+	/* Route Man. */
+
+	function loadRouteList(){
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("routes").where("cguid", "==", myemail).get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+ 				var routeBox = "<div class='route' id='" + doc.id + "' onmouseover='this.style.cursor=\"pointer\";' onclick='openRoute(this)'>" + doc.data().beginter + " - " + doc.data().endter  +  "</div>";
+				$("#route-list-view").append(routeBox);
+			});
+		});
+	}
+
+	$("#back-cmd").click(function(e) {
+		window.location ="index.html?t=" + myterminalid;
+	});
+
+	$("#new-route-cmd").click(function(e) {
+		$("#new-route-form-popup").popup("open");
+		var yourterminalname = document.title.split("::");
+		$("#beginterName").val(yourterminalname[0]);
+		$("#endterName").val("");
+		$(".title-box").text("เปิดเส้นทางเดินรถใหม่");
+	});
+
+	function saveNewRoute(){
+		var autobookOption = 0;
+		if ($("#autobook-option").prop('checked') == true ){
+			autobookOption = 1;
+		}
+		var beginterName = $("#beginterName").val();
+		var endterName = $("#endterName").val();
+		var price = $("#price").val();
+		var warnings = "";
+		if (beginterName.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อสถานีต้นทาง' + '<br/>';
+		}
+		if (endterName.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อสถานีปลายทาง' + '<br/>';
+		}
+		if (price.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนค่าโดยสาร' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#errors").css("display", "block");
+		  $("#errors").html(warnings);
+		} else {
+			$("#errors").css("display", "none");
+			saveRoute(beginterName, endterName, myemail, autobookOption, price) ;
+			$("#new-route-form-popup").popup("close");
+			$("#route-list-view").html("");
+			setTimeout(function() {
+				loadRouteList();
+			}, 3000);
+		}
+	}
+
+	function saveRoute(beginterName, endterName, email, bookoption, price) {
+		getRouteMaxNo(function(maxno) {
+			var docpath = "terminals/" + myterminalid;
+			var terminalRef = db.doc(docpath);
+			terminalRef.collection("routes").doc().set({
+				beginter: beginterName,
+				endter: endterName,
+				cguid: email,
+				autobook: bookoption,
+				price: price,
+				ticketcurno: 0,
+				billcurno: 0,
+				routeno: maxno
+				//routeno: ==> ไปหาค่า max of routeno มาใส่ //ค่านี้เอาไว้สร้างหมายเลข 
+			});
+		});
+	}
+
+	function getRouteMaxNo(callback) {
+		var max = 0;
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("routes").get()	.then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				if (doc.data().routeno > max){
+					max = doc.data().routeno;
+				}
+			});
+			callback(max);
+		});
+	}
+
+	function openRoute(box){
+		getRouteNo(box.id, function(routeNo) {
+			rouNo = routeNo;
+			$("#route-man-cmd-popup").html("<div class='title-box'>คุณต้องการทำสิ่งใดกับเส้นทางที่คุณเลือก</div>");
+			var routeBox = "<div class='ui-field-contain'><button class='ui-btn' id='edit-route-cmd' onclick='openConfigCmd(\"" + box.id + "\")'>ตั้งค่าเส้นทาง</button></div>";
+			routeBox = routeBox.concat("<div class='ui-field-contain'><button class='ui-btn' id='book-man-cmd' onclick='openBookMan(\"" + box.id + "\")'>ขายตั๋ว</button></div>");
+			routeBox = routeBox.concat("<div class='ui-field-contain'><button class='ui-btn' id='book-man-cmd' onclick='openBookSum(\"" + box.id + "\")'>จัดการตั๋ว</button></div>");
+			routeBox = routeBox.concat("<div class='ui-field-contain'><button class='ui-btn' id='book-man-cmd' onclick='openBookingDoc(\"" + box.id + "\")'>ยอดบิล/ยอดตั๋ว</button></div>");
+
+			$("#route-man-cmd-popup").append(routeBox);
+			$("#route-man-cmd-popup").popup("open");
+		});
+	}
+
+	function openConfigCmd(boxid) {
+		$("#route-man-cmd-popup").popup("close");
+		showLoadingImageMT();
+		setTimeout(function() {
+			$("#route-config-cmd-popup").html("<div class='title-box'>คุณต้องการตั้งค่าสิ่งใดกับเส้นทางที่คุณเลือก</div>");
+			var routeBox = "<div class='ui-field-contain'><button class='ui-btn' id='edit-route-cmd' onclick='editRoute(\"" + boxid + "\")'>แก้ไขข้อมูลเส้นทาง</button></div>";
+			routeBox = routeBox.concat("<div class='ui-field-contain'><button class='ui-btn' id='schedule-man-cmd' onclick='scheduleMan(\"" + boxid + "\")'>จัดการเที่ยวเดินรถ</button></div>");
+			routeBox = routeBox.concat("<div class='ui-field-contain'><button class='ui-btn' id='satation-man-cmd' onclick='stationMan(\"" + boxid + "\")'>จัดการสถานีระหว่างทาง</button></div>");
+			routeBox = routeBox.concat("<div class='ui-field-contain'><button class='ui-btn' id='pricechart-man-cmd' onclick='priceChartMan(\"" + boxid + "\")'>จัดการตารางค่าโดยสาร</button></div>");
+			$("#route-config-cmd-popup").append(routeBox);
+			$("#route-config-cmd-popup").popup("open");
+			hideLoadingImageM();
+		}, 1500);
+	}
+
+	function editRoute(boxid){
+		setTimeout(function() {
+			$("#route-config-cmd-popup").popup("close");
+		}, 1000);
+		setTimeout(function() {
+			var docpath = "terminals/" + myterminalid + "/routes/" + boxid;
+			var routeRef = db.doc(docpath);
+			routeRef.get().then(function(doc) {
+				$("#new-route-form-popup").popup("open");
+				$(".title-box").text("แก้ไขเส้นทางเดินรถ");
+				$("#ok-cmd").attr("onclick", "editRout('" + boxid + "')");
+				$("#beginterName").val(doc.data().beginter);
+				$("#endterName").val(doc.data().endter);
+				$("#price").val(doc.data().price);
+				if (doc.data().autobook==0){
+					$("#autobook-option").prop('checked',false);
+				} else {
+					$("#autobook-option").prop('checked',true);				
+				}
+			});
+		}, 1000);
+	}
+
+	function editRout(boxid) {
+		var autobookOption = 0;
+		if ($("#autobook-option").prop('checked') == true ){
+			autobookOption = 1;
+		}
+		var beginterName = $("#beginterName").val();
+		var endterName = $("#endterName").val();
+		var price = $("#price").val();
+		var warnings = "";
+		if (beginterName.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อสถานีต้นทาง' + '<br/>';
+		}
+		if (endterName.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อสถานีปลายทาง' + '<br/>';
+		}
+		if (price.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนค่าโดยสาร' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#errors").css("display", "block");
+		  $("#errors").html(warnings);
+		} else {
+			$("#errors").css("display", "none");
+			updateRoute(boxid, beginterName, endterName, myemail, autobookOption, price) ;
+			$("#new-route-form-popup").popup("close");
+			$("#route-list-view").html("");
+			setTimeout(function() {
+				loadRouteList();
+			}, 3000);
+		}
+	}
+
+	function updateRoute(boxid, beginterName, endterName, email, bookoption, price) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + boxid;
+		var routeRef = db.doc(docpath);
+		 routeRef.set({
+			beginter: beginterName,
+			endter: endterName,
+			cguid: email,
+			autobook: bookoption,
+			price: price
+		}, { merge: true });
+	}
+
+	function getRouteNo(routeid, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			callback(doc.data().routeno);
+		});
+	}
+
+	/* Schedule Man. */
+
+	function scheduleMan(boxid) {
+		//console.log(boxid);
+		//console.log(myterminalid);
+		setTimeout(function() {
+			$("#route-config-cmd-popup").popup("close");
+		}, 1000);
+		setTimeout(function() {
+			var docpath = "terminals/" + myterminalid + "/routes/" + boxid;
+			var routeRef = db.doc(docpath);
+			routeRef.get().then(function(doc) {
+				$("#schedule-man-popup").popup("open");
+				$("#day-select").attr("onchange", "daychange('" + boxid + "')");
+				$("#day-select").chosen({no_results_text: "แย่จัง! ไม่มีวันตามที่คุณต้องการหา"}); 
+				$(".title-box").html("<p>จัดการตารางเดินรถ</p><p>" + doc.data().beginter + " - " + doc.data().endter + "</p>");
+				$("#day-select").prop('selectedIndex', 0);
+				loadSchedulesList("MON", boxid);
+				$("#schedule-items").append("<div style='text-align:center'><img id='add-cmd' src='../../resources/imgs/plus.png' width='30' height='30' onmouseover='this.style.cursor=\"pointer\";' onclick='openNewSchedule(\"" + boxid + "\")'/></div>");
+			});
+		}, 2000);
+	}
+
+	function daychange(boxid) {
+		$("#new-form").hide();
+		var daySel = $("#day-select").val();
+		loadSchedulesList(daySel, boxid);
+	}
+
+	function loadSchedulesList(day, routeid) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("schedules").where("day", "==", day).orderBy("time", "asc").get()
+		.then(function(querySnapshot) {
+			$("#schedule-items").html("");
+			var str = "";
+			querySnapshot.forEach(function(doc) {
+				str = "";
+				var y = (doc.data().status==1? " เปิดใช้งาน " : "  ปิด ไม่ใช้งาน ");
+				var x = (doc.data().status==1? " style='background-color: #cc33cc; color: white;'" : " style='background-color:  #d7d7d7; color: white;'");
+				str = str.concat("<div class='schedule-item'>");
+				str = str.concat("<div id='item-icon'><img src='../../resources/imgs/vanOS.jpg' width='40' height='40' onmouseover='this.style.cursor=\"pointer\";' onclick='editSchedule(\"" + routeid + "\",\"" + doc.id + "\")'/></div>");
+				str = str.concat("<p><b>เที่ยวเวลา : </b>" + doc.data().time + " น.&nbsp;</p>");
+				str = str.concat("<p><b>จำนวนผู้โดยสาร : </b>" + doc.data().passanger + " คน&nbsp;</p>");
+				str = str.concat("<p" + x + ">" + y + "</p>");
+				str = str.concat("</div>");
+				$("#schedule-items").append(str);
+			});
+			$("#schedule-items").append("<div style='text-align:center'><img id='add-cmd' src='../../resources/imgs/plus.png' width='30' height='30' onmouseover='this.style.cursor=\"pointer\";' onclick='openNewSchedule(\"" + routeid + "\")'/></div>");
+			//$("#schedule-items").append("<button class='ui-btn' onclick='deleteSchedule(\"" + day + "\",\"" + routeid + "\")'>ลบรายการเที่ยวเวลาทั้งหมด</button>");
+			$("#schedule-items").append("<button class='ui-btn' onclick='applyAnotherDay(\"" + day + "\",\"" + routeid + "\")'>คัดลอกไปยังวันอื่นๆ</button>");
+		});
+	}
+
+	function loadSchedulesOnArray(day, routeid, callback) {
+		var schedules = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("schedules").where("day", "==", day).orderBy("time", "asc").get()	.then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				sch = {};
+				sch.day = day;
+				sch.time = doc.data().time;
+				sch.passanger = doc.data().passanger;
+				sch.status = doc.data().status;
+				schedules.push(sch);
+			});
+			callback(schedules);
+		});
+	}
+
+	function applyScheduleArray(schedules, routeid){
+		var days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		days.forEach(function(ditem) {
+			schedules.forEach(function(sitem) {
+				if (ditem != sitem.day){
+					routeRef.collection("schedules").doc().set({
+						day: ditem,
+						time: sitem.time,
+						passanger: sitem.passanger,
+						status: sitem.status
+					}, {merge: true});
+				}
+			});
+		});
+	}
+
+	function applyAnotherDay(day, routeid) {
+		var doy = $("#day-select option:selected").text();
+		if (confirm("คุณต้องการคัดลอกข้อมูลเที่ยวเวลาเดินรถของวัน " + doy  + " ไปใส่วันอื่นๆที่เหลือ ใช่หรือไม่")==true){
+			showLoadingImageMT();
+			loadSchedulesOnArray(day, routeid, function(schedules) {
+				applyScheduleArray(schedules, routeid);
+				hideLoadingImageM();
+				alert("ทำการคัดลอกข้อมูลเที่ยวเวลาเดินรถของวัน " + doy  + " ไปใส่วันอื่นๆ ที่เหลือ เรียบร้อยแล้ว");
+			});
+		}
+	}
+/*
+	function deleteSchedule(day, routeid) {
+		if (confirm("คุณต้องลบข้อมูลเที่ยวเวลาเดินรถของวัน " + doy  + " ใช่หรือไม่")==true){
+		showLoadingImageMT();
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("schedules").where("day", "==", day).orderBy("time", "asc").get()	.then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/schedules/" + doc.id;
+				var scheduleRef = db.doc(docpath);
+				scheduleRef.delete();
+			});
+			hideLoadingImageM();
+			alert("ลบข้อมูลเที่ยวเวลาเดินรถของวัน " + doy  + " เรียบร้อยแล้ว");
+		});
+	}
+*/
+	function closeScheduleManPopup() {
+		$("#schedule-man-popup").popup("close");
+		$("#new-form").hide();
+		$("#add-cmd").show();
+		$("#schedule-ok-cmd").show();
+	}
+
+	function openNewSchedule(boxid) {
+		$("#add-cmd").hide();
+		$("#schedule-ok-cmd").hide();
+		$("schedule-items").hide();
+		$("#new-form").show();
+		$("#save-cmd").attr("onclick","saveNewSchedule('" + boxid + "')");
+	}
+
+	function saveNewSchedule(boxid) {
+		var scheduleStatus = 0;
+		if ($("#status").prop('checked') == true ){
+			scheduleStatus = 1;
+		}
+		var day = $("#day-select").val();
+		var time = $("#time-picker").val();
+		var passanger = $("#passanger").val();
+		var warnings = "";
+		if (time.length == 0) {
+		  warnings += 'คุณยังไม่ได้ตั้งเวลาออกเดินรถ' + '<br/>';
+		}
+		if (passanger.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนจำนวนผู้โดยสาร' + '<br/>';
+		}
+ 
+		if (warnings != "") {
+		  $("#new-schedule-errors").css("display", "block");
+		  $("#new-schedule-errors").html(warnings);
+		} else {
+			$("#new-schedule-errors").css("display", "none");
+			saveSchedule(boxid, day, time, passanger, scheduleStatus) ;
+			$("#new-form").hide();
+			$("#schedule-ok-cmd").show();
+			setTimeout(function() {
+				loadSchedulesList(day, boxid);
+			}, 3000);
+		}
+	}
+
+	function saveSchedule(boxid, day, time, passanger, status) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + boxid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("schedules").doc().set({
+			day: day,
+			time: time,
+			passanger: passanger,
+			status: status
+		});
+	}
+
+	function editSchedule(routeid, scheduleid) {
+		$("#add-cmd").hide();
+		$("#schedule-ok-cmd").hide();
+		$("schedule-items").hide();
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/schedules/" + scheduleid;
+		var scheduleRef = db.doc(docpath);
+		scheduleRef.get().then(function(doc) {
+				$("#new-form").show();
+				$("#save-cmd").attr("onclick", "saveeditSchedule('" + routeid + "','" + scheduleid + "')");
+				$("#time-picker").val(doc.data().time);
+				$("#passanger").val(doc.data().passanger);
+				if (doc.data().status == '1'){
+					$("#status").prop('checked', 'checked').trigger('change');
+				} else {
+ 					$("#status").prop('checked', '').trigger('change');
+				}
+		});
+	}
+
+	function saveeditSchedule(routeid, scheduleid) {
+		var scheduleStatus = 0;
+		if ($("#status").prop('checked') == true ){
+			scheduleStatus = 1;
+		}
+		var day = $("#day-select").val();
+		var time = $("#time-picker").val();
+		var passanger = $("#passanger").val();
+		var warnings = "";
+		if (time.length == 0) {
+		  warnings += 'คุณยังไม่ได้ตั้งเวลาออกเดินรถ' + '<br/>';
+		}
+		if (passanger.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนจำนวนผู้โดยสาร' + '<br/>';
+		}
+ 
+		if (warnings != "") {
+		  $("#new-schedule-errors").css("display", "block");
+		  $("#new-schedule-errors").html(warnings);
+		} else {
+			updateSchedule(routeid, scheduleid, day, time, passanger, scheduleStatus);
+			setTimeout(function() {
+				$("#new-schedule-errors").css("display", "none");
+				$("#new-form").hide();
+				$("#add-cmd").hide();
+				$("#schedule-ok-cmd").show();
+				loadSchedulesList(day, routeid);
+			}, 5000);
+		}
+	}
+
+	function updateSchedule(routeid, scheduleid, day, time, passanger, status) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/schedules/" + scheduleid;
+		var scheduleRef = db.doc(docpath);
+		 scheduleRef.set({
+			day: day,
+			time: time,
+			passanger: passanger,
+			status: status
+		}, { merge: true });
+	}
+
+	/* Station Man. */
+	function closeStationManPopup() {
+		$("#station-man-popup").popup("close");
+		$("#station-new-form").hide();
+		$("#add-cmd").show();
+		$("#station-ok-cmd").show();
+	}
+
+	function stationMan(boxid) {
+		setTimeout(function() {
+			$("#route-config-cmd-popup").popup("close");
+		}, 1000);
+		setTimeout(function() {
+			var docpath = "terminals/" + myterminalid + "/routes/" + boxid;
+			var routeRef = db.doc(docpath);
+			routeRef.get().then(function(doc) {
+				$("#station-man-popup").popup("open");
+
+				$(".title-box").html("<p>จัดการสถานีระหว่างทาง</p><p>" + doc.data().beginter + " - " + doc.data().endter + "</p>");
+
+				loadStationList(boxid);
+
+				$("#station-items").append("<div style='text-align:center'><img id='add-cmd' src='../../resources/imgs/plus.png' width='30' height='30' onmouseover='this.style.cursor=\"pointer\";' onclick='openNewStation(\"" + boxid + "\")'/></div>");
+			});
+		}, 2000);
+	}
+
+	function loadStationList(routeid) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("stations").get()
+		.then(function(querySnapshot) {
+			$("#station-items").html("");
+			var str = "";
+			querySnapshot.forEach(function(doc) {
+				str = "";
+				var y = (doc.data().status==1? " เปิดใช้งาน " : "  ปิด ไม่ใช้งาน ");
+				var x = (doc.data().status==1? " style='background-color: #cc33cc; color: white;'" : " style='background-color:  #d7d7d7; color: white;'");
+				str = str.concat("<div class='station-item'>");
+				if (doc.data().updown==1) {
+					str = str.concat("<div id='item-icon'><img src='../../resources/imgs/van-station.png' width='40' height='40' onmouseover='this.style.cursor=\"pointer\";' onclick='editStation(\"" + routeid + "\",\"" + doc.id + "\")'/>&nbsp;&nbsp;</div>");
+				} else {
+					str = str.concat("<div id='item-icon'><img src='../../resources/imgs/van-station-up.png' width='40' height='40' onmouseover='this.style.cursor=\"pointer\";' onclick='editStation(\"" + routeid + "\",\"" + doc.id + "\")'/>&nbsp;&nbsp;</div>");
+				}
+				str = str.concat("<p><b>สถานี : </b>" + doc.data().name + "&nbsp;&nbsp;</p>");
+				//str = str.concat("<p><b>พิกัดละติจูด : </b>" + doc.data().lat + "</p>");
+				//str = str.concat("<p><b>พิกัดลองติจูด : </b>" + doc.data().long + "</p>");
+				str = str.concat("<p" + x + ">" + y + "</p>");
+				str = str.concat("</div>");
+				$("#station-items").append(str);
+			});
+			$("#station-items").append("<div style='text-align:center'><img id='add-cmd' src='../../resources/imgs/plus.png' width='30' height='30' onmouseover='this.style.cursor=\"pointer\";' onclick='openNewStation(\"" + routeid + "\")'/></div>");
+		});
+	}
+
+	function openNewStation(boxid) {
+		$("#station-new-form").show();
+		$("#station-save-cmd").attr("onclick","saveNewStation('" + boxid + "')");
+		$("#add-cmd").hide();
+	}
+
+	function saveNewStation(boxid) {
+		var stationStatus = 0;
+		if ($("#station-status").prop('checked') == true ){
+			stationStatus = 1;
+		}
+		var stationUpdown = 0;
+		if ($("#station-updown").prop('checked') == true ){
+			stationUpdown = 1;
+		}
+		var name = $("#station-name").val();
+		var maplat = $("#map-lat").val();
+		var maplong = $("#map-long").val();
+		var warnings = "";
+		if (name.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อสถานี' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#new-station-errors").css("display", "block");
+		  $("#new-station-errors").html(warnings);
+		} else {
+			$("#new-station-errors").css("display", "none");
+			saveStation(boxid, name, maplat, maplong, stationStatus, stationUpdown ) ;
+			$("#station-new-form").hide();
+			$("#station-ok-cmd").show();
+			setTimeout(function() {
+				$("#station-items").show();
+				loadStationList(boxid);
+			}, 3000);
+		}
+	}
+
+	function saveStation(boxid, name, maplat, maplong, status, updown) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + boxid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("stations").doc().set({
+			name: name,
+			lat: maplat,
+			long: maplong,
+			status: status,
+			updown: updown  /* 0=ลง, 1=ขึ้น */
+		});
+	}
+
+	function editStation(routeid, stationid) {
+		$("#add-cmd").hide();
+		$("#station-ok-cmd").hide();
+		$("#station-items").hide();
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/stations/" + stationid;
+		var stationRef = db.doc(docpath);
+		stationRef.get().then(function(doc) {
+				$("#station-new-form").show();
+				$("#station-save-cmd").attr("onclick", "saveeditStation('" + routeid + "','" + stationid + "')");
+				$("#station-name").val(doc.data().name);
+				$("#map-lat").val(doc.data().lat);
+				$("#map-long").val(doc.data().long);
+				if (doc.data().status == '1'){
+					$("#station-updown").prop('checked', 'checked').trigger('change');
+				} else {
+ 					$("#station-updown").prop('checked', '').trigger('change');
+				}
+				if (doc.data().status == '1'){
+					$("#station-status").prop('checked', 'checked').trigger('change');
+				} else {
+ 					$("#station-status").prop('checked', '').trigger('change');
+				}
+		});
+	}
+
+	function saveeditStation(routeid, stationid) {
+		var stationUpdown = 0;
+		if ($("#station-updown").prop('checked') == true ){
+			stationUpdown = 1;
+		}
+		var stationStatus = 0;
+		if ($("#station-status").prop('checked') == true ){
+			stationStatus = 1;
+		}
+		var name = $("#station-name").val();
+		var maplat = $("#map-lat").val();
+		var maplong = $("#map-long").val();
+		var warnings = "";
+		if (name.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนชื่อสถานี' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#new-station-errors").css("display", "block");
+		  $("#new-station-errors").html(warnings);
+		} else {
+			$("#new-station-errors").css("display", "none");
+			updateStation(routeid, stationid, name, maplat, maplong, stationStatus, stationUpdown) ;
+			$("#station-new-form").hide();
+			$("#station-ok-cmd").show();
+			setTimeout(function() {
+				$("#station-items").show();
+				loadStationList(routeid);
+			}, 3000);
+		}
+	}
+
+	function updateStation(routeid, stationid, name, maplat, maplong, status, updown) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/stations/" + stationid;
+		var stationRef = db.doc(docpath);
+		 stationRef.set({
+			name: name,
+			lat: maplat,
+			long: maplong,
+			status: status,
+			updown: updown /* 0=ลง, 1=ขึ้น */
+		}, { merge: true });
+	}
+
+	/*priceChartMan*/
+
+	var optionList = [];
+
+	function closePriceChartManPopup() {
+		$("#pricechart-man-popup").popup("close");
+		$("#pricechart-new-form").hide();
+		$("#add-cmd").show();
+		$("#pricechart-ok-cmd").show();
+	}
+
+	function priceChartMan(boxid) {
+		showLoadingImageMT();
+		optionList = [];
+		$("#route-config-cmd-popup").popup("close");
+		optionList = loadStationOption(boxid);
+		setTimeout(function() {
+			loadPriceChart(boxid);
+			setTimeout(function() {
+				$("#pricechart-man-popup").popup("open");
+				hideLoadingImageM();
+			}, 3000);
+		}, 3000);
+	}
+	
+	function loadPriceChart(routeid) {
+		$("#pricechart-items").empty();
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		var str = "";
+		str = str.concat("<p>คลิกบนรูปไอคอนหน้ารายการใดๆ เพื่อแก้ไขข้อมูลรายการนั้น</p>");
+		routeRef.collection("pricecharts").get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				str = str.concat("<div class='station-item'>");
+				str = str.concat("<div id='item-icon'><img src='../../resources/imgs/van-station.png' width='40' height='40' onmouseover='this.style.cursor=\"pointer\";' onclick='editPriceChart(\"" + routeid + "\",\"" + doc.id + "\")'/>&nbsp;&nbsp;</div>");
+				var frstationname, tostationname;
+ 				frstationname = getStationname(doc.data().frstation);
+				tostationname = getStationname(doc.data().tostation);
+				str = str.concat("<p><b>จากสถานี : </b>" + frstationname + " <b>ถึงสถานี : </b>" + tostationname + " <b>ราคา</b> " + doc.data().price + " บาท</p>");
+				str = str.concat("</div>");
+			});
+			$("#pricechart-items").append(str);
+			$("#pricechart-items").append("<div style='text-align:center'><img id='add-cmd' src='../../resources/imgs/plus.png' width='30' height='30' onmouseover='this.style.cursor=\"pointer\";' onclick='openNewPriceChart(\"" + routeid + "\")'/></div>");
+		});
+	}
+
+	function getStationname(sid) {
+		//console.log(JSON.stringify(optionList));
+		var item = optionList.find(ob => ob.id == sid);
+ 		return item.name;
+	}
+
+	function loadStationOption(routeid) {
+		var opts = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("stations").get()
+		.then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				var stb = {};
+				stb.id = doc.id;
+				stb.name = doc.data().name;
+				stb.updown = doc.data().updown;
+				opts.push(stb);
+			});
+		});
+		return opts;
+	}
+	
+	function openNewPriceChart(routeid) {
+		setTimeout(function() {
+			$("#fr-station-select").empty();
+			$("#to-station-select").empty();
+			var opt = "";
+			for (var i=0; i< optionList.length; i++){
+				if (optionList[i].updown == 1) {
+					opt = opt.concat("<option value='" + optionList[i].id + "'>" + optionList[i].name + "</option>");
+				}
+			}
+			$("#fr-station-select").append(opt);
+			var opt = "";
+			for (var i=0; i< optionList.length; i++){
+				if (optionList[i].updown == 0) {
+					opt = opt.concat("<option value='" + optionList[i].id + "'>" + optionList[i].name + "</option>");
+				}
+			}
+			$("#to-station-select").append(opt);
+			$("#pricechart-new-form").show();
+			$("#pricechart-save-cmd").attr("onclick","saveNewPriceChart('" + routeid + "')");
+		}, 2000);
+	}
+
+	function saveNewPriceChart(routeid){
+ 		var price = $("#chartprice").val();
+		var frstation = $("#fr-station-select").val();
+		var tostation = $("#to-station-select").val();
+		var warnings = "";
+		if (price.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนค่าโดยสาร' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#new-pricechart-errors").css("display", "block");
+		  $("#new-pricechart-errors").html(warnings);
+		} else {
+			$("#new-pricechart-errors").css("display", "none");
+			savePriceChart(routeid, frstation, tostation, price);
+			$("#pricechart-new-form").hide();
+			$("#pricechart-ok-cmd").show();
+			setTimeout(function() {
+				$("#pricechart-items").show();
+				loadPriceChart(routeid);
+			}, 3000);
+		}
+	}
+
+	function savePriceChart(routeid, frstation, tostation, price){
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("pricecharts").doc().set({
+			frstation: frstation,
+			tostation: tostation,
+			price: price
+		});
+	}
+
+	function editPriceChart(routeid, pricechartid) {
+		$("#add-cmd").hide();
+		$("#pricechart-ok-cmd").hide();
+		$("#pricechart-items").hide();
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/pricecharts/" + pricechartid;
+		var pricechartidRef = db.doc(docpath);
+		pricechartidRef.get().then(function(doc) {
+			$("#pricechart-new-form").show();
+			$("#pricechart-save-cmd").attr("onclick", "saveeditPriceChart('" + routeid + "','" + pricechartid + "')");
+			var opt = "";
+			for (var i=0; i< optionList.length; i++){
+				opt = opt.concat("<option value='" + optionList[i].id + "'>" + optionList[i].name + "</option>");
+			}
+			$("#fr-station-select").append(opt);
+			$("#to-station-select").append(opt);
+			$("#fr-station-select").val(doc.data().frstation);
+			$("#to-station-select").val(doc.data().tostation);
+			$("#chartprice").val(doc.data().price);
+		});
+	}
+
+	function saveeditPriceChart(routeid, pricechartid) {
+ 		var price = $("#chartprice").val();
+		var frstation = $("#fr-station-select").val();
+		var tostation = $("#to-station-select").val();
+		var warnings = "";
+		if (price.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนค่าโดยสาร' + '<br/>';
+		}
+		if (warnings != "") {
+		  $("#new-pricechart-errors").css("display", "block");
+		  $("#new-pricechart-errors").html(warnings);
+		} else {
+			$("#new-pricechart-errors").css("display", "none");
+			updatePriceChart(routeid, pricechartid, frstation, tostation, price);
+			$("#pricechart-new-form").hide();
+			$("#pricechart-ok-cmd").show();
+			setTimeout(function() {
+				$("#pricechart-items").show();
+				loadPriceChart(routeid);
+			}, 3000);
+		}
+	}
+
+	function updatePriceChart(routeid, pricechartid, frstation, tostation, price) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/pricecharts/" + pricechartid;
+		var pricechartRef = db.doc(docpath);
+		 pricechartRef.set({
+			frstation: frstation,
+			tostation: tostation,
+			price: price
+		}, { merge: true });
+	}
+</script>
+

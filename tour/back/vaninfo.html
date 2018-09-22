@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../../resources/imgs/ico/vanOS.ico">
+	<title>บริการข้อมูลรถตู้โดยสาร</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 98%
+			float: left;
+
+			border: #cc33cc 5px solid;
+			border-radius:5px;
+			box-shadow:0 0 3px #999;
+			margin: 5px;
+			padding: 5px;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+		#btnContainer {
+			width: 100%
+			position: relative;
+			float: left;
+		}
+		.btnWrapper {
+			position: relative;
+			display: inline-block;
+			text-align: center; 
+			margin: 10px;"
+			float: left;
+		}
+		.title-box{
+			background: #cc33cc;
+			color: white;
+			font-weight: 500;
+			font-size: 18px;
+			text-align: center;
+			padding: 10px;
+		}
+		#mytoken {
+			display: none;
+		}
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<img src="../../resources/imgs/vanOS.png" width="60" height="60"/>
+			<h4>This is Header Panel.</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+		<div class="title-box">เมนูหลัก</div>
+		<div id="guide"><p>หากคุณต้องการเดินทางกับรถตู้โดยสาร แต่คุณยังไม่ทราบว่าจะต้องไปซื้อตั๋ว ขึ้นรถ ที่ไหน ขอเชิญค้นหาเส้นทางรถตู้ทั่วประเทศ โดยคลิกปุ่ม <b>ค้นหาเส้นทางรถตู้</b> ได้เลย เรามีคำตอบให้คุณ</p></div>
+		<div id="btnContainer">
+			<div class="btnWrapper">
+				<div style="min-width: 50px; width:170px;">
+					<button id="btnSearch" style="display: inline-block;" onclick="openView()">&nbsp;</button>
+				</div>
+			</div>
+			<div class="btnWrapper">
+				<div style="min-width: 50px; width:170px;">
+					<button id="btnComment" style="display: inline-block;" onclick="openComment()">&nbsp;</button>
+				</div>
+			</div>
+		</div>
+		<div style="text-align: center;">
+			<div style="min-width: 50px; width:160px;">
+				<img src="tt/vaninfourl.png" width='120' height='120' />
+			</div>
+		</div>
+    </div>
+	<!--ต้องการช่วยปรับปรุง/แนะนำการให้บริการ เชิญออกความเห็น ...-->
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>This is Footer Panel.</b>
+		</div>
+		<div id="mytoken"></div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../../resources/js/notify.js"></script>  
+	<!--<script src="//code.jquery.com/jquery-1.12.2.min.js"></script>-->
+	<script src="../../resources/js/on-off-switch.js"></script>
+	<script src="../../resources/js/on-off-switch-onload.js"></script>
+	<script src="../../resources/js/jquery.timepicker.min.js"></script>
+	<script src="../../resources/js/mdtimepicker.js"></script>
+	<script src="../../resources/js/chosen.jquery.min.js"></script>
+	<!--
+	<script src="../../resources/js/pdfmake.js"></script>
+	<script src="../../resources/js/vfs_fonts.js"></script>
+	-->
+	<script src="../../resources/js/jquery.qrcode.min.js"></script>
+	<script src="../../resources/js/printThis.js"></script>
+
+	<link rel="stylesheet" href="../../resources/css/on-off-switch.css">
+	<link rel="stylesheet" href="../../resources/css/jquery.timepicker.min.css">
+	<link rel="stylesheet" href="../../resources/css/mdtimepicker.css">
+	<link rel="stylesheet" href="../../resources/css/chosen.min.css">
+
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-storage.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+    </script>
+
+	<script>
+		var mytoken;
+		var rid;
+
+	</script>
+
+    <script>
+
+		rid = getParameterByName("r");
+
+		$(document).ready(function() {
+			$("#btnSearch").text("").append("<img src='tt/vansearch.png' width='100' height='100'  />").button();
+			$("#btnComment").text("").append("<img src='tt/comment.png' width='100' height='100'  />").button();
+			if (rid != ""){
+				//พาไปดูรายละเอียด หน้า optionRoute
+				initPage();
+				openOption();
+			} else {
+				//เข้าสู่โหมดปกติ
+				initPage();
+			}
+	   });
+
+
+		function initPage() {
+			var is_chrome = ((navigator.userAgent.toLowerCase().indexOf('chrome') > -1) &&(navigator.vendor.toLowerCase().indexOf("google") > -1));
+			var is_firefox = (navigator.userAgent.toLowerCase().indexOf('firefox') > -1); 
+			if ( !is_chrome )  {
+				if  (! is_firefox ) {
+					alert("เพื่อให้ได้ผลการทำงานที่ดีที่สุด โปรดใช้ Google Chrome หรือ Firefox สำหรับแอพพลิเคชั่นนี้");
+				} else {
+					var match = navigator.userAgent.match(/Firefox\/([0-9]+)\./);
+					var firefoxver = parseInt(match[1]);
+					$("#mytoken").html(firefoxver);
+					$("#mytoken").show();
+				   if (chromever < 50) {
+					   alert ("โปรดอัพเดท Firefox ขั้นต่ำควรเป็นเวอร์ชั่น 44");
+				   }
+				}
+			} else {
+			   var raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+			   var chromever = parseInt(raw[2], 10);
+			   $("#mytoken").html(chromever);
+			   $("#mytoken").show();
+			   if (chromever < 50) {
+				   alert ("โปรดอัพเดท Google Chrome ขั้นต่ำควรเป็นเวอร์ชั่น 55");
+			   }
+			}
+			document.title =  "บริการข้อมูลรถตู้โดยสาร";
+			$('#herder-conter').html("<img src='../../resources/imgs/vanOS.png' width='60' height='60'/><h4>บริการข้อมูลรถตู้โดยสาร ทั่วประเทศไทย</h4>");
+			$('#footer-conter').html("<h4>" + "ข้อแนะนำ" + "</h4><p>เพื่อให้ได้ผลการทำงานที่ดีที่สุด โปรดใช้ Google Chrome หรือ Firefox สำหรับแอพพลิเคชั่นนี้</p>");
+ 		}
+
+		function openView(){
+			showLoadingImageMT();
+			$.post("tt/vanview.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+
+		function openOption(){
+			showLoadingImageMT();
+			$.post("tt/optionview.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+
+		function openComment() {
+			showLoadingImageMT();
+			$.post("tt/comment.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+
+		function backtoHome(){
+			window.location.reload(false); 
+		}
+	</script>
+
+ 
+	<script>
+	//ท่อนนี้ของ Notification และ Notify
+
+		$.notify.addStyle('myshopman', {
+			html: "<div class='superblue'><span data-notify-html/></div>",
+			classes: {
+				base: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "black",
+					"background-color": "white",
+					"padding": "20px"
+				},
+				green: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "green",
+					"padding": "20px"
+				},
+				red: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "red",
+					"padding": "20px"
+				},
+				purple: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "#cc33cc",
+					"padding": "20px"
+				}
+			}
+		});
+
+		messaging.onMessage(function(payload) {
+			//console.log("Message received. ", payload);
+		var msg = "<div id='notify-title'>";
+		msg = msg.concat(payload.notification.title);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div id='notify-body'>");
+		msg = msg.concat(payload.notification.body);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div div id='notify-from'> จาก : ");
+		msg = msg.concat(payload.data.sendername);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div id='buttons'><button onclick='opendetail(\"" + payload.notification.click_action + "\")'>รายละเอียด</button></div>");			$.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'purple'});
+			playsoundeffect();
+		});
+
+		function playsoundeffect() {
+			 $('#soundeffect')[0].play();
+		}
+
+		//if ((mytoken=="") || (mytoken== undefined)){
+			subscribeFCM();
+			//getcurrentToken();
+		//}
+
+		function subscribeFCM() {
+			messaging.requestPermission().then(function() {
+				console.log("Thank you.");
+				getcurrentToken();
+				//pushNotify("ขอขอบคุณ", "vanOSThailand", "ขอขอบคุณที่ใช้บริการของเรา โอกาสหน้าหากมีความเลื่อนไหวใดๆ ในวงการรถตู้โดยสารเกืดขึ้น เราจะรีบแจ้งให้คุณทราบในทันที", mytoken)
+			})
+			.catch(function(err) {
+				console.log('Unable to get permission to notify. ', err);
+			});
+		 }
+
+		function getcurrentToken() {
+			setTimeout(function() {
+				 messaging.getToken().then(function(currentToken) {
+				   mytoken = currentToken;
+				   saveToken(mytoken);
+				   console.log(mytoken);
+				   //var raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+				   //$("#mytoken").html( parseInt(raw[2], 10));
+				   //$("#mytoken").show();
+				 });
+			}, 3000);
+		}
+
+		messaging.onTokenRefresh(function() {
+			messaging.getToken()
+			.then(function(refreshedToken) {
+				console.log('Token refreshed. :: ' + refreshedToken);
+			})
+			.catch(function(err) {
+				console.log('Unable to retrieve refreshed token ', err);
+			});
+		});
+
+		$("#footer-conter").click(function(e) {
+			playsoundeffect();
+		});
+
+		function saveToken(tk) {
+			tokenRef = db.collection("tokens");
+			tokenRef.where("token", "==", tk).get().then(function(querySnapshot) {
+				console.log(querySnapshot.size);
+				if (querySnapshot.size == 0){
+					tokenRef.doc().set({
+						token: tk,
+						page: 'vaninfo'
+					});
+				}
+			});
+		}
+
+		function pushNotify(title, sender, message, token) {
+			$.post("https://us-central1-myhotel-4746f.cloudfunctions.net/sendPushNotification", 
+				{
+					msg: message,
+					token: token,
+					title: title,
+					sender: sender,
+					replylink: 'https://myhotel-4746f.firebaseapp.com/mobile/mviewpush.html?mmes=' + 'noName',
+					replyicon: 'tt/vanOS.png'
+				},
+				function(data) {
+ 
+				}
+			);
+		}
+	</script>
+  </body>
+</html>

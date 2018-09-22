@@ -1,0 +1,519 @@
+<style>
+	#vanhome-main{
+		text-align: center;
+	}
+	#errors{
+		display: none;
+		color: red;
+	}
+	#new-van-form-popup {
+
+	}
+	.van-item {
+		margin: 5px;
+	}
+	.van-item p {
+		border: 5px solid #cc33cc;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	.tour-item {
+		margin: 5px;
+	}
+	.tour-item p {
+		border: 5px solid #cc33cc;
+		display: table-cell;
+		vertical-align: middle;
+		margin: 5px;
+		padding: 10px;
+	}
+	.route{
+		border-radius: 25px;
+		background: #cc33cc;
+		padding: 10px; 
+		width: 97%;
+		height: 30px; 
+		color: white;
+		margin-top: 10px;
+	}
+	.passanger-item {
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+	.circlemark {
+		border-radius: 50%;
+		border: solid thick white;
+		box-shadow: black 0.5em 0.5em 0.3em;
+		width: 20px;
+		height: 20px; 
+		background: #cc33cc;
+	}
+	.billno-span {
+		background: #cc33cc;
+		padding: 5px;
+		border: solid thick white;
+		border-radius: 1em;
+		box-shadow: black 0.5em 0.5em 0.3em;
+	}
+	.ticketno-span {
+		color: #cc33cc;
+		background: white;
+		padding: 5px;
+		border: solid thick #cc33cc;
+		border-radius: 1em;
+		box-shadow: black 0.5em 0.5em 0.3em;
+	}
+	.input-step {
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		padding: 10px;
+		text-align: left;
+	}
+	#item-icon{
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#heade-title{
+		text-align: center;
+	}
+	#explain-text{
+		text-align: left;
+	}
+	#vandriver-view {
+		display: none;
+		text-align: left;
+	}
+	#title, #body {
+		border: 3px #cc33cc solid; 
+		border-radius: 3px;	
+		padding: 10px; 
+		margin: 5px;"
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 100%;
+		text-align: center:
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 33%;
+		text-align: center:
+	}
+	.step-bar-pop {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 75%;
+		text-align: center:
+	}
+	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 140px;
+		vertical-align: middle;
+	}
+</style>
+
+<div  id='vanhome-main'>
+	<div id="heade-title">&nbsp;</div>
+	<div id="explain-text"></div>
+	<div id="vandriver-view">
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="close-cmd" onclick="closewindow()">   ปิด     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='messageBox-popup' style='padding: 20px;'>
+	<div class="title-box">แจ้งข้อความไปถึงผู้โดยสาร</div>
+	<div id="explian-text" style="margin-top: 10px;">
+		<p>ป้อน หัวเรื่องข้อความ และ เนื้อความ แล้วคลิกปุ่ม <b>Push</b> เพื่อส่งข้อความไปให้ผู้โดยสาร</p>
+		<p>หัวเรื่องข้อความ และ เนื้อความ คุณสามารถเลือกรูปแบบได้จาก <b>รูปแบบข้อความ</b></p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>รูปแบบข้อความ :</b></div> 
+		<div class="step-bar-pop">
+			<select id="msg-pattern-select" class="input-step" onchange="patternChange()">
+				<option value="1">ว่างเปล่า</option>
+				<option value="2">แจ้งผู้โดยสารก่อนรถออก</option>
+			</select>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>หัวเรื่อง :</b></div> <div class="step-bar-pop"><input type="text" id="title" size="50"/></div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เนื้อความ :</b></div> <div class="step-bar-pop"><input type="text" id="body" size="50"/></div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="push-cmd" onclick="pushNotify()">   Push     </button>
+		<button class="ui-btn" id="back-cmd" onclick="closemessageBox()">   ปิด     </button>
+	</div>
+</div>
+
+<script>
+
+	$(document).ready(function() {
+		var bbox, bvanid, stations, loads;
+		loadRouteList();
+		$("#messageBox-popup").popup({ overlayTheme: "a"});
+	});
+
+	function loadRouteList(){
+		$("#heade-title").html("<b>รายการเส้นทางเดินรถ</b>");
+		$("#explain-text").html("<p>คลิกเลือกรายการเส้นทางเดินรถที่รถตู้ของคุณวิ่งอยู่</p>");
+		$("#vandriver-view").show();
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("routes").get().then(function(querySnapshot) {
+			$("#vandriver-view").empty();
+			querySnapshot.forEach(function(doc) {
+ 				var routeBox = "<div class='route' id='" + doc.id + "' onmouseover='this.style.cursor=\"pointer\";' onclick='openRouteVan(this)'>" + doc.data().beginter + " - " + doc.data().endter  +  "</div>";
+				$("#vandriver-view").append(routeBox);
+			});
+		});
+		$("#close-cmd").text("ปิด");
+		$("#close-cmd").attr("onclick","closewindow()");
+	}
+
+	function openRouteVan(box) {
+		getRouteNo(box.id, function(routeNo) {
+			rouNo = routeNo;
+			bbox = box;
+			$("#heade-title").html("<b>รายการรถตู้เส้นทาง " + $(box).text() + "</b>");
+			$("#explain-text").html("<p>หากต้องการดูข้อมูลผู้โดยสารของรถคันใดๆ ให้คลิกบนรูปรถตู้หน้ารายการนั้นๆ </p>");
+			loadVanList(box.id);
+			$("#close-cmd").text("กลับ");
+			$("#close-cmd").attr("onclick","loadRouteList()");
+		});
+	}
+
+	function loadVanList(routeid) {
+		brouteid = routeid;
+		var docpath = "terminals/" + myterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("vans").get().then(function(querySnapshot) {
+			$("#vandriver-view").empty();
+			querySnapshot.forEach(function(doc) {
+				 vanHaveAuthoOnRoute(doc.id, routeid, function(have) {
+					if (have==true){
+						str = "";
+						var y = (doc.data().status==1? " วิ่ง " : "  หยุด ");
+						var x = (doc.data().status==1? " style='background-color: #cc33cc; color: white;'" : " style='background-color:  #d7d7d7; color: white;'");
+						str = str.concat("<div class='van-item'>");
+						str = str.concat("<div id='item-icon'><img src='../../resources/imgs/vansideicon.png' width='50' height='40' onmouseover='this.style.cursor=\"pointer\";' onclick='openLaodTour(\"" +  doc.id + "\")'/>&nbsp;&nbsp;</div>");
+						str = str.concat("<p><b>หมายเลขรถ : </b>" + doc.data().vanno + " &nbsp;</p>");
+						str = str.concat("<p><b>ชื่อคนขับรถ : </b>" + doc.data().firstname + " " + doc.data().lastname + "&nbsp;</p>");
+						str = str.concat("<p" + x + ">" + y + "</p>");
+						str = str.concat("</div>");
+						$("#vandriver-view").append(str);
+					}
+				 });
+			});
+		});
+	}
+
+	function vanHaveAuthoOnRoute(vanid, routeid, callback) {
+		var docpath = "terminals/" + myterminalid + "/vans/" + vanid;
+		var vanRef = db.doc(docpath);
+		vanRef.collection("routeids").where("routeid", "==", routeid).get().then(function(tmquerySnapshot) {
+			if (tmquerySnapshot.size > 0){
+				callback(true);
+			} else {
+				callback(false);
+			}
+		});
+	}
+
+	function getVanDetail(vanid, callback) {
+		var docpath = "terminals/" + myterminalid + "/vans/" + vanid;
+		var vanRef = db.doc(docpath);
+		vanRef.get().then(function(doc) {
+			callback(doc.data().vanregno, doc.data().vanno);
+		});
+	}
+
+	function openLaodTour(vanid) {
+		getVanDetail(vanid, function(vanregno, vanno) {
+			$("#heade-title").html("<b>รายการเที่ยวเวลาเดินรถ ของ ทะเบียนรถ : " + vanregno + " หมายเลขรถ : " + vanno + "</b>");
+			$("#explain-text").html("<p>หากต้องการดูข้อมูลผู้โดยสารของเที่ยวรถเวลาใดๆ ให้คลิกบนรายการนั้นๆ </p>");
+			bvanid = vanid;
+			var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+			var tourRef = db.doc(docpath);
+			tourRef.collection("tours").where("vanid", "==" , vanid).orderBy("traveldate", "desc").get().then(function(querySnapshot) {
+				$("#vandriver-view").empty();
+				querySnapshot.forEach(function(doc) {
+					str = "";
+					str = str.concat("<div class='tour-item' onclick='openLoad(\"" + doc.id + "\")' onmouseover='this.style.cursor=\"pointer\";'>");
+					str = str.concat("<p><b>วันที่เดินทาง : </b>" + doc.data().traveldatetext + " &nbsp;</p>");
+					str = str.concat("<p><b>เวลา : </b>" + doc.data().scheduletext + " &nbsp;</p>");
+
+					str = str.concat("</div>");
+					$("#vandriver-view").append(str);
+				});
+			});
+			$("#close-cmd").text("กลับ");
+			$("#close-cmd").attr("onclick","openRouteVan(" + bbox + ")");
+		});
+	}
+
+	function getTourDetail(tourid, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + tourid;
+		var tourRef = db.doc(docpath);
+		tourRef.get().then(function(doc) {
+			callback(doc.data().traveldatetext, doc.data().scheduletext);
+		});
+	}
+
+	function openLoad(tourid) {
+		$("#vandriver-view").empty();
+		showLoadingImageMT();
+		getTourDetail(tourid, function(traveldatetext, scheduletext) {
+			$("#heade-title").html("<b>รายการผู้โดยสารของเที่ยวรถ วันที่ : " + traveldatetext + " เวลา : " + scheduletext + "</b>");
+			//$("#explain-text").html("<p>หากต้องการดูข้อมูลผู้โดยสารของเที่ยวเวลาใดๆ ให้คลิกบนรายการนั้นๆ </p>");
+			$("#explain-text").empty();
+			stations = loadStationAllList();
+			loadSummary(tourid, function(seats) {
+				$("#explain-box").html("คลิกปุ่ม <b>กลับ</b> เพื่อย้อนกลับไปเลือกเที่ยวเวลาเดินรถใหม่");
+				timeout(5000).then(function() {
+					//console.log(JSON.stringify(seats));
+					str = str.concat(showSeatItem(seats));
+					$("#vandriver-view").html(str);
+					$("#vandriver-view").append("<div style='text-align: center;'><button class='ui-btn' onclick='openBoxNotifyUser()'>แจ้งข้อความถึงผู้โดยสาร</button></div>");
+					loads = [];
+					seats.forEach(function(item) {
+						var bkitem = item.books.find(ob => ob.bsts == 2);
+						if (bkitem)	{
+							var lditem = loads.find(ob => ob.tkno == bkitem.ticketno);
+							if (! lditem)	{
+								var ld = {};
+								ld.blno = bkitem.billno;
+								ld.tkno = bkitem.ticketno;
+								loads.push(ld);
+								//loads เก็บค่า ticketno และ billno ทั้งหมดของรถเที่ยวเวลานั้น เพื่อเอาไปใช้หาเจ้าของตั๋ว สำหรับ push notify
+							}
+						}
+					});
+					//console.log(JSON.stringify(loads));
+					hideLoadingImageM();
+				});
+			});
+			$("#close-cmd").text("กลับ");
+			$("#close-cmd").attr("onclick","openLaodTour(\"" + bvanid + "\")");
+		});
+	}
+
+	function loadScheduleOfTour(tourid, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tours/" + tourid;
+		var tourRef = db.doc(docpath);
+		tourRef.get().then(function(doc) {
+			callback(doc.data().scheduleid);
+		});
+	}
+
+	function loadSummary(tourid, callback) {
+		var seats = [];
+		loadScheduleOfTour(tourid, function(scheduleid) {
+			console.log(scheduleid);
+			var docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/schedules/" + scheduleid;
+			var scheduleRef = db.doc(docpath);
+			scheduleRef.get().then(function(scdoc) {
+				var pssg = parseInt(scdoc.data().passanger);
+				for (var i=1;i<=pssg ;i++ )	{
+					var ob = {};
+					ob.sno = i;
+					ob.books = [],
+					seats.push(ob);
+				}
+				//console.log(JSON.stringify(seats));
+
+				docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+				var routeRef = db.doc(docpath);
+
+				db.doc(docpath + "/tours/" + tourid).collection("passangers").get().then(function(psquerySnapshot) {
+					psquerySnapshot.forEach(function(psdoc) {
+						bpassangerid = psdoc.id;
+						var sno = psdoc.data().seatno;
+						var item = seats.find(ob => ob.sno == sno);
+						item.tourid = tourid;
+						item.passangerid = bpassangerid;
+						var psRef = db.doc(docpath + "/tours/" + tourid + "/passangers/" + psdoc.id);
+						psRef.collection("bookings").orderBy("order", "asc").get().then(function(bquerySnapshot) {
+							bquerySnapshot.forEach(function(pssgDocRef) {
+								var bk = {};
+								bk.name = pssgDocRef.data().cguid;
+								bk.ptel = pssgDocRef.data().ptel;
+								bk.order = pssgDocRef.data().order;
+								bk.bsts = pssgDocRef.data().bstatus;
+								bk.date = pssgDocRef.data().bdate;
+								bk.billno = pssgDocRef.data().billno;
+								bk.ticketno = pssgDocRef.data().ticketno;
+								bk.bid = pssgDocRef.id;
+								var sitem = stations.find(ob => ob.id == pssgDocRef.data().stationupid);
+								bk.stationupid = pssgDocRef.data().stationupid;
+								bk.stationup = sitem.name;
+								sitem = stations.find(ob => ob.id == pssgDocRef.data().stationdownid);
+								bk.stationdownid = pssgDocRef.data().stationdownid;
+								bk.stationdown = sitem.name;
+								item.books.push(bk);
+							});
+						});
+					});
+				});
+
+				callback(seats);
+			});
+		});
+	}
+
+	function showSeatItem(seats) {
+		var str = "";
+		var bgc;
+		var idxshow = 0;
+		for (var i=0;i < seats.length ; i++) {
+			var so0 = seats[i].books.find(ob => ob.bsts == 0);
+			var so1 = seats[i].books.find(ob => ob.bsts == 1);
+			var so2 = seats[i].books.find(ob => ob.bsts == 2);
+			if (seats[i].books.length == 0){
+				bgc = "background-color: #3fba54; color: white";
+			} else if (so2){
+				bgc = "background-color: #fa543d; color: white";
+				idxshow = seats[i].books.findIndex(x => x.bsts==2);
+			} else if (so1){
+				bgc = "background-color: #d3e124; color: white";
+				idxshow = seats[i].books.findIndex(x => x.bsts==1);
+			} else if (so0){
+				bgc = "background-color: #c0c0c0; color: white";
+				idxshow = seats[i].books.findIndex(x => x.bsts==0);
+			}
+			str = str.concat("<div class='passanger-item' style='" + bgc + "'>");
+			str = str.concat("<img id='add-cmd' src='../../resources/imgs/seat.png' width='30' height='30' onmouseover='this.style.cursor=\"pointer\";' onclick='openSeatMan(" + seats[i].sno  + ",\"" + seats[i].tourid + "\"," + i + ",\"" + seats[i].passangerid +"\")'/>");
+			str = str.concat("  ");
+			str = str.concat("<div style='float: left; margin: 5px 5px;'>");
+			str = str.concat(seats[i].sno);
+			//console.log(JSON.stringify(seats));
+			str = str.concat("  ");
+			if (seats[i].books.length > 0)	{
+				str = str.concat(seats[i].books[idxshow].name);
+				str = str.concat("  ");
+				str = str.concat(seats[i].books[idxshow].ptel);
+				str = str.concat("  ");
+				str = str.concat(seats[i].books[idxshow].stationup);
+				str = str.concat(" - ");
+				str = str.concat(seats[i].books[idxshow].stationdown);
+				if (seats[i].books.length > 1)	{
+					str = str.concat("    ");
+					str = str.concat("<span class='circlemark'>+" + seats[i].books.length + "</span>");
+				}
+				if (seats[i].books[idxshow].bsts == 0) {
+					str = str.concat("    ");
+					str = str.concat("<span class='billno-span'>" + buildPrefixRef(terNo, rouNo) + seats[i].books[idxshow].billno + "</span>");
+				}
+				if (seats[i].books[idxshow].bsts == 1) {
+					str = str.concat("    ");
+					str = str.concat("<span class='billno-span'>" + buildPrefixRef(terNo, rouNo) + seats[i].books[idxshow].billno + "</span>");
+				}
+				if (seats[i].books[idxshow].bsts == 2) {
+					if (typeof seats[i].books[idxshow].billno != "undefined") {
+						str = str.concat("    ");
+						str = str.concat("<span class='billno-span'>" + buildPrefixRef(terNo, rouNo) + seats[i].books[idxshow].billno + "</span>");
+					}
+					str = str.concat("    ");
+					str = str.concat("<span class='ticketno-span'>" + buildPrefixRef(terNo, rouNo) + seats[i].books[idxshow].ticketno + "</span>");
+				}
+			}
+
+			str = str.concat("</div>");
+			str = str.concat("</div>");
+		}
+		return str;
+	}
+
+	function loadStationAllList() {
+		var items = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.collection("stations").where("status","==", 1).get()
+		.then(function(querySnapshot) {
+ 			querySnapshot.forEach(function(doc) {
+				var obP = {};
+				obP.id = doc.id;
+				obP.updown = doc.data().updown;
+				obP.name = doc.data().name;
+				items.push(obP);
+			});
+		});
+		return items;
+	}
+
+	function openSeatMan(sno, tid, idx, pid) {
+		console.log("sno: " + sno + "tid: " + tid + "idx: " + idx + "pid: " + pid);
+		alert("ยังไม่สนับสุนในขณะนี้");
+	}
+
+	function getRouteNo(routeid, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			callback(doc.data().routeno);
+		});
+	}
+
+	//ท่อน Notification to User()
+
+	function openBoxNotifyUser() {
+		$("#messageBox-popup").popup("open");
+		$("#msg-pattern-select").prop('selectedIndex', 1);
+		$("#title").val("ใกล้ถึงเวลารถออก");
+		$("#body").val("อีก 30 นาที รถจะออกจากคิว");
+		$("#push-cmd").attr("onclick", "pushNotify()");
+	}
+
+	function closemessageBox() {
+		$("#messageBox-popup").popup("close");
+	}
+
+	function patternChange() {
+		var patt = $("#msg-pattern-select option:selected").val();
+		if (patt == 1)	{
+			$("#title").val("");
+			$("#body").val("");
+		} else if (patt == 2) {
+			$("#title").val("ใกล้ถึงเวลารถออก");
+			$("#body").val("อีก 30 นาที รถจะออกจากคิว");
+		}
+	}
+
+	function pushNotify() {
+		var title = $("#title").val();
+		var body = $("#body").val();
+		if ((title != "") && (body != "")){
+			showLoadingImageMT();
+			loads.forEach(function(item) {
+				loadUserOwnerTicket(item.tkno, function(userid) {
+					pushNotificationToUser(userid, title, body, "myVanBooking");
+					hideLoadingImageM();
+					closemessageBox();
+				});
+			});
+		} else {	
+			alert("คุณต้องป้อนข้อมูลให้ครบทั้งสองช่องก่อน");
+		}
+	}
+
+	function loadUserOwnerTicket(tkno, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/tickets/" + tkno;
+		var ticketRef = db.doc(docpath);
+		ticketRef.get().then(function(doc) {
+			callback(doc.data().userid);
+		});
+	}
+</script>

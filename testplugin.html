@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+ <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Test My Room Graph Plugin</title>
+	<script src="https://www.gstatic.com/firebasejs/4.9.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.9.1/firebase-firestore.js"></script>
+ 	<script src = "https://code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+	<style>
+ 		.wrapper {
+		  position: absolute;
+		  width: 100%;
+		  height: 100%;
+		  background-color: yellow;
+		}
+		#roomGraph {
+			margin-left: 120px;
+			margin-top: 60px;
+			margin-right:200px;
+			/*width: 100%;*/
+		}
+ 		.gridFram {
+			border: 1px dashed black;
+			/*
+			background-image: linear-gradient(to right, black 33%, rgba(255,255,255,0) 0%);
+			background-position: bottom;
+			background-size: 10px 5px;
+			background-repeat: repeat-x;
+			*/
+
+			border-spacing: 0px;
+			width: 100%
+		}
+		.rowH {
+		/*
+			background-image: linear-gradient(to right, black 33%, rgba(255,255,255,0) 0%);
+			background-position: bottom;
+			background-size: 3px 1px;
+			background-repeat: repeat-x;
+			*/
+			width: 100%;
+			height: 50px;
+		}
+		.white{
+			/*border: 1px dashed black;*/
+			background-image: linear-gradient(to right, black 33%, rgba(255,255,255,0) 0%);
+			background-position: bottom;
+			background-size: 10px 2px;
+			background-repeat: repeat-x;
+			background-color: white;
+			/*padding: 5px;*/
+		}
+		.black{
+			border: 1px dashed black;
+			/*
+			background-image: linear-gradient(to right, black 33%, rgba(255,255,255,0) 0%);
+			background-position: bottom;
+			background-size: 10px 2px;
+			background-repeat: repeat-x;
+
+			*/
+			background-color: #ccc;
+			min-width: 30px;
+			/*padding: 5px;*/
+		}
+		.green {
+			min-width: 100%;
+			height: 50px;
+			background-color: #66FF33;
+			text-align: center;
+			vertical-align: middle;
+		}
+		.red {
+			min-width: 100%;
+			height: 50px;
+			background-color: red;
+			text-align: center;
+			vertical-align: middle;
+		}
+		.upright {
+			/* writing-mode: vertical-lr; */
+			min-width: 100%;
+			font-size: 10px;
+			text-align: center;
+			vertical-align: middle;
+		}
+	</style>
+ </head>
+ <body>
+ 	<script>
+	/*
+		var table = document.createElement("table");
+		table.className = "gridFram";
+		for (var i = 1; i < 9; i++) {
+			var tr = document.createElement('tr');
+			tr.className = "rowH";
+			for (var j = 1; j < 9; j++) {
+				var td = document.createElement('td');
+				if (i%2 == j%2) {
+					td.className = "black";
+				} else {
+					td.className = "black";
+				}
+				tr.appendChild(td);
+			}
+			table.appendChild(tr);
+		}
+		document.body.appendChild(table);
+		*/
+ 	</script>
+ 	<script>
+ (function($){
+    $.fn.simpleGraphRoom = function(data, settings){
+         config = {
+            'hday': 30,
+            'hrow': 50,
+			'leftRef': 100
+        };
+        if ( settings ){$.extend(config, settings);}
+
+		gdata = data;
+		load = new Array(config.hday+1);
+
+		var init = function(self) {
+			var graph = createRoomGraph(self);
+			//console.log(JSON.stringify(graph));
+			console.log($(graph).html());
+			//$(self).append(graph);
+			$(self).html($(graph).html());
+			return self;
+		}
+
+		init(this);
+
+		return this;
+	};
+
+    var config 
+	var gdata;
+	var load;
+
+	function createRoomGraph(me) {
+		var divbox = "";
+		var table = $("<table id='grapRoom' class='gridFram'></table>");
+		for (var i = 0; i < gdata.length; i++) {
+			var tr = $("<tr class='rowH'></tr>");
+			clearLoad();
+			fillLoadFor(i);
+			//console.log(load.toString());
+			//var rangeOB = createBookingRange(load);
+			var rangeOB = createBookingNormalRange(load);
+			for (var j = 0; j < rangeOB.length; j++) {
+				var td;
+				if (j != 0) {
+					//console.log(JSON.stringify(rangeOB[j]));
+					var st = rangeOB[j].st;
+					var to = rangeOB[j].to;
+					var sts = rangeOB[j].sts;
+
+					if (sts == 0) {
+						//td = $("<td class='black' colspan='" + (to-st) + "'><div class='green'>" + (st+1) + " - " + (to+1) + "</div></td>");
+						td = $("<td class='black' colspan='" + (to-st) + "'><div class='green'></div></td>");
+					} else {
+						//td = $("<td class='black' colspan='" + (to-st) + "'><div class='red'>" + (st+1) + " - " + (to+1) + "</div></td>");
+						td = $("<td class='black' colspan='" + (to-st) + "'><div class='red'> </div></td>");
+					}
+				} else {
+					td = $("<td class='black'>" +  rangeOB[j] + "</td>");
+				}
+				tr.append(td);
+			}
+			table.append(tr);
+		}
+		var tr = $("<tr class='rowH'></tr>");
+		var td = $("<td class='black'><div class='upright'></div></td>");
+		tr.append(td);
+		for (j = 1; j < config.hday+1; j++) {
+			var td = $("<td class='black'><div class='upright'>" + (j) + "</div></td>");
+			tr.append(td);
+		}
+		table.append(tr);
+
+		$(me).append(table);
+		return me;
+	}
+
+	function clearLoad() {
+		for (var i=0; i < load.length; i++) {
+			load[i] = 0;
+		}		
+	}
+
+	function fillLoadFor(j) {
+		for (var k=1; k < gdata[j].length; k++) {
+			var st = gdata[j][k].start;
+			var to = gdata[j][k].to;
+			for (var l=st; l<=to; l++) {
+				load[l] = 1;
+			}
+		}
+		load[0] = gdata[j][0];
+	}
+
+	function createBookingRange(ld) {
+		var temp = [];
+		var t = 0;
+		var s = ld[t];
+		var c = 0;
+		var ob;
+		for (var i=1; i < ld.length; i++) {
+			if (i < ld.length-1) {
+				if (ld[i] == s) {
+					c++;
+				} else {
+					ob = {st: t, to: i-1, sts: s}
+					temp.push(ob);
+
+					c = 0;
+					t = i;
+					s = ld[t];
+				}
+			} else {
+				ob = {st: t, to: i, sts: s}
+				temp.push(ob);
+			}
+		}
+		return temp;
+	}
+
+ 	function createBookingNormalRange(ld) {
+		var temp = [];
+ 		var ob;
+		for (var i=0; i < ld.length; i++) {
+			if (i != 0) {
+				ob = {st: i, to: i+1, sts: ld[i]}
+				temp.push(ob);
+			} else {
+				temp[0] = ld[0];
+			}
+ 		}
+		return temp;
+	}
+
+
+})(jQuery);
+
+	 </script>
+ 	<script>
+	var data = [
+						['ห้องคอม', 
+							{start:3, to: 5, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'},
+							{start:8, to: 10, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'}
+						],
+						['พ่อ-แม่', 
+							{start:2, to: 5, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'},
+							{start:9, to: 19, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'}
+						],
+						['พี่โอ๊ด', 
+							{start:4, to: 7, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'},
+							{start:9, to: 11, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'}
+						],
+						['พี่อาย', 
+							{start:6, to: 8, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'},
+							{start:11, to: 17, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'},
+							{start:21, to: 27, rsts: 1, cname: 'อู๊ดเข้มข้น', ctel: '0835077746', cgid: 'oudsoft@gmail.com'},
+						]
+
+					];
+
+ 
+ 	//var option = {'hday': 30, 'vdeep': 50, 'leftRef': 130, 'topRef': 50 };
+	//$.simpleGraphRoom("#myCanvas", data, option);
+		$(document).ready(function(){  
+			$("#roomGraph").simpleGraphRoom(data);
+		});
+	</script>
+	<div class="wrapper">
+		<div id="roomGraph"></div>
+	</div>
+ </body>
+</html>

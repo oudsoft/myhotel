@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test Pugin</title>
+ </head>
+ <body>
+  <div class="plugintest">
+    <div id="testItem">OK</div>
+    <div id="newTestItem">Test</div>
+    <div id="underline">Test</div>
+    <span>4</span>
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script type="text/javascript" src="resources/js/testPlugin.js"></script>
+<script type="text/javascript" src="resources/js/myplugin.js"></script>
+<script>
+var doTest = $("#testItem").testPlugin({ newText: "Scoobydoo" });
+
+var doNewTest = $("#newTestItem").testPlugin({ newText: "kapow!" });    
+
+$("#underline").click(function(e) {
+    e.preventDefault();
+    doTest.underline();
+});
+
+$(function(){
+	var myplugin=$(".plugintest > span").myplugin({ param:'somevalue' });
+	myplugin.function1(1).function1(2).function1(10);
+});
+</script>
+
+<script>
+(function ( $ ) {
+ 
+    $.fn.greenify = function( options ) {
+ 
+        // This is the easiest way to have default options.
+        var settings = $.extend({
+            // These are the defaults.
+            color: "#556b2f",
+            backgroundColor: "white"
+        }, options );
+ 
+        // Greenify the collection based on the settings variable.
+        return this.css({
+            color: settings.color,
+            backgroundColor: settings.backgroundColor
+        });
+ 
+    };
+ 
+}( jQuery ));
+
+$( "div" ).greenify({
+    color: "orange"
+});
+</script>
+ </body>
+</html>
