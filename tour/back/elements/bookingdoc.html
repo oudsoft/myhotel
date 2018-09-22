@@ -1,0 +1,234 @@
+<style>
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		/* height: 40px; */
+		padding: 10px;
+	}
+	.input-step {
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		padding: 10px;
+		text-align: left;
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+	}
+	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 150px;
+		vertical-align: middle;
+	}
+	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#errors {
+		display: none;
+		color: red;
+	}
+	#explain-box {
+		color: blue;
+	}
+	#docview {
+
+	}
+	input[type=button] {
+		border: 3px #cc33cc solid;
+		border-radius: 3px;
+		padding: 10px;
+		margin: 5px;
+	}
+	input[type=button] : hover {
+		cursor: pointer;
+	}
+</style>
+
+
+<div  id='bookman-main'>
+	<div class="title-box"><b>ยอดบิล/ยอดตั๋ว</b></div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เส้นทาง :</b></div> <div class="step-bar"><input type="text" id="route-text" size="30" class="input-step" readOnly/></div>
+	</div>
+	<div id="schedule-select-bar" class="step-box">
+		<div class="step-bar-label"><b>บิล/ตั๋ว :</b></div>
+		<div class="step-bar">
+			<select id="doctype-select" class="input-step">
+				<option value="1">บิล</option>
+				<option value="2">ตั๋ว</option>				
+			</select>
+		</div>
+	</div>
+	<div id="schedule-select-bar" class="step-box">
+		<div class="step-bar-label"><b>วันที่ จอง/เดินทาง :</b></div>
+		<div class="step-bar">
+			<select id="datetype-select" class="input-step">
+				<option value="1">จองตั๋ว</option>
+				<option value="2">เดินทาง</option>				
+			</select>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>วันที่ :</b></div><div class="step-bar"><input type="text" id="date-text" size="30" class="input-step" placeholder="คลิก เพื่อเลือกวันที่เดินทางจากปฏิทิน" readOnly/></div>
+	</div>
+ 	<div class="ui-field-contain">
+		<button class="ui-btn" id="next-cmd" onclick="openView()">   ตกลง     </button>	
+		<button class="ui-btn" id="back-cmd" onclick="back2Home()">   กลับ     </button>	
+	</div>
+	<p id="errors"></p>
+	<div id="docview"></div>
+	<div id="explain-box"></div>
+</div>
+
+<script>
+
+   $(document).ready(function() {
+		setuproutetext();
+		$("#date-text").datepicker({dateFormat: 'yy-mm-dd'});
+		$("#date-text").datepicker().datepicker("setDate", new Date());
+		$("#explain-box").html("โปรดเลือกวันที่เดินรถ แล้วคลิกปุ่ม <b>ตกลง</b>");
+	});
+
+	function setuproutetext() {
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			$("#route-text").val(doc.data().beginter + " - " + doc.data().endter);
+		});
+	}
+
+	function openView() {
+		if ($("#date-text").val() == "")	{
+			$("#errors").text("คุณยังไม่ได้เลือกวันที่เดินรถ");
+			$("#errors").show();
+		} else if ($("#doctype-select").prop('selectedIndex') < 0)	{
+			$("#errors").text("คุณยังไม่ได้เลือกประเภทบิลหรือตั๋ว");
+			$("#errors").show();
+		} else if ($("#datetype-select").prop('selectedIndex') < 0)	{
+			$("#errors").text("คุณยังไม่ได้เลือกประเภทวันที่จองหรือเดินทาง");
+			$("#errors").show();
+ 		} else {
+			$("#errors").hide();
+			showLoadingImageMT();
+			bdate = new Date($("#date-text").val());
+			var ondate =  new Date($("#date-text").val()).getTime();
+			var datetext = datetostring(ondate);
+			var doctype = $("#doctype-select").val();
+			var datetype = $("#datetype-select").val();
+			if (doctype == 1){
+				$("#explain-box").html("คลิกที่หมายเลขบิลเพื่อเปิดบิล");
+			} else {
+				$("#explain-box").html("คลิกที่หมายเลขตั๋วเพื่อเปิดตั๋ว");
+			}
+			loadView(doctype, datetext, datetype, function(view) {
+				$("#docview").html(view);
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function loadView(doctype, datetext, datetype, callback) {
+		var strvw = "";
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+		if (datetype ==1){
+			if (doctype == 1){
+				strvw = "<div id='titleview'>รายการจองบิลทั้งหมดประจำวันที่ " + datetext + "</div>";
+			} else {
+				strvw = "<div id='titleview'>รายการขายตั๋วทั้งหมดประจำวันที่ " + datetext + "</div>";
+			}
+			db.doc(docpath).collection("bills").where("date","==",datetext).get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(DocRef) {
+					if (doctype == 1){
+						strvw = strvw.concat("<input type='button' value='" + buildPrefixRef(terNo, rouNo) + DocRef.data().billno +"' onclick='openbill(\"" + DocRef.data().billno + "\",\"" + DocRef.data().status + "\")'/>");
+					} else {
+						if (typeof DocRef.data().ticketno != "undefined") {
+							strvw = strvw.concat("<input type='button' value='" + buildPrefixRef(terNo, rouNo) + DocRef.data().ticketno +"' onclick='openticket(\"" + DocRef.data().billno + "\",\"" + DocRef.data().ticketno + "\")'/>");
+						}
+					}
+				});
+				callback(strvw);
+			});
+		} else {
+			if (doctype == 1){
+				strvw = "<div id='titleview'>รายการบิลที่จองแล้วเดินทางประจำวันที่ " + datetext + "</div>";
+			} else {
+				strvw = "<div id='titleview'>รายการตั๋วที่ขายแล้วเดินทางประจำวันที่ " + datetext + "</div>";
+			}
+			db.doc(docpath).collection("bills").where("tourdate","==",datetext).get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(DocRef) {
+					if (doctype == 1){
+						strvw = strvw.concat("<input type='button' value='" + buildPrefixRef(terNo, rouNo) + DocRef.data().billno +"' onclick='openbill(\"" + DocRef.data().billno + "\",\"" + DocRef.data().status + "\")'/>");
+					} else {
+						if (typeof DocRef.data().ticketno != "undefined") {
+							strvw = strvw.concat("<input type='button' value='" + buildPrefixRef(terNo, rouNo) + DocRef.data().ticketno +"' onclick='openticket(\"" + DocRef.data().billno + "\",\"" + DocRef.data().ticketno + "\")'/>");
+						}
+					}
+				});
+				callback(strvw);
+			});
+		}
+	}
+
+	function openbill(docno, billstatus) {
+		loadMyBillSet(docno, function(myset) {
+			$.removeCookie("mySet");
+			$.cookie("mySet", JSON.stringify(myset)); // save cookie mySet เพื่อใช้ออกตั๋วโดยสารในหน้าแสดงบิล
+			var myBillParamOB = [];
+			var myparam = {blno: docno, rtid: brouteid};
+			myBillParamOB.push(myparam);
+			//console.log(JSON.stringify(myBillParamOB));
+			$.removeCookie("myBillParamOB");
+			$.cookie("myBillParamOB", JSON.stringify(myBillParamOB));
+			window.open("bill2.html", '_blank');
+		});
+	}
+
+	function openticket(blno, tkno) {
+		var myTicketParamOB = [];
+		var myparam = {tkno: tkno, rtid: brouteid, blno: blno};
+		myTicketParamOB.push(myparam);
+		//console.log(JSON.stringify(myTicketParamOB));
+		$.removeCookie("myTicketParamOB");
+		$.cookie("myTicketParamOB", JSON.stringify(myTicketParamOB));
+		window.open("ticket2.html", '_blank');
+	}
+
+	function loadMyBillSet(billno, callback) {
+		var myset = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + brouteid + "/bills/" + billno;
+		var billRef = db.doc(docpath);
+		billRef.collection("billDocPaths").get().then(function(blquerySnapshot) {
+			blquerySnapshot.forEach(function(ptdoc) {
+				var sno = ptdoc.data().seatno;
+				var path = ptdoc.data().billDocPath;
+				var paths = path.split("/");
+				var OB = {};
+				OB.status = 1;
+				OB.curno = billno;
+				OB.sno = sno;
+				OB.tourid = paths[2];
+				OB.passangerid = paths[4];
+				OB.bookingid = paths[6];
+				myset.push(OB);
+			})
+			//console.log(JSON.stringify(myset));
+			callback(myset);
+		});
+	}
+
+	function back2Home(){
+		showLoadingImageMT();
+		setTimeout(function() {
+			hideLoadingImageM();
+			openRouteMng();
+		}, 1000);
+	}
+</script>

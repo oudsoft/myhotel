@@ -1,0 +1,148 @@
+/* Room Graph CSS */
+@font-face {
+	font-family: THSarabunNew;
+	font-weight: normal;
+	font-style: normal;
+	src: url('../fonts/THSarabunNew.ttf');
+}
+.wrapper {
+	position: relative;
+	width: 85%;
+	/* height: 100%; */
+	background-color: #d6d6d6;
+	margin-left: 150px; 
+	margin-right: 5px;
+	text-align: left; 
+	/* padding: 10px; */
+	border: blue 5px solid;
+	border-radius:10px;
+	box-shadow:0 0 3px #999;
+	float: left;
+}
+.wrapperM {
+	position: relative;
+	width: 90%;
+	/* height: 100%; */
+	background-color: #d6d6d6;
+	margin-left: 10px; 
+	margin-right: 10px;
+	text-align: center; 
+	/* padding: 10px; */
+	border: blue 5px solid;
+	border-radius:10px;
+	box-shadow:0 0 3px #999;
+	float: left;
+}
+#graptitle {
+	position: relative;
+	width: 85%;
+	margin-left: 150px; 
+	margin-right: 5px;
+	text-align: center;
+	font-family: THSarabunNew;
+	font-size: 34px;
+	float: left;
+	padding: 20px;
+}
+#graptitleM {
+	position: relative;
+	width: 90%;
+	margin-left: 10px; 
+	margin-right: 10px;
+	text-align: center;
+	font-family: THSarabunNew;
+	font-size: 34px;
+	float: left;
+	padding: 20px;
+}
+#roomGraph {
+	margin-left: 10px;
+	margin-top: 20px;
+	margin-right:5px;
+	margin-bottom: 20px;
+	font-family: THSarabunNew;
+}
+.gridFram {
+	border: 1px dashed black;
+	border-spacing: 0px;
+	width: 100%
+}
+.rowH {
+	width: 100%;
+	height: 50px;
+}
+.white{
+	/*border: 1px dashed black;*/
+	background-image: linear-gradient(to right, black 33%, rgba(255,255,255,0) 0%);
+	background-position: bottom;
+	background-size: 10px 2px;
+	background-repeat: repeat-x;
+	background-color: white;
+	/*padding: 5px;*/
+}
+.black{
+	border: 1px dashed black;
+	background-color: #ccc;
+	min-width: 20px;
+	/*padding: 5px;*/
+}
+.green {
+	min-width: 20px;
+	height: 40px;
+	background-color: #66FF33;
+	text-align: center;
+	vertical-align: middle;
+}
+.yellow {
+	min-width: 20px;
+	height: 40px;
+	background-color: yellow;
+	text-align: center;
+	vertical-align: middle;
+}
+.red {
+	min-width: 20px;
+	height: 40px;
+	background-color: red;
+	text-align: center;
+	vertical-align: middle;
+}
+.silver {
+	min-width: 20px;
+	height: 40px;
+	background-color: silver;
+	text-align: center;
+	vertical-align: middle;
+}
+.upright {
+	/* writing-mode: vertical-lr; */
+	min-width: 100%;
+	font-size: 14px;
+	text-align: center;
+	vertical-align: middle;
+}
+#legend {
+	float: letf;
+	margin: 10px;
+	font-size: 24px;
+	font-family: THSarabunNew;
+}
+#legendM {
+	float: letf;
+	margin: 10px;
+	font-size: 20px;
+	font-family: THSarabunNew;
+	display: none;
+}
+#loaddatacmdBox {
+	position: relative;
+	width: 85%;
+	margin-left: 150px; 
+	margin-right: 5px;
+	float: left;
+	text-align: center;
+}
+#booking-load-dialog{
+	margin: 10px;
+}
+

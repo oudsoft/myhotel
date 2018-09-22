@@ -1,0 +1,88 @@
+<script>
+//ท่อนนี้เป็นของ Firebase Notification Messagging และ Notfy
+
+	subscribeFCM();
+
+	$.notify.addStyle('myshopman', {
+		html: "<div class='superblue'><span data-notify-html/></div>",
+		classes: {
+			base: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "black",
+				"background-color": "white",
+				"padding": "20px"
+			},
+			green: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "green",
+				"padding": "20px"
+			},
+			red: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "red",
+				"padding": "20px"
+			}
+		}
+	});
+
+	messaging.onMessage(function(payload) {
+		console.log("Message received. ", payload);
+		var msg = "<h3>" + payload.notification.title + "</h3><h4>" + payload.notification.body +"</h4><p>จาก : " + payload.data.sendername + "</p>";
+        $.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'green'});
+        playsoundeffect();
+	});
+
+	messaging.onTokenRefresh(function() {
+		messaging.getToken()
+		.then(function(refreshedToken) {
+			console.log('Token refreshed.');
+			$("#token").val(refreshedToken);
+		})
+		.catch(function(err) {
+			console.log('Unable to retrieve refreshed token ', err);
+		});
+	});
+
+	function playsoundeffect() {
+		 $('#soundeffect')[0].play();
+	}
+
+	function subscribeFCM() {
+		messaging.requestPermission().then(function() {
+			saveToken();
+		})
+		.catch(function(err) {
+			console.log('Unable to get permission to notify. ', err);
+		});
+	 }
+
+	function saveToken() {
+ 		messaging.getToken().then(function(currentToken) {
+			if (currentToken) {
+				myhotelOB = $.parseJSON($.cookie("myhotelOB") || '[]');
+				var myhotelid = myhotelOB[0].hotelid;
+				var docpath = "hotels/" + myhotelid;
+				var hotelRef = db.doc(docpath);
+				//console.log(currentToken);
+				hotelRef.set({
+					token : currentToken
+				}, { merge: true });
+ 			} else {
+				// Show permission request.
+				console.log('No Instance ID token available. Request permission to generate one.');
+			}
+		})
+		.catch(function(err) {
+			console.log('An error occurred while retrieving token. ', err);
+		});
+	}
+
+
+</script>
+
+<audio id="soundeffect" src="resources/sound/16923_1461333030.mp3" preload="auto"></audio>

@@ -1,0 +1,83 @@
+ <style>
+ </style>
+<div id="rec"></div>
+<div  id='add-new-form'>
+	<form>
+		<table>
+		  <thead>
+			<tr>
+			  <th colspan="2" style="text-align:center">ข้อมูลการส่ง notification</th>
+			</tr>
+		  </thead>
+		  <tbody>
+			<tr>
+			  <td>Token</td>
+			  <td>
+				<div>
+					<input type="text" id="token" size="100"/> <input type="button" id="get-token-cmd" value=" ... " onclick="showToken()"/>
+				<!--
+				  <input type="text" id="token" size="100" value="fe7ftqv3Lf4:APA91bH-s9MAvZktroXN1btApMsuDh28MlUtDYLtZxOa92SSdjQZMkwulEiXHMTrYNuyq9JrJoIj2bXwS4Uf812puMG-fi2BNhE9EJWp0wAAW_KjMdRpL2xsDYXEWMQAXcfRMS28u0yt"/> <input type="button" id="get-token-cmd" value=" ... " onclick="getToken()"/>-->
+				</div>
+			  </td>
+			</tr>
+			<tr>
+			  <td>Sender</td>
+			  <td>
+				<div>
+				  <input type="text" id="sender" size="40"/>
+				</div>
+			  </td>
+			</tr>
+			<tr>
+			  <td>Title</td>
+			  <td>
+				<div>
+				  <input type="text" id="title" size="40"/>
+				</div>
+			  </td>
+			  </tr>
+			<tr>
+			  <td>Message</td>
+			  <td>
+				<div>
+				  <input type="text" id="msg" size="100"/>
+				</div>
+			  </td>
+			  </tr>
+ 			</tbody>
+		</table>
+		</form>
+
+	<button id="push-cmd" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+	Push
+	</button>
+</div>
+
+<script>
+
+messaging.requestPermission().then(function() {
+	console.log('Notification permission granted.');
+	messaging.onTokenRefresh(function() {
+		messaging.getToken().then(function(refreshedToken) {
+			$("#token").val(refreshedToken);
+		})
+		.catch(function(err) {
+			console.log('Unable to retrieve refreshed token ', err);
+		});
+	});
+});
+
+
+
+$("#push-cmd").click(function(e) {
+ 	$.post("https://us-central1-myhotel-4746f.cloudfunctions.net/sendPushNotification", 
+		{msg: $("#msg").val(),
+		token: $("#token").val(),
+		title: $("#title").val(),
+		sender: $("#sender").val(),
+		},
+		function(data) {
+			$("#rec").html(data);
+	});
+});
+</script>

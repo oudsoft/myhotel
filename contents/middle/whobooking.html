@@ -1,0 +1,195 @@
+<style>
+	#select-daterange {
+		margin-left: 220px; 
+		margin-right: 20px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+	}
+	#errors-msg {
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+	p {
+		color: blue;
+	}
+</style>
+
+<div  id='select-daterange'>
+	<p>การจองห้องพักใกล้จะเสร็จแล้ว</p>
+	<p>โปรดกรอกข้อมูลผู้จองห้องอีกนิดหน่อย เมื่อกรอกเสร็จแล้วคลิกปุ่ม <b>ตกลง</b> หรือคลิกปุ่ม <b>กลับ</b> เพื่อกลับไปเลือกห้องพักใหม่</p>
+	<div  id='whobooking-form'>
+	<form>
+		<table>
+		  <thead>
+			<tr>
+			  <th colspan="2" style="text-align:center">ข้อมูลผู้จองห้องพัก</th>
+			</tr>
+		  </thead>
+		  <tbody>
+			<tr>
+			  <td>ชื่อ</td>
+			  <td>
+				<div>
+				  <input type="text" id="fname" size="40"/>
+				</div>
+			  </td>
+			</tr>
+			<tr>
+			  <td>นามสกุล</td>
+			  <td>
+				<div>
+				  <input type="text" id="lname" size="40"/>
+				</div>
+			  </td>
+			</tr>
+			<tr>
+			  <td>Email</td>
+			  <td>
+				<div>
+				  <input type="text" id="email" size="40"/>
+				</div>
+			  </td>
+			  </tr>
+			<tr>
+			  <td>หมายเลขโทรศัพท์</td>
+			  <td>
+				<div>
+				  <input type="number" id="phone" size="40"/>
+				</div>
+			  </td>
+			  </tr>
+ 			</tbody>
+		</table>
+		</form>
+	</div>
+	<div style="text-align: center">
+		<button id="select-back-cmd" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">   กลับ     </button>
+		<button id="savebooking-cmd" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">   ตกลง     </button>
+	</div>
+	<div id="alert-msg" style="color:blue">&nbsp;</div>
+	<div id="errors" style="color:red">&nbsp;</div>
+</div>
+
+<script>
+//ท่อนนี้ สำหรับ กรอกข้อมูลผู้จองห้องพัก
+var whobooking = {};
+
+$("#select-back-cmd").click(function(e) {
+	$.post("contents/middle/selectroom.html", {},
+	function(data) {
+		$('#content-middle').html(data);
+	});
+});
+
+$("#savebooking-cmd").click(function(e) {
+	var fname = $("#fname").val();
+	var lname = $("#lname").val();
+	var email = $("#email").val();
+	var phone = $("#phone").val();
+ 	var warnings = "";
+    if (fname.length == 0) {
+      warnings += 'คุณยังไม่ได้ชื่อผู้จอง<br/>';
+    }
+    if (lname.length == 0) {
+      warnings += 'คุณยังไม่ได้นามสกุลผู้จอง<br/>';
+    }
+    if (!validateEmail(email)) {
+      warnings += 'Email ผู้จอง ไม่ถูกต้อง<br/>';
+    }
+    if (phone.length == 0) {
+      warnings += 'หมายเลขโทรศัพท์ผู้จองไม่ถูกต้อง<br/>';
+    }
+    if (warnings != "") {
+      $("#errors").css("display", "block");
+      $("#errors").html(warnings);
+    } else {
+		$("#errors").css("display", "none");
+		$("#main-content").append(createSummaryDialog(fname, lname, email, phone));
+		$("#summary-dialog").dialog({autoOpen : false, modal : true, show : "blind", hide : "blind" });
+		$("#summary-dialog").dialog("open");
+	}
+ });
+
+ function saveBooking(roomnum, fname, lname, email, phone, token) {
+ 	 var user = firebase.auth().currentUser;
+	 var useremail = user.email;
+	db.collection("hotels").where("email", "==", useremail).get()
+	.then(function(querySnapshot) {
+		querySnapshot.forEach(function(hoteldoc) {
+			var hotelRef = db.collection("hotels").doc(hoteldoc.id);
+			hotelRef.collection("rooms").where("num", "==",  roomnum).get()
+			.then(function(querySnapshot) {
+				querySnapshot.forEach(function(roomdoc) {
+					var roomRef = db.collection("hotels").doc(hoteldoc.id).collection("rooms").doc(roomdoc.id);
+					roomRef.collection("loads").doc().set({
+						start: startDate,
+						to: toDate - 86400000, // ลบ ออกไป 1 วัน = 86400000
+						cguid: email,
+						ctel: phone,
+						cname: fname + " " + lname,
+						token: token,
+						lsts: 1,
+						bookdate: new Date()
+					});
+				});
+			})
+		});
+	})
+  }
+
+function createSummaryDialog(fname, lname, email, phone) {
+	whobooking = {fname: fname, lname: lname, email: email, phone: phone};
+	var diff = (Math.abs(startDate-  toDate) / 86400000);
+	var stt = 0;
+	var Str = "<div id='summary-dialog' title='สรุปข้อมูลการสั่งจอง'>";
+	Str =  Str.concat("<b>ช่วงเวลาที่จอง : </b>");
+	Str =  Str.concat("<span id='std'>" + datetostring(startDate) + "</span> ถึง <span id='tod'>" + datetostring(toDate) +"</span> (จำนวน " + diff + " วัน)<br/>");
+	Str =  Str.concat("<b>รายการห้องพักที่จอง :</b><br/>");
+	for (var i=0; i<srooms.length; i++) {
+		var result = $.grep(trooms, function(e){ return e.num == srooms[i]; });
+		//console.log(JSON.stringify(result));
+		var tt = diff * result[0].price;
+		stt = stt + tt;
+		Str =  Str.concat((i+1) + ". " + result[0].num + " " +  result[0].name + " ขนาดผู้เข้าพัก " + result[0].size + " คน ราคาต่อวัน " + result[0].price + " บาท<br/>");
+	} 
+	Str =  Str.concat("<b>รวมจำนวนเงิน : </b>");
+	Str =  Str.concat(stt.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + " บาท<br/>");
+	Str =  Str.concat("<b>ผู้จองชื่อ : </b>");
+	Str =  Str.concat(fname + " " + lname + "<br/>");
+	Str =  Str.concat("<b>Email : </b>");
+	Str =  Str.concat(email + "<br/>");
+	Str =  Str.concat("<b>หมายเลขโทรศัพท์ : </b>");
+	Str =  Str.concat(phone + "<br/>");
+	Str =  Str.concat("<div style='text-align: center;'><input type='button' value=' ตกลง ' onclick='bookingok()'/></div>");
+	Str =  Str.concat("</div>");
+	return Str;
+}
+
+function bookingok() {
+	$('#summary-dialog').dialog('close');
+	showLoadingImage();
+	$("#alert-msg").html("ระบบกำลังบันทึกข้อมูลการจอง โปรดรอสักครู่ ...");
+	$("#alert-msg").show();
+	messaging.getToken().then(function(currentToken) {
+		for (var i=0; i < srooms.length ; i++) {
+			saveBooking(srooms[i], whobooking.fname, whobooking.lname, whobooking.email, whobooking.phone, currentToken);
+			setTimeout(function() {
+				//
+			}, 2000);
+		}
+		setTimeout(function() {
+			$("#alert-msg").hide();
+			hideLoadingImage();
+			alert("การสั่งจองเสร็จสิ้นลงด้วยดี\nขอบคุณที่ใช้บริการ");
+			window.location = "index.html";
+		}, 2000);
+	});
+}
+</script>

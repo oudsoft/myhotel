@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../../resources/imgs/ico/vanOS.ico">
+	<title>บริการจองรถตู้</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 100%
+			float: left;
+
+			border: #cc33cc 5px solid;
+			border-radius:5px;
+			box-shadow:0 0 3px #999;
+			margin: 5px;
+			padding: 5px;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		padding: 10px;
+	}
+
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<img src="../../resources/imgs/vanOS.png" width="60" height="60"/>
+			<h4>This is Header Panel.</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+		<!--
+		<div class="title-box">เมนูหลัก</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="tour-mng-cmd" onclick="openRouteMng()">   จัดการเส้นทางเดินรถ     </button>
+		</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="van-mng-cmd" onclick="openVanMng()">   จัดการรถตู้     </button>
+		</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="logout-cmd" onclick="UserLogout()">   ออกจากระบบ     </button>
+		</div>
+		-->
+		<!--<a href="info.html?t=TDUwna6CbjjYJr65dQo1">InfoMan</a>-->
+    </div>
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>This is Footer Panel.</b>
+		</div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../../resources/js/notify.js"></script>  
+	<!--<script src="//code.jquery.com/jquery-1.12.2.min.js"></script>-->
+	<script src="../../resources/js/on-off-switch.js"></script>
+	<script src="../../resources/js/on-off-switch-onload.js"></script>
+	<script src="../../resources/js/jquery.timepicker.min.js"></script>
+	<script src="../../resources/js/mdtimepicker.js"></script>
+	<script src="../../resources/js/chosen.jquery.min.js"></script>
+	<script src="../../resources/js/easySelectable.js"></script>
+	<!--
+	<script src="../../resources/js/pdfmake.js"></script>
+	<script src="../../resources/js/vfs_fonts.js"></script>
+	-->
+	<script src="../../resources/js/jquery-qrcode-0.14.0.js"></script>
+	<script src="../../resources/js/printThis.js"></script>
+
+	<link rel="stylesheet" href="../../resources/css/on-off-switch.css">
+	<link rel="stylesheet" href="../../resources/css/jquery.timepicker.min.css">
+	<link rel="stylesheet" href="../../resources/css/mdtimepicker.css">
+	<link rel="stylesheet" href="../../resources/css/chosen.min.css">
+
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-storage.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+    </script>
+
+	<script>
+	//Your Code Here
+
+    var cuser = firebase.auth().currentUser;
+	var yrterminalOB = $.parseJSON($.cookie("yrterminalOB") || '[]');
+	//console.log(JSON.stringify(yrterminalOB)); //log
+	var yrterminalid;
+	var yrtoken = "";
+
+	/* -----------------------------------*/
+	//บริเวณประกาศตัวแปรเฉพาะงาน
+
+	var pricecharts = [];
+	var stations = [];
+	var billOB;
+	var defaultPrice;
+	var routeid;
+	var billno;
+	var terminalID;
+
+	/* -----------------------------------*/
+
+	if (yrterminalOB.length > 0) {
+		yrterminalid  = yrterminalOB[0].terminalid;
+		yrtoken = yrterminalOB[0].yrtoken;
+	} else {
+		signout();
+	}
+
+	firebase.auth().onAuthStateChanged(user => {  
+		//ในส่วนนี้ให้ระวัง การสั่ง redirect หาก uer != null เครื่องจะแฮ็งค์ได้
+		if (!user) {
+			//window.location = "home.html";
+		} else {
+			cuser = user;
+			//console.log(cuser);
+			//showUserData();
+		}
+	});
+
+	function signout() {
+		firebase.auth().signOut().then(function() {
+			alert("คุณได้ออกจากระบบเรียบร้อยแล้ว");
+			window.location = "login.html?t=" + yrterminalid;
+		})
+		.catch(function(error) {
+			alert("มีความผิดพลาดเกิดขึ้น");
+		});
+	}
+
+	</script>
+
+    <script>
+
+		initPage();
+
+		function initPage() {
+			var yrBillParamOB = $.parseJSON($.cookie("yrBillParamOB") || '[]');
+			billno = yrBillParamOB[0].blno;
+			routeid = yrBillParamOB[0].rtid;
+			if ((yrterminalid !== "undefined") && (yrterminalid !== "")) {
+				var docpath = "terminals/" + yrterminalid;
+				var terminalRef = db.doc(docpath);
+				//db.collection("terminals").where("email", "==", myemail).get()
+				terminalRef.get()
+				.then(function(doc) {
+					terminalID = doc.data().terminalid;
+					document.title = doc.data().name + " :: บริการจองรถตู้";
+					$('#herder-conter').html("<img src='../../resources/imgs/vanOS.png' width='60' height='60'/><h4>" + doc.data().name + "</h4>");
+					$('#footer-conter').html("<h4>" + doc.data().name + "</h4><p>" + doc.data().address + "</p><p>" + doc.data().tel + "</p>" + "<p>" + yrterminalid + "</p>");
+				});
+				openBill();
+			} else {
+				signout();
+			}
+		}
+		function UserLogout() {
+			signout();
+		}
+
+		function loadStations(routeid, callback) {
+			var items = [];
+			var docpath = "terminals/" + yrterminalid + "/routes/" + routeid;
+			var routeRef = db.doc(docpath);
+			routeRef.collection("stations").where("status","==", 1).get()
+			.then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+					var obP = {};
+					obP.id = doc.id;
+					obP.updown = doc.data().updown;
+					obP.name = doc.data().name;
+					items.push(obP);
+				});
+			});
+			callback(items);
+			return items;
+		}
+
+		function loadPriceCharts(routeid, callback) {
+			var items = [];
+			var docpath = "terminals/" + yrterminalid + "/routes/" + routeid;
+			var routeRef = db.doc(docpath);
+			routeRef.collection("pricecharts").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+					var ob = {};
+					ob.id = doc.id;
+					ob.frstation = doc.data().frstation;
+					ob.tostation = doc.data().tostation;
+					ob.price = doc.data().price;
+					items.push(ob);
+				});
+				callback(items);
+				return items;
+			});
+		}
+
+ 		function openBill() {
+			showLoadingImageMT();
+			//stations = loadStations(routeid);
+			//pricecharts = loadPriceCharts(routeid);
+			loadStations(routeid, function(x) {
+				stations = x;
+				loadPriceCharts(routeid, function(y) {
+				pricecharts = y;
+				$.post("elements/bill.html", {},
+					function(mdata) {
+						$("#main").html(mdata);
+						hideLoadingImageM();
+					});
+				});
+			});
+		}
+
+	</script>
+
+	<script>
+
+		function loadRouteInit(routeid, callback) {
+			var items = [];
+			var docpath = "terminals/" + yrterminalid + "/routes/" + routeid;
+			var routeRef = db.doc(docpath);
+			routeRef.get().then(function(doc) {
+				var ob = {};
+				ob.defaultPrice = doc.data().price;
+				ob.route = doc.data().beginter + " - " + doc.data().endter;
+				items.push(ob);
+				callback(items);
+				return items;
+			});
+		}
+
+		function loadBillConditions(callback){
+			var result = [];
+			var docpath = "terminals/" + yrterminalid;
+			var terminalRef = db.doc(docpath);
+			terminalRef.get().then(function(doc) {
+				for (var i=0; i< doc.data().billconditions.length; i++){
+					result.push(doc.data().billconditions[i]);
+				}
+				callback(result);
+				return result;
+			});
+		}
+
+		function loadSchedules(routeid, day){
+			var items = [];
+			var docpath = "terminals/" + yrterminalid + "/routes/" + routeid;
+			var routeRef = db.doc(docpath);
+			routeRef.collection("schedules").where("day", "==", day).orderBy("time", "asc").get()
+			.then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+					var obS = {};
+					obS.id = doc.id;
+					obS.time = doc.data().time;
+					items.push(obS);
+				});
+				return items;
+			});
+		}
+
+		function closewindow() {
+			showLoadingImageMT();
+			setTimeout(function() {
+				hideLoadingImageM();
+				window.close();
+			}, 1000);
+		}
+
+		function loadTerminalStaffToken(callback) {
+			var staffs = [];
+			var docpath = "terminals/" + yrterminalid;
+			var terminalRef = db.doc(docpath);
+			terminalRef.collection("emails").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(emaildoc) {
+					db.collection("users").where("email", "==", emaildoc.data().cguid).get().then(function(stffquerySnapshot) {
+						stffquerySnapshot.forEach(function(stffdoc) {
+							docpath = "users/" + stffdoc.id;
+							var userRef = db.doc(docpath);
+							userRef.collection("tokens").get().then(function(tkquerySnapshot) {
+								tkquerySnapshot.forEach(function(tkdoc) {
+									staffs.push(tkdoc.data().token);
+								});
+							});
+						});
+					});
+				});
+				timeout(2900).then(function() {
+					callback(unique(staffs));
+				});
+			});
+		}
+
+		function loadUserToken(email, callback) {
+			var users = [];
+			db.collection("users").where("email", "==", email).get().then(function(userquerySnapshot) {
+				userquerySnapshot.forEach(function(userdoc) {
+					var docpath = "users/" + userdoc.id;
+					var userRef = db.doc(docpath);
+					userRef.collection("tokens").get().then(function(tkquerySnapshot) {
+						tkquerySnapshot.forEach(function(tkdoc) {
+							users.push(tkdoc.data().token);
+						});
+					});
+				});
+			});
+			timeout(2900).then(function() {
+				callback(unique(users));
+			});
+		}
+
+		function pushNotificationToStaff(title, body, sender) {
+			loadTerminalStaffToken(function(staffs) {
+				staffs.forEach(function(item) {
+					/*
+					pushNoticationStaffToken(title, body, sender, item, yrterminalid, function(res) {	
+						console.log(res);					
+					});
+					*/
+					pushNoticationStaffToken(title, body, sender, item, yrterminalid);
+				});
+			});
+		}
+		function pushNotificationToUser(email, title, body, sender) {
+			loadUserToken(email, function(users) {
+				users.forEach(function(item) {
+					pushNoticationUserToken(title, body, sender, item, yrterminalid);
+					saveNotify(email, title, body, sender, routeid);
+				});
+			});
+		}
+
+		function saveNotify(email, title, body, sender, rid) {
+			var docpath = "terminals/" + yrterminalid + "/routes/" + rid;
+			var tourRef = db.doc(docpath);
+			var messageDoc = tourRef.collection("messages").doc();
+			messageDoc.set({
+				date: datetostring(new Date()),
+				time: datetotimestring(new Date()),
+				userid: email,
+				title: title,
+				body: body,
+				sender: sender
+			});
+		}
+
+		function getRouteNo(routeid, callback) {
+			var docpath = "terminals/" + yrterminalid + "/routes/" + routeid;
+			var routeRef = db.doc(docpath);
+			routeRef.get().then(function(doc) {
+				callback(doc.data().routeno);
+			});
+		}
+	</script>
+
+	<script>
+		//ท่อนนี้ของ Notification และ Notify
+
+		$.notify.addStyle('myshopman', {
+			html: "<div class='superblue'><span data-notify-html/></div>",
+			classes: {
+				base: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "black",
+					"background-color": "white",
+					"padding": "20px"
+				},
+				green: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "green",
+					"padding": "20px"
+				},
+				red: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "red",
+					"padding": "20px"
+				},
+				purple: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "#cc33cc",
+					"padding": "20px"
+				}
+			}
+		});
+
+		messaging.onMessage(function(payload) {
+			//console.log("Message received. ", payload);
+			var msg = "<div id='notify-title'>";
+			msg = msg.concat(payload.notification.title);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div id='notify-body'>");
+			msg = msg.concat(payload.notification.body);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div div id='notify-from'> จาก : ");
+			msg = msg.concat(payload.data.sendername);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div id='buttons'><button onclick='opendetail(\"" + payload.notification.click_action + "\")'>รายละเอียด</button></div>");        
+			$.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'purple'});
+		});
+
+		function opendetail(link){
+			window.open(link , '_blank');
+		}
+	</script>
+  </body>
+</html>

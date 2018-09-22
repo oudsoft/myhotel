@@ -1,0 +1,261 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../../resources/fonts/THSarabunNew.ttf');
+    }
+
+ 	#content {
+		text-align: center;
+        font-family: THSarabunNew;
+		src: url('../../resources/fonts/THSarabunNew.ttf');  
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 100%;
+		text-align: center:
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 50%;
+		text-align: center:
+	}
+	#printImg{
+		display: none;
+	}
+</style>
+
+<div id="content">
+	<div style="text-align: center"><h1>ตั๋วโดยสาร</h1></div>
+	<div id="CanvasDiv" style="display:none">
+		<canvas id="myCanvas" width="220" height="770"></canvas>
+		<div class="step-box">
+			<div class="step-bar">
+				<button class="ui-btn" id="print-cmd" onclick="printPdf()">   พิมพ์     </button>
+			</div>
+			<div class="step-bar">
+				<a id="download" download="ticket.png">
+					<button class="ui-btn" id="download-cmd" onclick="downloadPdf()">   ดาวน์โหลด     </button>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="createTicket()">   แสดงตั๋ว     </button>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="backtohome()">   กลับ     </button>
+	</div>
+	<div id="printImg"></div>
+</div>
+
+<script>
+
+	var canvas;
+	
+	function createTicket() {
+		if ($("#CanvasDiv").css("display")=="none"){
+			$("#CanvasDiv").show();
+			ceateCanvas(function(dataUrl) {
+
+			});
+			$("#ok-cmd").text("ปิดแสดงตั๋ว");
+		} else {
+			var context = canvas.getContext('2d');
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			$("#CanvasDiv").hide();
+			$("#ok-cmd").text("โปรดแสดงตั๋ว");
+		}
+	}
+
+	function ceateCanvas(callback) {
+		canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createQuotIMG(context);
+		var dataURL = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		callback(dataURL);
+	}
+
+	function createQuotIMG(ct) {
+		//console.log(JSON.stringify(bticketOB));
+		ct.scale(1, 1);
+		ct.beginPath();
+		ct.rect(5, 5, 210, 85);
+		ct.lineWidth = 1;
+		ct.strokeStyle = 'black';
+		ct.stroke();
+		var imageLOGO = new Image();
+		imageLOGO.src = "../../../resources/imgs/vanOS01.jpg";
+		imageLOGO.onload = function () {
+			ct.drawImage(imageLOGO, 88, 15, 50, 50);
+		};
+
+		ct.font = 'bold 20px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("ตั๋วโดยสารรถตู้", 110, 82);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText(bticketOB.route, 110, 110);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("วันที่  " + bticketOB.date, 5, 130);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("เที่ยวเวลา  " + bticketOB.schedule + " น.", 5, 150);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้โดยสาร .. ชื่อ .. " + bticketOB.pname + " .. ", 5, 170);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้โดยสาร .. โทร .. " + bticketOB.ptel + " .. ", 5, 190);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดขึ้นรถ .. " + bticketOB.stationup + " .. ", 5, 210);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดลงรถ .. " + bticketOB.stationdown + " .. ", 5, 230);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 250);
+
+		var price = parseInt(bticketOB.price);
+
+		// เริ่มค่า top ที 250
+		var total = 0;
+		for (var i=0; i<bticketOB.seats.length; i++)	{
+			ct.font = 'bold 16px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "left";
+			ct.fillText("เลขที่นั่ง .. " + bticketOB.seats[i] + " .... ราคา .. " + price + " .. บาท ", 5, 250 + (i+1)*25);
+			total = total + price;
+		}
+		var charge = 5;
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("อื่นๆ ..บริการจองตั๋ว .. ราคา .. " + Number(charge) + " .. บาท ", 5, 250 + ((bticketOB.seats.length +1)* 25));
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 260 + (bticketOB.seats.length * 25) + 40);
+ 		total = Number(total + charge);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("รวม  .................... " + Number(total) + " ....... บาท", 5, 260 + (bticketOB.seats.length * 25) + 60);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("------------------------------------------------------------", 5, 260 + (bticketOB.seats.length * 25) + 80);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("----สิงที่ผู้โดยสารควรทราบ----", 110, 260 + (bticketOB.seats.length * 25) + 110);
+
+		ct.font = 'bold 14px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		for (var x=0; x < bticketOB.conditions.length; x++) {
+            printAtWordWrap(ct, String(x+1) + ". " + bticketOB.conditions[x], 5,  260 + (bticketOB.seats.length * 25) + 130 + x * 20, 20, 240);
+		}
+		var imageQR = new Image();
+		//imageQR.src = "tt/0816776292.png";
+		imageQR.src = "tt/vaninfourl.png";
+		imageQR.onload = function () {
+			ct.drawImage(imageQR, 75, 630, 70, 70);
+		};
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("ขอบคุณที่ใช้บริการ", 110, 730);
+
+		
+		ct.font = 'bold 14px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "right";
+		ct.fillText(bticketOB.ticketno, 205, 760);
+
+		$("#download-cmd").attr("onclick", "downloadPdf('" + bticketOB.ticketno + "')");
+ 	}
+
+
+	function printPdf() {
+		var image = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		$("#printImg").html("<img src='" + image + "' width=180' height='555'/>");
+		//$('#printImgt').hide();
+		$("#printImg").printThis();
+
+	}
+
+	function downloadPdf(tickno) {
+		var download = document.getElementById("download");
+		var image = document.getElementById("myCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", tickno + ".png");
+	}
+
+	function printAtWordWrap(context, text, x, y, lineHeight, fitWidth) {
+		fitWidth = fitWidth || 0;
+
+		if (fitWidth <= 0) {
+			context.fillText(text, x, y);
+			return;
+		}
+		var words = text.split(' ');
+		var currentLine = 0;
+		var idx = 1;
+		while (words.length > 0 && idx <= words.length) {
+			var str = words.slice(0, idx).join(' ');
+			var w = context.measureText(str).width;
+			if (w > fitWidth) {
+				if (idx == 1) {
+					idx = 2;
+				}
+				context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+				currentLine++;
+				words = words.splice(idx - 1);
+				idx = 1;
+			} else {
+				idx++;
+			}
+		}
+		if (idx > 0)
+			context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+	}
+
+	function backtohome() {
+		showLoadingImageMT();
+		setTimeout(function() {
+			openRouteMng();
+			hideLoadingImageM();
+		}, 1000);
+	}
+
+</script>
+

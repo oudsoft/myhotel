@@ -1,0 +1,264 @@
+<style>
+	#select-room {
+		margin-left: 10px; 
+		margin-right: 10px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+	}
+	#errors{
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+ 	#cmdBox{
+		text-align: center;
+	}
+	#descPopup{
+		display: none;
+	}
+</style>
+
+<div  id='select-room'>
+	<p>โปรดเลือก <b>ห้องพัก</b> ตามที่ต้องการ แล้วคลิกปุ่ม <b>ตกลง</b> หรือคลิกปุ่ม <b>กลับ</b> เพื่อกลับไปเลือกช่วงวันเข้าพักใหม่</p>
+	<p>หากต้องการทราบรายละเอียดของห้องพักเพิ่มเติม คลิกปุ่ม <b> ... </b> หลังรายการห้องพักที่ต้องการ</p>
+	<div id="listEmptyRoom"></div>
+	<div class="ui-field-contain" id="cmdBox">
+		<button class="ui-btn" id="select-towho-cmd">   ตกลง     </button>
+		<button class="ui-btn" id="back-cmd">   กลับ     </button>
+	</div>
+	<div id="alert-msg" style="color:blue">&nbsp;</div>
+	<div id="errors" style="color:red">&nbsp;</div>
+</div>
+
+<script>
+//ท่อนนี้ สำหรับ เลือกหาห้องที่ว่างในช่วงเวลา startDate - toDate มาแสดงให้ผู้ใช้เลือก
+
+var trooms = []; // สำหรับเก็บรายการห้องว่างทั้งหมด
+var mask = []; //สำหรับเก็บรายการห้อง ที่ไม่ว่าง
+srooms = []; // สำหรับเก็บรายการห้องที่ user เลือก
+searchEmptyRoom();
+
+function searchEmptyRoom() {
+	showLoadingImageM();
+	trooms = [];
+	var today = new Date();
+	today = today.getTime();
+	var docpath = "hotels/" + myhotelid;
+	var hotelRef = db.doc(docpath);
+	if (hotelRef) {
+
+		hotelRef.collection("rooms").get()
+		.then(function(rquerySnapshot) {
+			rquerySnapshot.forEach(function(roomdoc) {
+				if (roomdoc.data().rsts=="1") {
+						var roomRef = hotelRef.collection("rooms").doc(roomdoc.id);
+						roomRef.collection("loads").where("to", ">=", today).get().then(function(lquerySnapshot) {  ///.where("to", "<=", toDate)
+							//console.log(lquerySnapshot.size);
+							if (lquerySnapshot.size == 0)	{
+								pushRoomIn(roomdoc, loaddoc);
+							} else {
+								lquerySnapshot.forEach(function(loaddoc) {
+									//console.log(JSON.stringify(loaddoc.data().to));
+									var index = mask.findIndex(x => x.id==roomdoc.id);
+									if (index < 0)	{
+										if (!startDate.between(loaddoc.data().start, loaddoc.data().to))	{
+											if (!toDate.between(loaddoc.data().start, loaddoc.data().to))	{
+												if (loaddoc.data().lsts <= 0) {
+													pushRoomIn(roomdoc, loaddoc);
+												} // if (loaddoc.data().lsts <= 0)
+											} else {
+												pushRoomOut(roomdoc.id, loaddoc.data().lsts);
+											}
+										} else {
+											pushRoomOut(roomdoc.id, loaddoc.data().lsts);
+										}
+
+									} // if (index < 0)
+									//console.log(JSON.stringify(mask));
+								});
+							} // else (lquerySnapshot.size > 0)	{
+							createEmptyRoomTable(trooms);
+							hideLoadingImageM();
+						})
+						.catch (function(e) {
+							console.log(e.message); ///log
+						});
+				} else {
+					console.log(roomdoc.data().rsts); ///log
+				}
+			});
+		});
+	} else {
+		var warnings = "สถานที่ให้บริการห้องพักรายนี้ ยังไม่มีห้องพักให้บริการ หรือ ลงทะเบียนไม่ถูกต้อง";
+		$("#errors").css("display","block");
+		$("#errors").html(warnings);
+	}
+ }
+
+function pushRoomIn(rdoc, ldoc) {
+	var anyroom = {};
+	 var result = $.grep(trooms, function(e){ return e.roomid == rdoc.id; });
+	 if (result.length == 0) {
+		 anyroom.num = rdoc.data().num;
+		 anyroom.name = rdoc.data().name; 
+		 anyroom.size = rdoc.data().size;
+		 anyroom.price = rdoc.data().price; 
+		 anyroom.rsts = rdoc.data().rsts;
+		 anyroom.desc = rdoc.data().desc; 
+		 anyroom.roomid = rdoc.id;
+		 trooms.push(anyroom);
+	 }
+}
+
+function pushRoomOut(rid, lsts) {
+	if (lsts > 0){
+		var m = mask.findIndex(x => x.id==rid);
+		if (m < 0) {
+			mask.push({id: rid});
+		}
+	}
+}
+
+/*
+var index = trooms.findIndex(x => x.roomid==roomdoc.id);
+console.log(roomdoc.data().name + " : " + datetostring(startDate) + " : " + datetostring(toDate) + " : " + datetostring(loaddoc.data().start) + " : " + datetostring(loaddoc.data().to));
+if (index >= 0) {
+	console.log(roomdoc.data().name);
+	console.log(JSON.stringify(trooms));
+	trooms = trooms.filter(function(el) {
+		return el.roomid !== roomdoc.id;
+	});
+	console.log(JSON.stringify(trooms));
+}
+*/
+
+function createEmptyRoomTable(trooms){
+	var diff = (Math.abs(toDate -  startDate) / 86400000) ;
+	var listStr = "";
+	listStr = listStr.concat("<table>");
+	listStr = listStr.concat("<thead><tr><th colspan='5' style='text-align:center'>รายการห้องพักที่ว่าง ระหว่างวันที่ " + datetostring(startDate) + " ถึงวันที่ " + datetostring(toDate) + " รวม " + diff + " วัน</th></tr></thead>");
+	listStr = listStr.concat("<tbody>");
+	listStr = listStr.concat("<tr>");
+	//listStr = listStr.concat("<td width='10%'><b>หมายเลขห้อง</b></td>");
+	listStr = listStr.concat("<td width='20%'><b>ชื่อห้อง</b></td>");
+	listStr = listStr.concat("<td width='20%'><b>ขนาดผู้เข้าพัก(คน)</b></td>");
+	listStr = listStr.concat("<td width='10%'><b>ราคา(รายวัน)</b></td>");
+	listStr = listStr.concat("<td width='30%'><b>รายละเอียด</b></td>");
+	//listStr = listStr.concat("<td width='10%'><b>สถานะห้อง</b></td>");
+	listStr = listStr.concat("<td width='*'>&nbsp;</td>");
+	listStr = listStr.concat("</tr>");
+	for (var i=0;i<trooms.length; i++ ) {
+		listStr = listStr.concat("<tr>");
+		//listStr = listStr.concat("<td>" + trooms[i].num + "</td>");
+		listStr = listStr.concat("<td>" + trooms[i].name + "</td>");
+		listStr = listStr.concat("<td>" + trooms[i].size + "</td>");
+		listStr = listStr.concat("<td>" + trooms[i].price  + "</td>");
+		listStr = listStr.concat("<td><input type='button' id='" + trooms[i].roomid  + "' onclick='openroomdesc(this)' value=' ... '></td>");
+		//listStr = listStr.concat("<td>" + trooms[i].rsts  + "</td>");
+		listStr = listStr.concat("<td><input type='checkbox' class='custom' id='" + trooms[i].num + "' onclick='userselectroom(this)'></td>");
+		listStr = listStr.concat("</tr>");
+	}
+	listStr = listStr.concat("</tbody>");
+	listStr = listStr.concat("</table>");
+	$("#listEmptyRoom").html(listStr);
+}
+
+function userselectroom(box) {
+	//console.log(box.id + "-" + $(box).prop('checked'));
+	if ($(box).prop('checked') == true ) {
+		srooms.push(box.id);
+	} else {
+		var at = srooms.indexOf(box.id);
+		if (at >= 0)	{
+			srooms.splice(at, 1);
+		}
+	}
+}
+
+$("#back-cmd").click(function(e) {
+	$.post("mdaterangeselector.html", {},
+	function(data) {
+		$('#main').html(data);
+	});
+});
+
+$("#select-towho-cmd").click(function(e) {
+	//console.log(srooms.length);
+	var warnings = "";
+	if (srooms.length == 0){
+		warnings = "คุณยังไม่ได้เลือกห้องพัก";
+	}
+    if (warnings != "") {
+		$("#errors").css("display","block");
+		$("#errors").html(warnings);
+    } else {
+		$("#errors").css("display","none");
+		var alertmsg = "ห้องที่คุณเลือก : <b>";
+		for (var i=0; i< srooms.length; i++) {
+			alertmsg = alertmsg.concat(srooms[i] + ", ");
+		}
+		alertmsg = alertmsg.concat("</b>");
+		$("#alert-msg").html(alertmsg);
+		$("#alert-msg").show();
+		showLoadingImageM();
+		setTimeout(function() {
+			$("#alert-msg").hide();
+			$.post("mwhobooking.html", {},
+			function(data) {
+				$('#main').html(data);
+				hideLoadingImageM();
+			});
+		}, 4000);
+     }
+});
+
+function openroomdesc(room) {
+	var result = $.grep(trooms, function(e){ return e.roomid == room.id; });
+	if (result) {
+		Str = $("<div data-role='popup' id='desc-dialog' style='margin: 10px;' title='รายละเอียดห้อง'></div>");
+		Str.append("<p id='guidmsg' style='color: blue;'>กำลังโหลดภาพ โปรดรอสักครู่ ....</p>");
+		Str.append("<div><b>รายระเอียดห้องพัก </b><p>" + result[0].desc + "</p></div>");
+		var picpath = "images/" + myhotelid + "/" + room.id + "/";
+		var docpath = "hotels/" + myhotelid + "/rooms/" + room.id;
+		var storageRef = firebase.storage().ref();
+		var roomRef = db.doc(docpath);
+		roomRef.collection("pics").get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				var picRef = storageRef.child(picpath + doc.data().filename);
+				picRef.getDownloadURL().then(function(url) {
+					var picview = url;
+					getMeta(url).done(function(test){
+ 						var iw = calPicturSize(test.w, test.h).w;
+						var ih = calPicturSize(test.w, test.h).h;
+						Str.append("<div style='float: left;'><a href='" + url + "' target='_blank'><img width='" + iw + "' height='" + ih  +"' src='" + url + "'/></a></div>");
+						$("#guidmsg").text("คลิกบนรูปเพื่อเปิดดูรูปที่ขนาดใหญ่ขึ้น");
+					});
+				});
+	 		});
+		});
+		Str.append("<p>&nbsp;</p>");
+		Str.append("<div style='text-align: center;'><input type='button' value=' ตกลง ' onclick='closePopup()'/></div>");
+		Str.append("<p>&nbsp;</p>");
+		$("#main").append(Str);
+		$("#desc-dialog").popup({ overlayTheme: "a"});
+		$("#desc-dialog").popup('open');
+	}
+ }
+
+function closePopup() {
+	$("#desc-dialog").popup('close');
+	$("#desc-dialog").remove();
+}
+
+if (myhotelurl !=""){
+	str = "<div style='text-align: center;'><a href='" + myhotelurl +"' target='_blank'>เยี่ยมชมเว็บไซด์หลักของเรา</a></div>";
+	$("#select-daterange").append(str);
+}
+
+</script>

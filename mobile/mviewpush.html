@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../resources/imgs/ico/hotelOS.ico">
+	<title>บริการจองห้องพัก</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+		#notify-title{
+		    font-weight: 500;
+			font-size: 18px;
+		}
+		#notify-body{
+		    font-weight: 300;
+			font-size: 14px;
+		}
+		#notify-from{
+		    font-weight: 300;
+			font-size: 14px;
+		}
+		#buttons{
+			padding: 10px;
+			text-align: center;
+		}
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<img src="../resources/imgs/hotelOS.jpg" width="60" height="60"/>
+			<h4>สื่อสารช่องใหม่</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+
+    </div>
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>สื่อสารช่องใหม่</b>
+		</div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../resources/js/notify.js"></script>  
+ 
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-storage.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+
+ 
+		var cuser = firebase.auth().currentUser;
+		firebase.auth().onAuthStateChanged(user => {  
+			//ในส่วนนี้ให้ระวัง การสั่ง redirect หาก uer != null เครื่องจะแฮ็งค์ได้
+			if (!user) {
+				//window.location = "login.html";
+				console.log("No Good.");
+			} else {
+				cuser = user;
+				//console.log(cuser);
+				//showUserData();
+			}
+		});
+
+    </script>
+
+    <script>
+ 
+		var mmes = getParameterByName("mmes");
+		getListView();
+
+		function getListView() {
+			showLoadingImageM();
+			$.post("mlistview.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+			 
+	</script>
+
+	<script>
+	//ท่อนนี้ของ Notification และ Notify
+
+	$.notify.addStyle('myshopman', {
+		html: "<div class='superblue'><span data-notify-html/></div>",
+		classes: {
+			base: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "black",
+				"background-color": "white",
+				"padding": "20px"
+			},
+			green: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "rgba(50,200,150,0.55);",
+				"padding": "20px"
+			},
+			red: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "rgba(255,0,0,0.75);",
+				"padding": "20px",
+
+			}
+		}
+	});
+
+	messaging.onMessage(function(payload) {
+		//console.log("Message received. ", payload);
+		var msg = "<div id='notify-title'>";
+		msg = msg.concat(payload.notification.title);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div id='notify-body'>");
+		msg = msg.concat(payload.notification.body);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div div id='notify-from'> จาก : ");
+		msg = msg.concat(payload.data.sendername);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div id='buttons'><button onclick='opendetail(\"" + payload.notification.click_action + "\")'>รายละเอียด</button></div>");
+        $.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'green'});
+        playsoundeffect();
+		$("#result").show();
+		$("#result").html("<p>" + payload.notification.title + "</p><p>" + payload.notification.body + "</p><p>" + payload.data.sendername + "</p>");
+
+		getListView();
+	});
+
+	function opendetail(link) {
+		window.open(link , '_blank');
+	}
+
+	function playsoundeffect() {
+		 $('#soundeffect')[0].play();
+	}
+
+	subscribeFCM();
+	getcurrentToken();
+
+	function subscribeFCM() {
+		messaging.requestPermission().then(function() {
+			console.log("Thank you.");
+		})
+		.catch(function(err) {
+			console.log('Unable to get permission to notify. ', err);
+		});
+	 }
+
+	function getcurrentToken() {
+		setTimeout(function() {
+			 messaging.getToken().then(function(currentToken) {
+			   mytoken = currentToken;
+			 });
+		}, 3000);
+	}
+
+	messaging.onTokenRefresh(function() {
+		messaging.getToken()
+		.then(function(refreshedToken) {
+			console.log('Token refreshed. :: ' + refreshedToken);
+		})
+		.catch(function(err) {
+			console.log('Unable to retrieve refreshed token ', err);
+		});
+	});
+
+	$("#footer-conter").click(function(e) {
+		playsoundeffect();
+	});
+
+	</script>
+  </body>
+</html>

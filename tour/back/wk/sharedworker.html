@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Test SharedWorker</title>
+  <script type="text/javascript">
+
+		var worker = new SharedWorker("worker.js");
+		worker.port.addEventListener("message", function(e) {
+			alert(e.data);
+		}, false);
+		worker.port.start();    
+		worker.port.postMessage("Sian-Sura");
+
+		Notification.requestPermission(function (permission) {
+		  // If the user accepts, let's create a notification
+		  if (permission === "granted") {
+			  console.log(permission);
+			//worker.port.postMessage({name:"notification"});
+			worker.port.postMessage("Thanks.");
+			//worker.port.close()
+		  }
+		});
+
+
+		// https://us-central1-myhotel-4746f.cloudfunctions.net/sseNotification
+  </script>
+ </head>
+ <body>
+  
+ </body>
+</html>

@@ -1,0 +1,221 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../../resources/fonts/THSarabunNew.ttf');
+    }
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 100%;
+		text-align: left;
+		height: 20px;
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 75%;
+		text-align: left;
+		font-size: 30px;
+	}
+ 	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 140px;
+		vertical-align: middle;
+	}
+ 	#content {
+		text-align: left;
+        font-family: THSarabunNew;
+		src: url('../../resources/fonts/THSarabunNew.ttf');  
+		font-size: 26px;
+	}
+	#output{
+		display: none;
+		width: 95%;
+	}
+</style>
+<p>โปรดเลือกเส้นทางเพื่อแสดงข้อมูลรถตู้โดยสารโดยละเอียด</p>
+<p>รายการเส้นทางที่ให้เลือก ซึ่งมีอยู่จำนวนมาก ดังนั้นเพื่อความสะดวก ลองพิมพ์ชื่อจังหวัดหรือชื่ออำเภอที่ต้องการดูข้อมูลรถตู้โดยสาร ลงในช่องค้นหา ซึงจะทำให้ค้นหาได้อย่างรวดเร็ว</p>
+<div id="rout-select-bar" class="step-box">
+	<div class="step-bar-label"><b>เส้นทาง :</b></div><div class="step-bar"><select id="route-select" class="input-step" onchange="openView()"></select></div>
+</div>
+<div id="content">
+	<div style="text-align: center"><h1>ข้อมูลในระบบ</h1></div>
+	<div id="output">
+		<div class="step-box">
+			<div class="step-bar-label"><h3>หมายเลขเส้นทาง :</h3></div> 
+			<div class="step-bar">
+				<div id="routeno"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ชื่อเส้นทาง :</h3></div> 
+			<div class="step-bar">
+				<div id="routename" />
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดต้นทาง :</h3></div> 
+			<div class="step-bar">
+				<div id="routebegin"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดปลายทาง :</h3></div> 
+			<div class="step-bar">
+				<div id="routedest"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดทางผ่าน :</h3></div> 
+			<div class="step-bar">
+				<div id="routemiddle"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>รวมระยะทาง :</h3></div> 
+			<div class="step-bar">
+				<div id="distanct"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ชื่อผู้ประกอบการ :</h3></div> 
+			<div class="step-bar">
+				<div id="providername"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>เที่ยวเวลาเดินรถ :</h3></div> 
+			<div class="step-bar">
+				<div id="schedule"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>จุดจอดให้ผู้โดยสารขึ้น :</h3></div> 
+			<div class="step-bar">
+				<div id="pointup"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ค่าโดยสาร :</h3></div> 
+			<div class="step-bar">
+				<div id="price"/> 
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>เบอร์โทร :</h3></div> 
+			<div class="step-bar">
+				<div id="phoneno"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>เฟสบุคลิงค์ :</h3></div> 
+			<div class="step-bar">
+				<div id="link"/>
+			</div>
+		</div>
+		<div class="step-box">
+			<div class="step-bar-label"><h3>ข้อมูลอื่นๆ  :</h3></div> 
+			<div class="step-bar">
+				<div id="remark"/>
+			</div>
+		</div>	
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="openInfoMng()">   กลับไปป้อนข้อมูล     </button>
+	</div>
+</div>
+
+<script>
+
+   $(document).ready(function() {
+		$("#btnClose").text("").append("<img src='tt/vansearch.png' width='100' height='100'  />").button();
+		loadRouteAll();
+   });
+
+	function openView(){
+		showLoadingImageMT();
+		var routeselect = $("#route-select").val();
+		setTimeout(function() {
+			$("#output").show();
+			infoRef = db.collection("infos");
+			infoRef.where("routeno", "==", routeselect).get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+
+					 $("#routeno").html(doc.data().routeno);
+					 $("#routename").html(doc.data().routename);
+					 $("#routebegin").html(doc.data().routebegin);
+					 $("#routedest").html(doc.data().routedest);
+					 $("#routemiddle").html(doc.data().routemiddle);
+					 $("#distanct").html(doc.data().distanct + " ก.ม.");
+					 $("#providername").html(doc.data().providername);
+
+					var parts = doc.data().schedule.split("\\n");
+					var result = "";
+					for (var i=0; i< parts.length; i++){
+						result = result.concat(parts[i]);
+						result = result.concat("<br/>");
+					}
+					 $("#schedule").html(result);
+
+					var parts = doc.data().pointup.split("\\n");
+					var result = "";
+					for (var i=0; i< parts.length; i++){
+						result = result.concat(parts[i]);
+						result = result.concat("<br/>");
+					}
+ 					$("#pointup").html(result);
+
+					var parts = doc.data().price.split("\\n");
+					var result = "";
+					for (var i=0; i< parts.length; i++){
+						result = result.concat(parts[i]);
+						if (parts.length > 1){
+							result = result.concat("<br/>");
+						}
+					}
+					 $("#price").html(result + " บาท");
+
+					var parts = doc.data().phoneno.split("\\n");
+					var result = "";
+					for (var i=0; i< parts.length; i++){
+						result = result.concat(parts[i]);
+						result = result.concat("<br/>");
+					}
+					$("#phoneno").html(result);
+					if ((doc.data().link !=="") && (doc.data().link !=="-")){
+						$("#link").html("<a href='"+doc.data().link +"' target='_blank'>เข้าชมเพจ</a>");
+					} else {
+						$("#link").html(doc.data().link);
+					}
+					 $("#remark").html(doc.data().remark);
+				});
+			});
+			hideLoadingImageM();
+		}, 7000);
+
+	}
+
+	function loadRouteAll(){
+		showLoadingImageMT();
+		$("#route-select").empty();
+		setTimeout(function() {
+			infoRef = db.collection("infos");
+			infoRef.get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+					var str = "";
+					str = str.concat("<option value='" + doc.data().routeno + "'>" + doc.data().routeno + " - " + doc.data().routename + "</option>");
+					$("#route-select").append(str);
+					$("#route-select").trigger("chosen:updated");
+				});
+				$("#route-select").chosen({no_results_text: "แย่จัง! ไม่มีสถานีตามที่คุณต้องการหา", width: "95%"}); 
+				$("#route-select").prop('selectedIndex', 1);
+				$("#route-select").trigger("chosen:updated");
+			});
+			hideLoadingImageM();
+		}, 7000);
+	}
+</script>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../../resources/imgs/ico/vanOS.ico">
+	<title>บริการจองรถตู้</title>
+ 
+    <style>
+		#header{
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 100%
+			float: left;
+
+			border: #cc33cc 5px solid;
+			border-radius:5px;
+			box-shadow:0 0 3px #999;
+			margin: 5px;
+			padding: 5px;
+		}
+		#footer {
+			position: relative;
+			width: 100%
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter{
+			text-align: center;
+		}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		padding: 10px;
+	}
+
+    </style>
+  </head>
+  <body>
+	<div id="header" data-role="header">
+		<div  id='herder-conter'>
+			<img src="../../resources/imgs/vanOS.png" width="60" height="60"/>
+			<h4>This is Header Panel.</h4>
+		</div>
+	</div>
+    <div id="main" data-role="content">
+		<div class="title-box">เมนูหลัก</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="tour-mng-cmd" onclick="openRouteMng()">   จัดการเส้นทางเดินรถ     </button>
+		</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="van-mng-cmd" onclick="openVanMng()">   จัดการรถตู้     </button>
+		</div>
+		<div class="ui-field-contain cmdBox">
+			<button class="ui-btn" id="logout-cmd" onclick="UserLogout()">   ออกจากระบบ     </button>
+		</div>
+		<!--<a href="info.html?t=TDUwna6CbjjYJr65dQo1">InfoMan</a>-->
+    </div>
+ 	<div id="footer" data-role="footer">
+		<div  id='footer-conter'>
+			<b>This is Footer Panel.</b>
+		</div>
+		<div id="soundcontrol">
+			<audio id="soundeffect" src="../../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+		</div>
+	</div>
+
+	<!-- jQuery Declaire -->
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../../resources/js/notify.js"></script>  
+	<!--<script src="//code.jquery.com/jquery-1.12.2.min.js"></script>-->
+	<script src="../../resources/js/on-off-switch.js"></script>
+	<script src="../../resources/js/on-off-switch-onload.js"></script>
+	<script src="../../resources/js/jquery.timepicker.min.js"></script>
+	<script src="../../resources/js/mdtimepicker.js"></script>
+	<script src="../../resources/js/chosen.jquery.min.js"></script>
+	<script src="../../resources/js/easySelectable.js"></script>
+	<!--
+	<script src="../../resources/js/pdfmake.js"></script>
+	<script src="../../resources/js/vfs_fonts.js"></script>
+	-->
+	<script src="../../resources/js/jquery-qrcode-0.14.0.js"></script>
+	<script src="../../resources/js/printThis.js"></script>
+
+	<link rel="stylesheet" href="../../resources/css/on-off-switch.css">
+	<link rel="stylesheet" href="../../resources/css/jquery.timepicker.min.css">
+	<link rel="stylesheet" href="../../resources/css/mdtimepicker.css">
+	<link rel="stylesheet" href="../../resources/css/chosen.min.css">
+
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-storage.js"></script>
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+    </script>
+
+	<script>
+	//Your Code Here
+
+	var myterminalid;
+	var mytoken;
+	var myemail;
+	var cuser = firebase.auth().currentUser;
+	var myterminalOB = $.parseJSON($.cookie("myterminalOB") || '[]');
+	//console.log(JSON.stringify(myterminalOB)); //log
+
+	if (myterminalOB.length > 0) {
+		myterminalid  = myterminalOB[0].terminalid;
+		mytoken  = myterminalOB[0].terminaltoken;
+		myemail = myterminalOB[0].email;
+		//console.log(myterminalid);
+		//console.log(mytoken);
+		//console.log(myemail);
+	} else {
+		signout();
+	}
+
+	/* -----------------------------------*/
+	//บริเวณประกาศตัวแปรเฉพาะงาน
+	var brouteid = "";
+	var bdate; //datetime
+	var btourid = "";
+	var bscheduleid = ""; 
+	var bseatno = []; //array
+	var bstationupid = "";
+	var bstationdownid = "";
+	var bpassangerid = "";
+	var bbookingid = "";
+	var bcurrentTour = []; // เก็บค่า tourid ที่กำลังทำงาน
+
+	var bticketOB = [];
+	var defaultPrice;
+	var pricecharts = [];
+	var stations = [];
+	var scheduleItem = [];
+
+	//baill and ticket current No
+	var currentnoOB = [];
+	var terNo;
+	var rouNo;
+
+	/* -----------------------------------*/
+
+	firebase.auth().onAuthStateChanged(user => {  
+		//ในส่วนนี้ให้ระวัง การสั่ง redirect หาก uer != null เครื่องจะแฮ็งค์ได้
+		if (!user) {
+			//window.location = "login.html?t=" + myterminalid;
+		} else {
+			cuser = user;
+			console.log(cuser.email);
+			//showUserData();
+		}
+	});
+
+	function signout() {
+		firebase.auth().signOut().then(function() {
+			myterminalid = getParameterByName("t");
+			console.log(myterminalid);
+			alert("คุณได้ออกจากระบบเรียบร้อยแล้ว");
+			window.location = "login.html?t=" + myterminalid;
+		})
+		.catch(function(error) {
+			alert("มีความผิดพลาดเกิดขึ้น");
+		});
+	}
+
+	</script>
+
+    <script>
+
+		initPage(function(doc) {
+			document.title = doc.data().name + " :: บริการจองรถตู้";
+			$('#herder-conter').html("<img src='../../resources/imgs/vanOS.png' width='60' height='60'/><h4>" + doc.data().name + "</h4>");
+			$('#footer-conter').html("<h4>" + doc.data().name + "</h4><p>" + doc.data().address + "</p><p>" + doc.data().tel + "</p>" + "<p>" + myterminalid + "</p>");
+		});
+
+		function initPage(callback) {
+			//console.log(myterminalid);
+			if ((myterminalid !== "undefined") && (myterminalid !== "")) {
+				var docpath = "terminals/" + myterminalid;
+				var terminalRef = db.doc(docpath);
+				//db.collection("terminals").where("email", "==", myemail).get()
+				terminalRef.get().then(function(doc) {
+					terNo = doc.data().terminalid;
+					callback(doc);
+				});
+			} else {
+				signout();
+			}
+		}
+
+		function UserLogout() {
+			signout();
+		}
+
+ 		function openRouteMng() {
+			showLoadingImageMT();
+			$.post("elements/routeman.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+
+		function openVanMng() {
+			showLoadingImageMT();
+			$.post("elements/vanman.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+
+		function openBookMan(routeid){
+			brouteid = routeid;
+			showLoadingImageMT();
+			$.post("elements/bookman.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+				$("#route-man-cmd-popup").popup("close");
+			});
+		}
+
+		function openBookSum(routeid){
+			brouteid = routeid;
+			showLoadingImageMT();
+			$.post("elements/booksum.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+				$("#route-man-cmd-popup").popup("close");
+			});
+		}
+
+		function openBookingDoc(routeid){
+			brouteid = routeid;
+			showLoadingImageMT();
+			$.post("elements/bookingdoc.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+				$("#route-man-cmd-popup").popup("close");
+			});
+		}
+
+		function openTicket(){
+			showLoadingImageMT();
+			$.post("elements/ticket.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+			});
+		}
+
+		function openTestJsPDF(){
+			showLoadingImageMT();
+			$.post("tt/canvas2pdf.html", {},
+			function(mdata) {
+				$("#main").html(mdata);
+				hideLoadingImageM();
+				$("#route-man-cmd-popup").popup("close");
+			});
+		}
+
+	</script>
+
+	<script>
+
+		function preLoadCurrentNo(){
+			getCurrentNo(2, function(last) {
+				console.log(last);
+			});
+ 		}
+
+		function buildBookingOB(order, pname, ptel, stationupid, stationdownid, action, nextnoText) {
+			var OB = {};
+			OB.order = order;
+			OB.cguid = pname;
+			OB.ptel = ptel;
+			OB.stationupid = bstationupid;
+			OB.stationdownid = bstationdownid;
+			OB.bstatus = action;
+			OB.bdate = (new Date()).getTime();
+			if (action == 1)	{
+				OB.billno = nextnoText;
+			} else if (action == 2)	{
+				OB.ticketno = nextnoText;
+			} 
+			return OB;
+		}
+
+		function saveBillAndTicketData(action, nextno, nextnoText, userid, docPathList) {
+			//console.log(JSON.stringify(docPathList));
+			if (action == 1){
+				saveBillData(nextnoText, userid, docPathList);
+				updateCurrentBillNo(nextno);
+			} else if (action == 2)	{
+				saveTicketData(nextnoText, userid, docPathList);
+				updateCurrentTicketNo(nextno);
+			}
+			return nextnoText;
+		}
+
+		function loadPriceChart() {
+			var items = [];
+			var docpath = "terminals/" + myterminalid + "/routes/" + brouteid;
+			var routeRef = db.doc(docpath);
+			routeRef.collection("pricecharts").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+					var ob = {};
+					ob.id = doc.id;
+					ob.frstation = doc.data().frstation;
+					ob.tostation = doc.data().tostation;
+					ob.price = doc.data().price;
+					items.push(ob);
+				});
+			});
+			return items;
+		}
+
+		function loadTicketCondition(){
+			var result = [];
+			var docpath = "terminals/" + myterminalid;
+			var terminalRef = db.doc(docpath);
+			terminalRef.get().then(function(doc) {
+				for (var i=0; i< doc.data().ticketconditions.length; i++){
+					result.push(doc.data().ticketconditions[i]);
+				}
+			});
+			return result;
+		}
+
+		function getCurrentNo(action, callback) {
+			var result = [];
+			if (currentnoOB.length == 0) {
+				var billcurrentno = "";
+				var ticketcurrentno = "";
+				var docpath  = "terminals/" + myterminalid + "/routes/" + brouteid;
+				var tourRef  = db.doc(docpath);
+				tourRef.get().then(function(rdoc) {
+					billcurrentno = rdoc.data().billcurno;
+					ticketcurrentno = rdoc.data().ticketcurno;
+					if (billcurrentno == "") {
+						billcurrentno = "0";
+					}
+					if (ticketcurrentno == "") {
+						ticketcurrentno = "0";
+					}
+					currentnoOB.push({ticketcurrentno: ticketcurrentno, billcurrentno: billcurrentno});
+				});
+			}
+			timeout(1000).then(function() {
+				//console.log(JSON.stringify(currentnoOB));
+				if (typeof currentnoOB[0] != "undefined") {
+					var ob = {};
+					if (action == 1) {
+						ob.currentno = currentnoOB[0].billcurrentno;
+					} else if (action == 2) {
+						ob.currentno = currentnoOB[0].ticketcurrentno;
+					}
+					result.push(ob);
+					callback(result);
+					//return result;
+				} else {
+					alert("การสื่อสารข้อมูลอาจจะล่าช้า ทำให้บรรจุข้อมูลบางส่วนไม่ทัน\nโปรดรีเฟรชแอพลิเคชั่นอีกครั้ง ด้วยความเคารพจริงๆ");
+				}
+			});
+		}
+
+		function getCurrentTicketNo() {
+			var result = [];
+			var ticketcurrentno = "";
+			var docpath  = "terminals/" + myterminalid + "/routes/" + brouteid;
+			var tourRef  = db.doc(docpath);
+			tourRef.get().then(function(rdoc) {
+				ticketcurrentno = rdoc.data().ticketcurno;
+				if (ticketcurrentno == "") {
+					ticketcurrentno = "0";
+				}
+				result.push({ticketcurrentno: ticketcurrentno});
+			});
+			return result;
+		}
+
+		function getCurrentBillNo() {
+			var result = [];
+			var billcurrentno = "";
+			var docpath  = "terminals/" + myterminalid + "/routes/" + brouteid;
+			var tourRef  = db.doc(docpath);
+			tourRef.get().then(function(rdoc) {
+				billcurrentno = rdoc.data().billcurno;
+				if (billcurrentno == "") {
+					billcurrentno = "0";
+				}
+				result.push({billcurrentno: billcurrentno});
+			});
+			return result;
+		}
+
+		function updateCurrentTicketNo(curno){
+			currentnoOB[0].ticketcurrentno = curno;
+			var docpath  = "terminals/" + myterminalid + "/routes/" + brouteid;
+			var tourRef  = db.doc(docpath);
+			tourRef.set({
+				ticketcurno: parseInt(curno)
+			}, { merge: true });
+		}
+
+		function updateCurrentBillNo(curno){
+			currentnoOB[0].billcurrentno = curno;
+			var docpath  = "terminals/" + myterminalid + "/routes/" + brouteid;
+			var tourRef  = db.doc(docpath);
+			tourRef.set({
+				billcurno: parseInt(curno)
+			}, { merge: true });
+		}
+
+		function saveTicketData(curno, userid, ticketDocPaths) {
+			//console.log(JSON.stringify(ticketDocPaths));
+			var ondate =  new Date().getTime();
+			var newTicketRef = db.doc("terminals/" + myterminalid + "/routes/" + brouteid).collection("tickets").doc(curno);
+			newTicketRef.set({
+				ticketno: curno,
+				date: datetostring(ondate),
+				tourdate: datetostring(bdate),
+				userid: userid
+			});
+			ticketDocPaths.forEach(function(item){
+				var ticketDocPathRef = db.doc("terminals/" + myterminalid + "/routes/" + brouteid + "/tickets/" + curno);
+				var tkDocPath = ticketDocPathRef.collection("ticketDocPaths").doc();
+				tkDocPath.set({
+					ticketDocPath: item.path,
+					seatno: item.seatno
+				});
+			});
+			//ticketDocPaths = [];
+		}
+
+		function saveBillData(curno, userid, billDocPaths) {
+			//console.log(JSON.stringify(billDocPaths));
+			var ondate =  new Date().getTime();
+			var newBillRef = db.doc("terminals/" + myterminalid + "/routes/" + brouteid).collection("bills").doc(curno);
+			newBillRef.set({
+				billno: curno,
+				date: datetostring(ondate),
+				tourdate: datetostring(bdate),
+				userid: userid,
+				status: 1
+			});
+			billDocPaths.forEach(function(item){
+				var billDocPathRef = db.doc("terminals/" + myterminalid + "/routes/" + brouteid + "/bills/" + curno);
+				var blDocPath = billDocPathRef.collection("billDocPaths").doc();
+				blDocPath.set({
+					billDocPath: item.path,
+					seatno: item.seatno
+				});
+			});
+			//billDocPaths = [];
+		}
+
+		function loadUserToken(email, callback) {
+			var users = [];
+			db.collection("users").where("email", "==", email).get().then(function(userquerySnapshot) {
+				userquerySnapshot.forEach(function(userdoc) {
+					var docpath = "users/" + userdoc.id;
+					var userRef = db.doc(docpath);
+					userRef.collection("tokens").get().then(function(tkquerySnapshot) {
+						tkquerySnapshot.forEach(function(tkdoc) {
+							users.push(tkdoc.data().token);
+						});
+					});
+				});
+			});
+			timeout(2900).then(function() {
+				callback(unique(users));
+			});
+		}
+
+		function pushNotificationToUser(email, title, body, sender) {
+			loadUserToken(email, function(users) {
+				users.forEach(function(item) {
+					pushNoticationUserToken(title, body, sender, item, myterminalid);
+					saveNotify(email, title, body, sender, routeid);
+				});
+			});
+		}
+
+		function saveNotify(email, title, body, sender, rid) {
+			var docpath = "terminals/" + myterminalid + "/routes/" + rid;
+			var tourRef = db.doc(docpath);
+			var messageDoc = tourRef.collection("messages").doc();
+			//console.log(messageDoc.id);
+			messageDoc.set({
+				date: datetostring(new Date()),
+				time: datetotimestring(new Date()),
+				userid: email,
+				title: title,
+				body: body,
+				sender: sender
+			});
+		}
+	</script>
+
+	<script>
+	//ท่อนนี้ของ Notification และ Notify
+
+	$.notify.addStyle('myshopman', {
+		html: "<div class='superblue'><span data-notify-html/></div>",
+		classes: {
+			base: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "black",
+				"background-color": "white",
+				"padding": "20px"
+			},
+			green: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "green",
+				"padding": "20px"
+			},
+			red: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "red",
+				"padding": "20px"
+			},
+			purple: {
+				"border": "3px solid white",
+				"border-radius": "20px",
+				"color": "white",
+				"background-color": "#cc33cc",
+				"padding": "20px"
+			}
+		}
+	});
+
+	messaging.onMessage(function(payload) {
+		//console.log("Message received. ", payload);
+		var msg = "<div id='notify-title'>";
+		msg = msg.concat(payload.notification.title);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div id='notify-body'>");
+		msg = msg.concat(payload.notification.body);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div div id='notify-from'> จาก : ");
+		msg = msg.concat(payload.data.sendername);
+		msg = msg.concat("</div>");
+		msg = msg.concat("<div id='buttons'><button onclick='opendetail(\"" + payload.notification.click_action + "\")'>รายละเอียด</button></div>");
+        $.notify(msg, {position: 'bottom right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'purple'});
+        playsoundeffect();
+	});
+
+	function opendetail(link) {
+		window.open(link , '_blank');
+	}
+
+	function playsoundeffect() {
+		 $('#soundeffect')[0].play();
+	}
+
+	if (mytoken==""){
+		subscribeFCM();
+		getcurrentToken();
+	}
+
+	function subscribeFCM() {
+		messaging.requestPermission().then(function() {
+			console.log("Thank you.");
+		})
+		.catch(function(err) {
+			console.log('Unable to get permission to notify. ', err);
+		});
+	 }
+
+	function getcurrentToken() {
+		setTimeout(function() {
+			 messaging.getToken().then(function(currentToken) {
+			   mytoken = currentToken;
+			 });
+		}, 3000);
+	}
+
+	messaging.onTokenRefresh(function() {
+		messaging.getToken()
+		.then(function(refreshedToken) {
+			console.log('Token refreshed. :: ' + refreshedToken);
+		})
+		.catch(function(err) {
+			console.log('Unable to retrieve refreshed token ', err);
+		});
+	});
+
+	$("#footer-conter").click(function(e) {
+		playsoundeffect();
+	});
+
+	function opendetail(link){
+		window.open(link , '_blank');
+	}
+
+	</script>
+  </body>
+</html>

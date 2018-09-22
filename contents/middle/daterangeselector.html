@@ -1,0 +1,175 @@
+<style>
+	#select-daterange {
+		margin-left: 220px; 
+		margin-right: 20px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+	}
+	#errors-msg {
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+	p {
+		color: blue;
+	}
+</style>
+
+<div  id='select-daterange'>
+	<p>โปรดระบุช่วงเวลาที่จะเข้าพัก โดยการเลือก <b>วันที่เริ่มเข้าพัก</b> และ <b>วันออกจากที่พัก</b> จากปฎิทิน แล้วคลิกปุ่ม <b>ตกลง</b></p>
+	<label for="datepicker-th-start"><b>ต้องการเริ่มเข้าพัก วันที่ :</b></label>&nbsp;&nbsp;
+	<input type="text" id="datepicker-th-start" name="date1" placeholder="คลิก เพื่อเลือกวันที่เช็คอินจากปฏิทิน" ReadOnly/> 
+	<label for="datepicker-th-to"><b>ถึง วันที่ :</b></label>&nbsp;&nbsp;
+	<input type="text" id="datepicker-th-to" name="date2" placeholder="คลิก เพื่อเลือกวันที่เช็คเอาต์จากปฏิทิน" ReadOnly/> 
+	<p>&nbsp;</p>
+	<p id="start-msg">&nbsp;</p>
+	<p id="to-msg">&nbsp;</p>
+	<p id="diff-msg">&nbsp;</p>
+	<p id="alert-msg">&nbsp;</p>
+	<div style="text-align: center">
+		<button id="select-ok-cmd" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">   ตกลง     </button>
+	</div>
+	<div id="errors" style="color:red">&nbsp;</div>
+<!--
+	<p>
+		<label for="amount">ต้องการเข้าพักช่วงระหว่างวันที่ :</label>
+		<input type="text" id="amount" style="border: 0; color: #f6931f; font-weight: bold;" size="100"/>
+	</p>
+	<div id="slider-range"></div>
+	-->
+</div>
+
+<script>
+//ท่อนนี้ สำหรับ เลือกวันที่จองห้อง โดยใช้ datepicker
+	var d = new Date();
+	var toDay = d.getDate() + '/' 	+ (d.getMonth() + 1) + '/' 	+ (d.getFullYear());
+	$("#datepicker-th-start, #datepicker-th-to").datepicker({ dateFormat: 'dd/mm/yy', isBuddhist: false, defaultDate: toDay, dayNames: ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'],
+	  dayNamesMin: ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'],
+	  monthNames: ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'],
+	  monthNamesShort: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']}).on("change", function() {
+         display(this.name, $(this).val());
+      });
+</script>
+
+<script>
+
+function display(name, msg) {
+	console.log(name + "-" + msg);
+	console.log(name + "-" + toDate(msg).getTime());
+	console.log(name + "-" + toDate(msg).setTime(toDate(msg).getTime()+(60*1000)));
+}
+
+$("#select-ok-cmd").click(function(e) {
+    e.preventDefault();
+    goselectroomstep();
+});
+
+function goselectroomstep() {
+	var start = $("#datepicker-th-start").val();
+	var to = $("#datepicker-th-to").val();
+ 	var stdd = toDate(start);
+	var todd = toDate(to);
+ 	var diff =  ((todd -  stdd) / 86400000);
+	var warnings = "";
+    if (start.length == 0) {
+      warnings += 'คุณยังไม่ได้เลือก วันที่เริ่มเข้าพัก<br/>';
+    }
+    if (to.length == 0) {
+      warnings += 'คุณยังไม่ได้เลือก วันที่ออกจากที่พัก<br/>';
+    }
+	if (diff <= 0) {
+		warnings += 'ช่วงวันที่เข้าพักไม่ถูกต้อง วันเริ่มเข้าพัก ไม่ควรมากกว่า หรือ เท่ากับ วันที่ออก<br/>';
+	}
+    if (warnings != "") {
+		$("#errors").css("display","block");
+		$("#errors").html(warnings);
+    } else {
+		$("#errors").css("display","none");
+		selectroomstep(start, to);
+    }
+}
+
+function selectroomstep(start, to) {
+ 	var stdd = toDate(start);
+	var todd = toDate(to);
+ 	var diff = (Math.abs( todd-  stdd) / 86400000) ;
+	$("#start-msg").html("เริ่มเข้าพักวันที่ : " + start);
+	$("#to-msg").html("ถึงวันที่ : " + to);
+	$("#diff-msg").html("รวมจำนวนวันที่เข้าพัก : <b>" + diff + "</b> วัน");
+	$("#alert-msg").html("โปรดรอสักครู่ ระบบกำลังดำเนินการค้นหาห้องพักที่ว่างตรงกับช่วงวันที่ระบุ...");
+	startDate = stdd.setTime(stdd.getTime()+(0*1000));
+	toDate = todd.setTime(todd.getTime()+(0*1000));
+	showLoadingImage();
+	setTimeout(function() {
+		hideLoadingImage();
+		$.post("contents/middle/selectroom.html", {},
+		function(data) {
+			$('#content-middle').html(data);
+		});
+ 	}, 4000);
+}
+</script>
+
+<script>
+// part นี้ สำหรับ เลือกวันที่จองห้อง โดยใช้ Slider
+/*
+function formatDate(Adate) {
+  var monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤษจิกายน","ธันวาคม"];
+  var date = new Date(Adate);
+  var day = date.getDate();
+  var monthIndex = date.getMonth();
+  var year = date.getFullYear();
+
+  return day + ' ' + monthNames[monthIndex] + ' ' + year;
+}
+
+var startDef = new Date();
+var toDef = new Date(startDef);
+toDef.setDate(toDef.getDate() +1);
+toDef = new Date(toDef);
+
+var startdd = startDef.getDate();
+var todd = toDef.getDate();
+var startmm = startDef.getMonth()+1; //January is 0!
+var tomm = toDef.getMonth()+1; //January is 0!
+var startyyyy = startDef.getFullYear();
+var toyyyy = toDef.getFullYear();
+if(startdd<10) {
+    startdd = '0'+startdd
+} 
+if(todd<10) {
+    todd = '0'+todd
+} 
+if(startmm<10) {
+    startmm = '0'+startmm
+} 
+if(tomm<10) {
+    tomm = '0'+tomm
+} 
+
+ 
+  
+var startDateDef = startDef.getTime() / 1000;
+var toDateDef = toDef.getTime() / 1000;
+  
+ $(function() {
+    $("#slider-range").slider({
+      range: true,
+      min: new Date('01/01/2018').getTime() / 1000,
+      max: new Date('01/01/2020').getTime() / 1000,
+      step: 86400,
+      values: [startDateDef, toDateDef ],
+      slide: function( event, ui ) {
+        $( "#amount" ).val( formatDate((new Date(ui.values[ 0 ] *1000).toDateString())) + " - " + formatDate((new Date(ui.values[ 1 ] *1000)).toDateString()));
+      }
+    });
+    $( "#amount" ).val(formatDate((new Date($( "#slider-range" ).slider( "values", 0 )*1000).toDateString())) +  " - " + formatDate((new Date($( "#slider-range" ).slider( "values", 1 )*1000)).toDateString()));
+  });
+*/
+</script>

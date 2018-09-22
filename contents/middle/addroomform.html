@@ -1,0 +1,156 @@
+<style>
+	#add-new-form {
+		margin-left: 220px; 
+		margin-right: 20px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+	}
+	#errors-msg {
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+</style>
+
+<div  id='add-new-form'>
+<form>
+    <table>
+      <thead>
+        <tr>
+          <th colspan="2" style="text-align:center">เพิ่มห้องพัก</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>หมายเลขห้อง</td>
+          <td>
+            <div>
+              <input type="text" id="num"/>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ชื่อห้อง</td>
+          <td>
+            <div>
+              <input type="text" id="name" size="60"/>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>ขนาดจำนวนผู้พัก(คน)</td>
+          <td>
+            <div>
+              <input type="number" id="size"/>
+            </div>
+          </td>
+		  </tr>
+        <tr>
+          <td>ราคา(รายวัน)</td>
+          <td>
+            <div>
+              <input type="number" id="price"/>
+            </div>
+          </td>
+		  </tr>
+         <tr>
+        <tr>
+          <td>รายละเอียดห้อง</td>
+          <td>
+            <div>
+                 <textarea  id="desc" cols="100" rows="4"></textarea>
+            </div>
+          </td>
+        </tr>
+          <td colspan="2" style="text-align:center">
+            <button id="save-cmd" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+              บันทึก
+            </button>
+          </td>
+      </tr>
+        </tr>
+          <td colspan="2" style="text-align:left">
+				<div id="errors-msg">&nbsp;</div>
+				<div id="alert-msg">&nbsp;</div>
+           </td>
+      </tr>
+         </tbody>
+    </table>
+    </form>
+</div>
+
+<script>
+// part นี้ สำหรับ เพิ่มห้อง
+ $("#save-cmd").click(function(e) {
+    e.preventDefault();
+    addnewroom();
+  });
+
+  function addnewroom() {
+    var num = $("#num").val();
+    var name = $("#name").val();
+    var size = $("#size").val();
+    var price = $("#price").val();
+    var desc = $("#desc").val();
+    var warnings = "";
+
+    if (num.length == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน หมายเลขห้อง<br/>';
+    }
+    if (name.length == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน ชื่อห้อง <br/>';
+    }
+    if (Number(size) == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน ขนาดจำนวนผู้พัก <br/>';
+    }
+    if (Number(price) == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน ราคา(รายวัน) <br/>';
+    }
+
+    if (warnings != "") {
+		$("#errors").css("display","block");
+		$("#errors").html(warnings);
+    } else {
+		$("#errors").css("display","none");
+		savenewroom(num, name, size, price, desc);
+     }
+  }
+ 
+function savenewroom(num, name, size, price, desc) {
+	var email = cuser.email;
+	db.collection("hotels").where("email", "==",  email).get()
+	.then(function(querySnapshot) {
+		querySnapshot.forEach(function(doc) {
+			var hotelRef = db.collection("hotels").doc(doc.id);
+			hotelRef.collection("rooms").doc().set({
+				num: num,
+				name: name,
+				size: size,
+				price: price,
+				desc: desc,
+				rsts: "1"
+			});
+			$("#alert-msg").html("บันทึกข้อมูลเรียบร้อยแล้ว");
+			$("#alert-msg").show();
+			setTimeout(function() {
+				$("#alert-msg").hide();
+			}, 2000);
+			cleardatabox();
+		});
+	});
+}
+
+function cleardatabox() {
+	 $("#num").val("");
+	 $("#name").val("");
+	 $("#size").val("");
+	 $("#price").val("");
+	 $("#desc").val("");
+}
+</script>

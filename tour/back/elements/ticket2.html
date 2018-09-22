@@ -1,0 +1,483 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../../resources/fonts/THSarabunNew.ttf');
+    }
+
+ 	#content {
+		text-align: center;
+        font-family: THSarabunNew;
+		src: url('../../resources/fonts/THSarabunNew.ttf');  
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 100%;
+		text-align: center:
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 33%;
+		text-align: center:
+	}
+	.step-bar-pop {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 75%;
+		text-align: center:
+	}
+	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 140px;
+		vertical-align: middle;
+	}
+	#printImg{
+		display: none;
+	}
+	#title, #body {
+		border: 3px #cc33cc solid; 
+		border-radius: 3px;	
+		padding: 10px; 
+		margin: 5px;"
+	}
+</style>
+
+<div id="content">
+	<div style="text-align: center"><h1>ตั๋วโดยสาร</h1></div>
+	<div id="CanvasDiv" style="display:none">
+		<canvas id="myCanvas" width="220" height="770"></canvas>
+		<div class="step-box">
+			<div class="step-bar">
+				<button class="ui-btn" id="print-cmd" onclick="printPdf()">   พิมพ์     </button>
+			</div>
+			<div class="step-bar">
+				<a id="download" download="ticket.png">
+					<button class="ui-btn" id="download-cmd" onclick="downloadPdf()">   ดาวน์โหลด     </button>
+				</a>
+			</div>
+			<div class="step-bar">
+				<button class="ui-btn" id="open-notify-cmd" onclick="openBoxNotifyUser()">   แจ้งผู้จองมารับตั๋ว     </button>
+			</div>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="create-ticket-cmd" onclick="createTicket()">   แสดงตั๋ว     </button>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="close-cmd" onclick="closewindow()">   ปิด     </button>
+	</div>
+	<div id="printImg"></div>
+</div>
+
+<div data-role='popup' id='messageBox-popup' style='padding: 20px;'>
+	<div class="title-box">แจ้งข้อความไปถึงผู้จอง</div>
+	<div id="explian-text" style="margin-top: 10px;">
+		<p>ป้อน หัวเรื่องข้อความ และ เนื้อความ แล้วคลิกปุ่ม <b>Push</b> เพื่อส่งข้อความไปให้เจ้าของตั๋ว</p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>หัวเรื่อง :</b></div> <div class="step-bar-pop"><input type="text" id="title" size="50"/></div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เนื้อความ :</b></div> <div class="step-bar-pop"><input type="text" id="body" size="50"/></div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="push-cmd" onclick="pushNotify()">   Push     </button>
+		<button class="ui-btn" id="back-cmd" onclick="closemessageBox()">   ปิด     </button>
+	</div>
+</div>
+
+<script>
+	
+/*
+"route":"นครศรีธรรมราช - สุราษฎร์ธานี",
+"date":"22/05/2018",
+"schedule":"08:00",
+"seats":[7,8],
+"stationup":"บ้านหน้าทับ",
+"stationdown":"ตลาดเกษตร 2",
+"pname":"นิศารัตน์",
+"ptel":"0987651234",
+"ticketno":"0000000007",
+"defaultPrice": ... ,
+"price":120,
+"conditions":
+*/
+
+    $(document).ready(function() {
+		bticketOB = [];
+		var tkitem = [];
+
+		showLoadingImageMT();
+		tkitem = loadTicketData(ticketno, routeid, function(x) {
+			timeout(5000).then(function() {
+				bticketOB = x;
+				//console.log(JSON.stringify(bticketOB));
+				$("#open-notify-cmd").attr("onclick", "openBoxNotifyUser(\"" + billno + "\",\"" + ticketno + "\")");
+				hideLoadingImageM();
+			});
+		});
+ 		$("#messageBox-popup").popup({ overlayTheme: "a"});
+    });
+
+	function loadTicketData(tkno, routeid, callback) {
+		var tkDataOB = [];
+		var tkData = {};
+		tkData.ticketno = tkno;
+		var riitem = [];
+		loadRouteInit(routeid, function(items) {
+		//timeout(1500).then(function() {
+			riitem = items;
+			tkData.route = riitem[0].route;
+			tkData.defaultPrice = riitem[0].defaultPrice;
+			tkData.conditions = [];
+			//var tcitem = loadTicketConditions();
+			loadTicketConditions(function(tcitem) {
+			//timeout(1500).then(function() {
+				//console.log(tcitem.length);
+				for (var l=0; l < tcitem.length; l++)	{
+					//console.log(tcitem[l]);
+					tkData.conditions.push(tcitem[l]);
+				}
+			});
+		});
+		tkData.seats = [];
+		tkData.ticketno = tkno;
+
+		//$.when(function() { 		}).then(function() { 		});
+		timeout(5000).then(function() {
+			var pathPatials = [];
+			var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/tickets/" + tkno;
+			var ticketRef = db.doc(docpath);
+			ticketRef.collection("ticketDocPaths").orderBy("seatno", "asc").get().then(function(tkquerySnapshot) {
+				var cnt = 1;
+				//console.log(tkquerySnapshot.size);
+				tkquerySnapshot.forEach(function(ticketDocPathsDoc) {
+					tkData.seats.push(ticketDocPathsDoc.data().seatno); // --> เก็บค่า sno เข้า array แล้วส่งต่อให้ bticketOB.seats
+					var tkDocPath = ticketDocPathsDoc.data().ticketDocPath;
+					pathPatials = tkDocPath.split("/");
+					var tourRef = db.doc("terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + pathPatials[2]);
+					if (cnt == 1){
+						tourRef.get().then(function(trdoc) {
+							tkData.date = trdoc.data().traveldatetext;
+							tkData.schedule = trdoc.data().scheduletext;
+							var bookingRef = db.doc("terminals/" + myterminalid + "/routes/" + routeid + tkDocPath);
+							bookingRef.get().then(function(bkdoc) {
+								if (typeof bkdoc.data() != "undefined") {
+									//console.log(bkdoc.data().stationupid);
+									//console.log(bkdoc.data().stationdownid);
+									//--> เก็บค่า pname, ptel, stationup, stationdown, price
+									var psitem = pricecharts.find(ob => (ob.frstation == bkdoc.data().stationupid) && (ob.tostation == bkdoc.data().stationdownid));
+									if (typeof psitem != 'undefined'){
+										tkData.price = parseInt(psitem.price);
+									} else {
+										tkData.price = parseInt(riitem[0].defaultPrice);
+									}
+									var sitem = stations.find(ob => ob.id == bkdoc.data().stationupid);
+									tkData.stationup = sitem.name;
+									sitem = stations.find(ob => ob.id == bkdoc.data().stationdownid);
+									tkData.stationdown = sitem.name;
+									tkData.pname = bkdoc.data().cguid;
+									tkData.ptel = bkdoc.data().ptel;
+								} else {
+									console.log("แย่แล้ว!!! ดูเหมือนจะมีปัญหาในขั้นตอนบันทึกข้อมูลน่ะ!!");
+								}
+							});
+						});
+					}
+					// --> เก็บค่า sno เข้า array แล้วส่งต่อให้ bticketOB.seats
+					//console.log(pathPatials[4]);
+					/*
+					var psgRef = db.doc("terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + pathPatials[2] + "/passangers/" + pathPatials[4]);
+					psgRef.get().then(function(psgdoc) {
+						tkData.seats.push(psgdoc.data().seatno);
+					});
+					*/
+					// --> เพิ่มค่าตัวนับ
+					cnt++;
+				});
+			});
+		});
+
+		timeout(7500).then(function() {
+			tkDataOB.push(tkData);
+			callback(tkDataOB);
+			return tkDataOB;
+		});
+	}
+
+	/* Ticket Render */
+
+	var canvas;
+
+	function createTicket() {
+		if ($("#CanvasDiv").css("display")=="none"){
+			$("#CanvasDiv").show();
+			ceateCanvas(function(dataUrl) {
+
+			});
+			$("#create-ticket-cmd").text("ซ่อนตั๋ว");
+		} else {
+			var context = canvas.getContext('2d');
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			$("#CanvasDiv").hide();
+			$("#create-ticket-cmd").text("แสดงตั๋ว");
+		}
+	}
+
+	function ceateCanvas(callback) {
+		//console.log(JSON.stringify(bticketOB));
+		canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createQuotIMG(context);
+		var dataURL = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		callback(dataURL);
+	}
+
+	function createQuotIMG(ct) {
+		//console.log(JSON.stringify(bticketOB));
+		ct.scale(1, 1);
+		ct.beginPath();
+		ct.rect(5, 5, 210, 85);
+		ct.lineWidth = 1;
+		ct.strokeStyle = 'black';
+		ct.stroke();
+		var imageLOGO = new Image();
+		imageLOGO.src = "../../../resources/imgs/vanOS01.jpg";
+		imageLOGO.onload = function () {
+			ct.drawImage(imageLOGO, 88, 15, 50, 50);
+		};
+
+		ct.font = 'bold 20px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("ตั๋วโดยสารรถตู้", 110, 82);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText(bticketOB[0].route, 110, 110);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("วันที่  " + bticketOB[0].date, 5, 130);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("เที่ยวเวลา  " + bticketOB[0].schedule + " น.", 5, 150);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้โดยสาร .. ชื่อ .. " + bticketOB[0].pname + " .. ", 5, 170);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้โดยสาร .. โทร .. " + bticketOB[0].ptel + " .. ", 5, 190);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดขึ้นรถ .. " + bticketOB[0].stationup + " .. ", 5, 210);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดลงรถ .. " + bticketOB[0].stationdown + " .. ", 5, 230);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 250);
+
+		var price = parseInt(bticketOB[0].price);
+
+		// เริ่มค่า top ที 250
+		bticketOB[0].seats.sort();
+		var total = 0;
+		for (var i=0; i<bticketOB[0].seats.length; i++)	{
+			ct.font = 'bold 16px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "left";
+			ct.fillText("เลขที่นั่ง .. " + bticketOB[0].seats[i] + " .... ราคา .. " + price + " .. บาท ", 5, 250 + (i+1)*25);
+			total = total + price;
+		}
+		var charge = 5;
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("อื่นๆ ..บริการจองตั๋ว .. ราคา .. " + Number(charge) + " .. บาท ", 5, 250 + ((bticketOB[0].seats.length +1)* 25));
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 260 + (bticketOB[0].seats.length * 25) + 40);
+ 		total = Number(total + charge);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("รวม  .................... " + Number(total).toFixed(0).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + " ....... บาท", 5, 260 + (bticketOB[0].seats.length * 25) + 60);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("------------------------------------------------------------", 5, 260 + (bticketOB[0].seats.length * 25) + 80);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("----สิงที่ผู้โดยสารควรทราบ----", 110, 260 + (bticketOB[0].seats.length * 25) + 110);
+
+		ct.font = 'bold 14px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		for (var x=0; x < bticketOB[0].conditions.length; x++) {
+            printAtWordWrap(ct, String(x+1) + ". " + bticketOB[0].conditions[x], 5,  260 + (bticketOB[0].seats.length * 25) + 130 + x * 20, 20, 240);
+		}
+		/*
+		var imageQR = new Image();
+		//imageQR.src = "tt/0816776292.png";
+		imageQR.src = "tt/vaninfourl.png";
+		imageQR.onload = function () {
+			ct.drawImage(imageQR, 75, 630, 70, 70);
+		};
+		*/
+
+		$("#myCanvas").qrcode({
+			render: 'canvas',
+			minVersion: 1,
+			maxVersion: 40,
+			ecLevel: 'H',
+			left: 80,
+			top: 640,
+			fill: '#000000',
+			background: null,
+			mode: 0,
+			size: 60,
+			text:  "https://goo.gl/eJFERY"
+		});
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("ขอบคุณที่ใช้บริการ", 110, 720);
+
+		getRouteNo(routeid, function(routeno) {
+			ct.font = 'bold 14px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "right";
+			
+			ct.fillText(buildPrefixRef(terminalID, routeno) + bticketOB[0].ticketno, 205, 745);
+			
+			ct.font = 'bold 14px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "right";
+			//console.log(billno);
+			if (billno !== undefined){
+				ct.fillText("REF " + buildPrefixRef(terminalID, routeno) + billno, 205, 760);
+			} else {
+				ct.fillText("REF  ******************", 205, 760);
+			}
+			$("#download-cmd").attr("onclick", "downloadPdf('T" + buildPrefixRef(terminalID, routeno) + bticketOB[0].ticketno + "')");
+		});
+ 	}
+
+
+	function printPdf() {
+		var image = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		$("#printImg").html("<img src='" + image + "' width=180' height='555'/>");
+		//$('#printImgt').hide();
+		$("#printImg").printThis();
+
+	}
+
+	function downloadPdf(tickno) {
+		var download = document.getElementById("download");
+		var image = document.getElementById("myCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", tickno + ".png");
+	}
+
+	function printAtWordWrap(context, text, x, y, lineHeight, fitWidth) {
+		fitWidth = fitWidth || 0;
+
+		if (fitWidth <= 0) {
+			context.fillText(text, x, y);
+			return;
+		}
+		var words = text.split(' ');
+		var currentLine = 0;
+		var idx = 1;
+		while (words.length > 0 && idx <= words.length) {
+			var str = words.slice(0, idx).join(' ');
+			var w = context.measureText(str).width;
+			if (w > fitWidth) {
+				if (idx == 1) {
+					idx = 2;
+				}
+				context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+				currentLine++;
+				words = words.splice(idx - 1);
+				idx = 1;
+			} else {
+				idx++;
+			}
+		}
+		if (idx > 0)
+			context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+	}
+
+	//ท่อน Notification to User()
+
+	function openBoxNotifyUser(blno, tkno) {
+		getRouteNo(routeid, function(rouNo) {
+			$("#messageBox-popup").popup("open");
+			$("#title").val("บิลของคุณหมายเลข " + buildPrefixRef(terminalID, rouNo) + blno + " ได้ตั๋วเรียบร้อยแล้ว");
+			$("#body").val("คุณสามารถรับตั๋วหมายเลข " + buildPrefixRef(terminalID, rouNo) + tkno + " ได้ที่ https://goo.gl/ZaZYJs");
+			$("#push-cmd").attr("onclick", "pushNotify('" + blno + "')");
+		});
+	}
+
+	function closemessageBox() {
+		$("#messageBox-popup").popup("close");
+	}
+
+	function loadUserOwnerBill(blno, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + blno;
+		var billRef = db.doc(docpath);
+		billRef.get().then(function(doc) {
+			var userid = doc.data().userid;
+			//console.log(userid);
+			callback(userid);
+		});
+	}
+
+	function pushNotify(blno) {
+		var title = $("#title").val();
+		var body = $("#body").val();
+		showLoadingImageMT();
+		loadUserOwnerBill(blno, function(userid) {
+			pushNotificationToUser(userid, title, body, "myVanBooking");
+			hideLoadingImageM();
+			closemessageBox();
+		});
+	}
+
+	function getRouteNo(routeid, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			callback(doc.data().routeno);
+		});
+	}
+</script>
+

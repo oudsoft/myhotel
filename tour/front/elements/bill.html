@@ -1,0 +1,638 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../../resources/fonts/THSarabunNew.ttf');
+    }
+
+ 	#content {
+		text-align: center;
+        font-family: THSarabunNew;
+		src: url('../../resources/fonts/THSarabunNew.ttf');  
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 100%;
+		text-align: center:
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 33%;
+		text-align: center:
+	}
+ 	.step-bar-pop {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 80%;
+		text-align: center:
+	}
+	#printImg{
+		display: none;
+	}
+	#explain-box {
+		font-size: 26px;
+		text-align: left;
+	}
+    #first .ui-checkbox-on .ui-icon, #first .ui-radio-on .ui-icon {
+		background-color: #000000;
+	}
+</style>
+
+<div id="content">
+	<div style="text-align: center"><h1>บิลชำระค่าโดยสาร</h1></div>
+	<div id="explain-box">
+		<p>หากบิลที่ปรากฎ แสดงข้อมูลไม่ถูกต้อง กรุณารีเฟรชบราวเซอร์อีกครั้ง</p>
+		<p>หากชำระค่าโดยสารด้วยคิวอาร์โค้ดพร้อมเพย์ด้านล่างของบิล ผ่านแอพลิเคชั่นธนาคารเสร็จเรียบร้อยแล้ว คุณสามารถแจ้งผลการชำระเงินโดยการคลิกปุ่ม <b>แจ้งผลการชำระเงิน</b> (ด้านล่าง) เพื่ออัพโหลดสลิปหลักฐานการชำระเงินส่งไปให้เจ้าหน้าที่ตรวจสอบ </p>
+		<p>การตรวจสอบจะใช้เวลาไม่นาน หากไม่มีอะไรผิดพลาด ระบบก็จะส่งตั๋วโดยสารมาให้คุณทันที</p>
+	</div>
+	<div id="CanvasDiv" style="display:none">
+		<canvas id="myCanvas" width="220" height="770"></canvas>
+		<canvas id="qrCanvas" width="170" height="170"></canvas>
+		<div class="step-box">
+			<div class="step-bar">
+				<button class="ui-btn" id="print-cmd" onclick="printPdf()">   พิมพ์     </button>
+			</div>
+			<div class="step-bar">
+				<a id="download" download="ticket.png">
+					<button class="ui-btn" id="download-cmd" onclick="downloadPdf()">   ดาวน์โหลด     </button>
+				</a>
+			</div>
+			<div class="step-bar">
+				<button class="ui-btn" id="postslip-cmd" onclick="openPostSlip()">   แจ้งผลการชำระเงิน     </button>
+			</div>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="showBill-cmd" onclick="createBill()">   แสดงบิล     </button>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="closewindow()">   ปิด     </button>
+	</div>
+	<div id="printImg"></div>
+</div>
+
+<div data-role='popup' id='postslip-popup' style='padding: 20px;'>
+	<div class="title-box">แจ้งผลการชำระเงิน</div>
+	<div id="explian-text" style="margin-top: 10px;">
+	<p> อัพโหลดรูปสลิปที่เก็บไว้จากการชำระ แล้วคลิกปุ่ม <b>แจ้งผล</b></p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>รูปสลิป :</b></div>
+		<div class="step-bar-pop">
+			<input type='file' id='slippic' style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="post-cmd" onclick="postSlip()">   แจ้งผล     </button>
+		<button class="ui-btn" id="post-cmd" onclick="closePostSlip()">   ยกเลิก     </button>
+	</div>
+</div>
+
+<div data-role='popup' id='slect-download-popup' style='padding: 20px;'>
+	<style>
+		/* The container */
+	.container {
+		display: block;
+		position: relative;
+		padding-left: 35px;
+		margin-bottom: 12px;
+		cursor: pointer;
+		font-size: 22px;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	/* Hide the browser's default radio button */
+	.container input {
+		position: absolute;
+		opacity: 0;
+		cursor: pointer;
+	}
+
+	/* Create a custom radio button */
+	.checkmark {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 25px;
+		width: 25px;
+		background-color: #eee;
+		border-radius: 50%;
+	}
+
+	/* On mouse-over, add a grey background color */
+	.container:hover input ~ .checkmark {
+		background-color: #ccc;
+	}
+
+	/* When the radio button is checked, add a blue background */
+	.container input:checked ~ .checkmark {
+		background-color: #2196F3;
+	}
+
+	/* Create the indicator (the dot/circle - hidden when not checked) */
+	.checkmark:after {
+		content: "";
+		position: absolute;
+		display: none;
+	}
+
+	/* Show the indicator (dot/circle) when checked */
+	.container input:checked ~ .checkmark:after {
+		display: block;
+	}
+
+	/* Style the indicator (dot/circle) */
+	.container .checkmark:after {
+		top: 9px;
+		left: 9px;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: white;
+	}
+	</style>
+	<div class="title-box">คุณต้องการดาวโหลดอะไร?</div>
+	<div id="explian-text" style="margin-top: 10px;">
+	<p> คุณสามารถเลือกได้ว่าจะดาวน์โหลดอะไร ระหว่าง <b>บิล</b> หรือ <b>คิว-อาร์โค้ด</b></p>
+	<p>สำหรับ <b>คิว-อาร์โค้ด</b>สามารถดาวน์โหลดเพื่อนำไปใช้ชำระค่าโดยสารผ่านอินเตอร์เน็ตแบงค์กิ้ง</p>
+	<p>เมื่อเลือกสิ่งที่ต้องการดาวน์โหลดเสร็จแล้ว ให้คลิกปุ่ม <b>ตกลง</b> เพื่อดาวน์โหลดสิ่งที่คุณต้องการ</p>
+	</div>
+<!--
+	<legend>โปรดเลือก</legend>
+	<fieldset data-role="controlgroup" id="first">
+		<label><input type="radio" name="downloadradio" value="1" id="bill-download" checked="checked" class="ui-btn">บิล</label>
+		<label><input type="radio" name="downloadradio" value="2" id="qrcode-download" class="ui-btn">คิว-อาร์โค้ด</label>
+	</fieldset>
+-->
+	<div class="step-box">
+		<div class="step-bar">
+			<label class="container">บิล
+			  <input type="radio" checked="checked" name="downloadradio" value="1" id="bill-download">
+			  <span class="checkmark"></span>
+			</label>
+		</div>
+		<div class="step-bar">
+			<label class="container">คิว-อาร์โค้ด
+			  <input type="radio" name="downloadradio" value="2" id="qrcode-download">
+			  <span class="checkmark"></span>
+			</label>
+		</div>
+	</div>
+	<input type="hidden" id="download-billno"/>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="post-cmd" onclick="download()">   ตกลง     </button>
+		<button class="ui-btn" id="post-cmd" onclick="closeDownloadPopup()">   ปิด     </button>
+	</div>
+</div>
+
+<script>
+
+    $(document).ready(function() {
+		billOB = [];
+		var blitem = [];
+		showLoadingImageMT();
+		blitem = loadBillData(billno, routeid, function(x) {
+			timeout(8100).then(function() {
+				billOB = x;
+				//console.log(JSON.stringify(billOB));
+				$("#postslip-cmd").attr("onclick", "openPostSlip(\"" + billno + "\")");
+				hideLoadingImageM();
+			});
+		});
+		
+		$("#postslip-popup").popup({ overlayTheme: "a"});
+		$("#slect-download-popup").popup({ overlayTheme: "a"});
+    });
+ 
+	function loadBillData(blno, routeid, callback) {
+		var blDataOB = [];
+		var blData = {};
+		blData.billno = blno;
+		var riitem = [];
+		loadRouteInit(routeid, function(items) {
+			riitem = items;
+			blData.route = riitem[0].route;
+			blData.defaultPrice = riitem[0].defaultPrice;
+			blData.conditions = [];
+			//var tcitem = loadBillConditions();
+			loadBillConditions(function(tcitem) {
+				//console.log(tcitem.length);
+				for (var l=0; l < tcitem.length; l++)	{
+					//console.log(tcitem[l]);
+					blData.conditions.push(tcitem[l]);
+				}
+			});
+		});
+
+		blData.seats = [];
+		blData.billno = blno;
+
+		timeout(3000).then(function() {
+			var pathPatials = [];
+			var docpath = "terminals/" + yrterminalid + "/routes/" + routeid + "/bills/" + blno;
+			var billRef = db.doc(docpath);
+			billRef.collection("billDocPaths").orderBy("seatno", "asc").get().then(function(blquerySnapshot) {
+				var cnt = 1;
+				blquerySnapshot.forEach(function(billDocPathsDoc) {
+					blData.seats.push(billDocPathsDoc.data().seatno); // --> เก็บค่า sno เข้า array แล้วส่งต่อให้ billOB.seats
+					var blDocPath = billDocPathsDoc.data().billDocPath;
+					pathPatials = blDocPath.split("/");
+					var tourRef = db.doc("terminals/" + yrterminalid + "/routes/" + routeid + "/tours/" + pathPatials[2]);
+					if (cnt == 1){
+						tourRef.get().then(function(trdoc) {
+							blData.date = trdoc.data().traveldatetext;
+							blData.schedule = trdoc.data().scheduletext;
+							var bookingRef = db.doc("terminals/" + yrterminalid + "/routes/" + routeid + blDocPath);
+							bookingRef.get().then(function(bkdoc) {
+								//--> เก็บค่า pname, ptel, stationup, stationdown, price
+								var psitem = pricecharts.find(ob => (ob.frstation == bkdoc.data().stationupid) && (ob.tostation == bkdoc.data().stationdownid));
+								if (typeof psitem != 'undefined'){
+									blData.price = parseInt(psitem.price);
+								} else {
+									blData.price = parseInt(riitem[0].defaultPrice);
+								}
+								var sitem = stations.find(ob => ob.id == bkdoc.data().stationupid);
+								blData.stationup = sitem.name;
+								sitem = stations.find(ob => ob.id == bkdoc.data().stationdownid);
+								blData.stationdown = sitem.name;
+								blData.pname = bkdoc.data().cguid;
+								blData.ptel = bkdoc.data().ptel;
+							});
+						});
+					}
+					// --> เก็บค่า sno เข้า array แล้วส่งต่อให้ billOB.seats
+					/*
+					var psgRef = db.doc("terminals/" + yrterminalid + "/routes/" + routeid + "/tours/" + pathPatials[2] + "/passangers/" + pathPatials[4]);
+					console.log(pathPatials[2]);
+					console.log(pathPatials[4]);
+					psgRef.get().then(function(psgdoc) {
+						console.log(psgdoc.data().seatno);
+						blData.seats.push(psgdoc.data().seatno);
+					});
+					*/
+					// --> เพิ่มค่าตัวนับ
+					cnt++;
+				});
+			});
+		});
+
+		timeout(7500).then(function() {
+			blDataOB.push(blData);
+			callback(blDataOB);
+			return blDataOB;
+		});
+	}
+
+	/* Bill Render */
+
+	var canvas;
+
+	function createBill() {
+		if ($("#CanvasDiv").css("display")=="none"){
+			$("#CanvasDiv").show();
+			ceateCanvas(function(dataUrl) {
+
+			});
+			$("#showBill-cmd").text("ซ่อนบิล");
+		} else {
+			var context = canvas.getContext('2d');
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			$("#CanvasDiv").hide();
+			$("#showBill-cmd").text("แสดงบิล");
+		}
+	}
+
+	function ceateCanvas(callback) {
+		canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createQuotIMG(context);
+		var dataURL = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		callback(dataURL);
+	}
+
+
+	function ceateQRCanvas(callback) {
+		canvas = document.getElementById('qrCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createQRIMG(context);
+		var dataURL = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		callback(dataURL);
+	}
+
+	function createQuotIMG(ct) {
+		//console.log(JSON.stringify(billOB));
+		ct.scale(1, 1);
+		ct.beginPath();
+		ct.rect(5, 5, 210, 85);
+		ct.lineWidth = 1;
+		ct.strokeStyle = 'black';
+		ct.stroke();
+		var imageLOGO = new Image();
+		imageLOGO.src = "../../../resources/imgs/vanOS01.jpg";
+		imageLOGO.onload = function () {
+			ct.drawImage(imageLOGO, 88, 15, 50, 50);
+		};
+
+		ct.font = 'bold 20px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("บิลชำระค่าโดยสาร", 110, 82);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText(billOB[0].route, 110, 110);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("วันที่  " + billOB[0].date, 5, 130);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("เที่ยวเวลา  " + billOB[0].schedule + " น.", 5, 150);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้จอง .. ชื่อ .. " + billOB[0].pname + " .. ", 5, 170);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้จอง .. โทร .. " + billOB[0].ptel + " .. ", 5, 190);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดขึ้นรถ .. " + billOB[0].stationup + " .. ", 5, 210);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดลงรถ .. " + billOB[0].stationdown + " .. ", 5, 230);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 250);
+
+		var price = parseInt(billOB[0].price);
+
+		// เริ่มค่า top ที 250
+		billOB[0].seats.sort();
+		var total = 0;
+		for (var i=0; i<billOB[0].seats.length; i++)	{
+			ct.font = 'bold 16px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "left";
+			ct.fillText("เลขที่นั่ง .. " + billOB[0].seats[i] + " .... ราคา .. " + price + " .. บาท ", 5, 250 + (i+1)*25);
+			total = total + price;
+		}
+		var charge = 5;
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("อื่นๆ ..บริการจองตั๋ว .. ราคา .. " + Number(charge) + " .. บาท ", 5, 250 + ((billOB[0].seats.length +1)* 25));
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 260 + (billOB[0].seats.length * 25) + 40);
+ 		total = Number(total + charge);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("รวม  .................... " + Number(total).toFixed(0).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + " ....... บาท", 5, 260 + (billOB[0].seats.length * 25) + 60);
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("------------------------------------------------------------", 5, 260 + (billOB[0].seats.length * 25) + 80);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("----สิงที่ผู้จองควรทราบ----", 110, 260 + (billOB[0].seats.length * 25) + 110);
+
+		ct.font = 'bold 14px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		var cline = 0;
+		for (var x=0; x < billOB[0].conditions.length; x++) {
+            cline = printAtWordWrap(ct, String(x+1) + ". " + billOB[0].conditions[x], 5,  260 + (billOB[0].seats.length * 25) + 130 + x * (cline +1) *20, 20, 240);
+		}
+
+
+		$("#myCanvas").qrcode({
+			render: 'canvas',
+			minVersion: 1,
+			maxVersion: 40,
+			ecLevel: 'H',
+			left: 80,
+			top: 640,
+			fill: '#000000',
+			background: null,
+			mode: 0,
+			size: 60,
+			text:  "00020101021153037645802TH29370016A0000006770101110113006681677629263043850"
+		});
+
+
+/*
+		var imageQR = new Image();
+		//imageQR.src = "tt/0816776292.png";
+		imageQR.src = qrcanvas.get(0).toDataURL("image/png");
+		//imageQR.src = "tt/vaninfourl.png";
+		imageQR.onload = function () {
+			ct.drawImage(imageQR, 75, 630, 70, 70);
+		};
+*/
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("ขอบคุณที่ใช้บริการ", 110, 740);
+
+		getRouteNo(routeid, function(routeno) {		
+			ct.font = 'bold 14px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "right";
+			ct.fillText(buildPrefixRef(terminalID, routeno)  + billOB[0].billno, 205, 760);
+
+			$("#download-cmd").attr("onclick", "downloadPdf('B" + buildPrefixRef(terminalID, routeno)  + billOB[0].billno + "')");
+		});
+ 	}
+
+	function createQRIMG(ct) {
+		$("#qrCanvas").qrcode({
+			render: 'canvas',
+			minVersion: 1,
+			maxVersion: 40,
+			ecLevel: 'H',
+			left: 5,
+			top: 5,
+			fill: '#000000',
+			background: null,
+			mode: 0,
+			size: 150,
+			text:  "00020101021153037645802TH29370016A0000006770101110113006681677629263043850"
+		});
+	}
+
+	function printPdf() {
+		var image = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		$("#printImg").html("<img src='" + image + "' width=180' height='555'/>");
+		//$('#printImgt').hide();
+		$("#printImg").printThis();
+
+	}
+	function download() {
+		var dwValSelected = $('input[name=downloadradio]:checked').val();
+		console.log(dwValSelected);
+		if (dwValSelected ==1){
+			var billno = $("#download-billno").val();
+			downloadBill(billno);
+			closeDownloadPopup();
+		} else if (dwValSelected ==2){
+			closeDownloadPopup();
+			ceateQRCanvas(function(dataUrl) {
+				downloadQR();
+			});
+		}
+	}
+
+	function closeDownloadPopup() {
+		$("#slect-download-popup").popup("close");
+	}
+
+	function downloadPdf(billno) {
+		$("#slect-download-popup").popup("open");
+		$("#download-billno").val(billno);
+	}
+
+	function downloadBill(billno) {
+		var download = document.getElementById("download");
+		var image = document.getElementById("myCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", billno + ".png");
+	}
+
+	function downloadQR() {
+		var download = document.getElementById("download");
+		var image = document.getElementById("qrCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download",  "0816776292.png");
+	}
+
+	function printAtWordWrap(context, text, x, y, lineHeight, fitWidth) {
+		fitWidth = fitWidth || 0;
+
+		if (fitWidth <= 0) {
+			context.fillText(text, x, y);
+			return;
+		}
+		var words = text.split(' ');
+		var currentLine = 0;
+		var idx = 1;
+		while (words.length > 0 && idx <= words.length) {
+			var str = words.slice(0, idx).join(' ');
+			var w = context.measureText(str).width;
+			if (w > fitWidth) {
+				if (idx == 1) {
+					idx = 2;
+				}
+				context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+				currentLine++;
+				words = words.splice(idx - 1);
+				idx = 1;
+			} else {
+				idx++;
+			}
+		}
+		if (idx > 0) context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+		return currentLine;
+	}
+
+	//ท่อน Post Slip
+	function openPostSlip(blno) {
+		//console.log(cuser.email);
+		//console.log(blno);
+		$("#postslip-popup").popup("open");
+		$("#post-cmd").attr("onclick", "postSlip(\"" + blno + "\")");
+	}
+
+	function postSlip(blno) {
+		getBillStatus(blno, function(billstatus, tkno) {
+			if (billstatus == 1){
+				var filepath = $('input[type=file]').val();
+				if (filepath){
+					showLoadingImageMT();
+					var storageRef = storage.ref();
+					var selectedFile = document.getElementById('slippic').files[0];
+					var metadata = {
+						contentType: 'image/png',
+					}
+					var picpath = 'images/tour/' + yrterminalid + "/" + routeid + "/";
+					var saveFileName = selectedFile.name.replace(/\.[^/.]+$/, "") + "_" + buildTermialID(terminalID) + blno + ".png";
+					//console.log(saveFileName);
+					var uploadTask = storageRef.child(picpath + saveFileName).put(selectedFile, metadata);
+					timeout(7900).then(function() {
+						var picRef = storageRef.child(picpath + saveFileName);
+						picRef.getDownloadURL().then(function(url) {
+							/*
+							getMeta(url).done(function(test){
+							});
+							*/
+							//console.log(url);
+							savePicLinkDB(blno, url);
+							pushNotificationToUser(cuser.email, "ขอขอบคุณสำหรับการแจ้งผลชำระเงินตามบิลหมายเลข " + blno,"โปรดรอสักครู่ เราขอเวลาตรวจสอบนิดหน่อย หากไม่มีอะไรผิดพลาด เราจะส่งตั๋วโดยสารไปให้คุณที่ https://goo.gl/ZaZYJs", "myVanBooking");
+							getRouteNo(routeid, function(routeno) {
+								pushNotificationToStaff("บิลหมายเลข " + buildPrefixRef(terminalID, routeno) + blno + " แจ้งผลชำระเงินเข้ามาแล้ว", "โปรดตรวจสอบและออกตั๋วโดยสารให้แก่ผู้จองโดยด่วน", "myVanBooking");
+								hideLoadingImageM();
+							});
+						});
+					});
+					$("#postslip-popup").popup("close");
+				} else {
+					alert("โปรดเลือกไฟล์รูปสลิปผลชำระเงินก่อน");
+				}
+			} else if (billstatus == 2) {
+				alert("บิลนี้คุณได้ชำระเงินและได้ตั๋วโดยสารหมายเลข " + tkno + " แล้ว\nโปรดตรวจสอบที่ https://goo.gl/ZaZYJs");
+			} else if (billstatus == 2) {
+				alert("บิลนี้ได้ถูกยกเลิกโดยระบบแล้ว คุณสามารถจองตั๋วใหม่ได้ที่ https://goo.gl/ZaZYJs");
+			}
+		});
+	}
+
+	function savePicLinkDB(blno, link) {
+		var docpath = "terminals/" + yrterminalid + "/routes/" + routeid + "/bills/" + blno;
+		var billRef = db.doc(docpath);
+		billRef.set({
+			sliplink: link
+		}, { merge: true });
+	}
+
+	function getBillStatus(blno, callback) {
+		var docpath = "terminals/" + yrterminalid + "/routes/" + routeid + "/bills/" + blno;
+		var billRef = db.doc(docpath);
+		billRef.get().then(function(doc) {
+			callback(doc.data().status, doc.data().ticketno);
+		});
+	}
+
+	function closePostSlip() {
+		$("#postslip-popup").popup("close");
+	}
+</script>
+

@@ -1,0 +1,344 @@
+<!-- listallroom.html -->
+
+<style>
+	.content-middle {
+		margin-left: 220px; 
+		margin-right: 20px;
+		text-align: left;
+		padding: 10px;
+		border: blue 5px solid;
+		border-radius:10px;
+		box-shadow:0 0 3px #999;
+	}
+	#errors-msg {
+		color: red;
+		display: none;
+	}
+	#alert-msg {
+		color: blue;
+		display: none;
+	}
+	#roompicture{
+		text-align: center;
+		border:  #33ff99 5px solid;
+	}
+	#listallpic {
+		position : relative;
+		text-align: left;
+		float: left;
+		width: 100%;
+		height: 400px;
+	}
+</style>
+
+<div class='content-middle' id='event-news-content'>
+	<div id="listallroom"/>
+<!--
+	<table>
+		<thead>
+			<tr>
+				<th colspan="2" style="text-align:center">รายการห้องพัก</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td width="10%">หมายเลขห้อง</td>
+				<td width="20%">ชื่อห้อง</td>
+				<td width="20%">ขนาดจำนวนผู้พัก(คน)</td>
+				<td width="10%">ราคา(รายวัน)</td>
+				<td width="30%">รายละเอียดห้อง</td>
+				<td width="10%">สถานะห้อง</td>
+				<td width="*">&nbsp;</td>
+			</tr>
+			<div id="listallroom"/>
+		</tbody>
+	</table>
+	-->
+</div>
+
+<script>
+//listroom part
+$("#listallroom").html(listallroom());
+
+function listallroom() {
+	var listStr = "";
+	//console.log(cuser);
+	var email = cuser.email;
+	db.collection("hotels").where("email", "==",  email).get()
+	.then(function(querySnapshot) {
+		querySnapshot.forEach(function(hoteldoc) {
+			var hotelRef = db.collection("hotels").doc(hoteldoc.id);
+			hotelRef.collection("rooms").get()
+			.then(function(querySnapshot) {
+				listStr = listStr.concat("<table>");
+				listStr = listStr.concat("<thead><tr><th colspan='7' style='text-align:center'>รายการห้องพัก</th></tr></thead>");
+				listStr = listStr.concat("<tbody>");
+				listStr = listStr.concat("<tr>");
+				listStr = listStr.concat("<td width='10%'><b>หมายเลขห้อง</b></td>");
+				listStr = listStr.concat("<td width='20%'><b>ชื่อห้อง</b></td>");
+				listStr = listStr.concat("<td width='20%'><b>ขนาดจำนวนผู้พัก(คน)</b></td>");
+				listStr = listStr.concat("<td width='10%'><b>ราคา(รายวัน)</b></td>");
+				listStr = listStr.concat("<td width='30%'><b>รายละเอียดห้อง</b></td>");
+				listStr = listStr.concat("<td width='10%'><b>สถานะห้อง</b></td>");
+				listStr = listStr.concat("<td width='*'>&nbsp;</td>");
+				listStr = listStr.concat("</tr>");
+				querySnapshot.forEach(function(doc) {
+					listStr = listStr.concat("<tr>");
+					listStr = listStr.concat("<td>" + doc.data().num + "</td>");
+					listStr = listStr.concat("<td>" + doc.data().name + "</td>");
+					listStr = listStr.concat("<td>" + doc.data().size + "</td>");
+					listStr = listStr.concat("<td>" + doc.data().price  + "</td>");
+					listStr = listStr.concat("<td>" + doc.data().desc  + "</td>");
+					listStr = listStr.concat("<td>" + doc.data().rsts  + "</td>");
+					listStr = listStr.concat("<td><input type='button' value=' แก้ไข ' onclick='editroom(\"" + hoteldoc.id + "\",\"" + doc.id  + "\")'/></td>");
+					listStr = listStr.concat("</tr>");
+				});
+				//listStr = listStr.concat("<tr><td colspan='7' align='center'><input type='button' value=' เพิ่มห้อง ' onclick='openaddroomform()'/></td></tr>");
+				listStr = listStr.concat("</tbody>");
+				listStr = listStr.concat("</table>");
+				$("#listallroom").html(listStr);
+ 			})
+ 		});
+	});
+}
+
+function editroom(hotelid, roomid) {
+	//alert(hotelid +"\n" + roomid);
+	var listStr = "";
+	var docpath = "hotels/" + hotelid + "/rooms/" + roomid;
+	var roomRef = db.doc(docpath);
+	roomRef.get().then(function(doc) {
+ 			listStr = listStr.concat("<table>");
+			listStr = listStr.concat("<thead><tr><th colspan='2' style='text-align:center'>แก้ไขห้องพัก</th></tr></thead>");
+			listStr = listStr.concat("<tbody>");
+			listStr = listStr.concat("<tr>");
+			listStr = listStr.concat("<tr><td><b>หมายเลขห้อง</b></td><td><input type='text' id='num' value='" + doc.data().num + "'/></div></td></tr>");
+			listStr = listStr.concat("<tr><td><b>ชื่อห้อง</b></td><td><input type='text' id='name' value='" + doc.data().name + "'/></div></td></tr>");
+			listStr = listStr.concat("<tr><td><b>ขนาดจำนวนผู้พัก(คน)</b></td><td><input type='number' id='size' value='" + doc.data().size + "'/></div></td></tr>");
+			listStr = listStr.concat("<tr><td><b>ราคา(รายวัน)</b></td><td><input type='number' id='price' value='" + doc.data().price + "'/></div></td></tr>");
+			listStr = listStr.concat("<tr><td><b>รายละเอียดห้อง</b></td><td><textarea  id='desc' cols='100' rows='4'>" + doc.data().desc + "</textarea> </td></tr>");
+			listStr = listStr.concat("<tr><td><b>สถานะห้อง</b></td><td><input type='number' id='rsts' value='" + doc.data().rsts + "'/><span style='color: blue;'>&nbsp;&nbsp;&nbsp;&nbsp;0 = ปิด, 1 = เปิด</span></td></tr>");
+			listStr = listStr.concat("</tr><td colspan='2' style='text-align:center'><button id='save-cmd' class='mdl-button mdl-js-button mdl-button--raised mdl-button--accent' onclick='updateroom(\"" + hotelid + "\",\"" + roomid + "\")'>  บันทึก  </button></td></tr>");
+			listStr = listStr.concat("</tr><td colspan='2' style='text-align:left;'><div id='errors' style='color: red; display: none;'/><div id='alert-msg' style='color: blue; display: none;'/></td></tr>");
+			listStr = listStr.concat("</tbody>");
+			listStr = listStr.concat("</table>");
+			listStr = listStr.concat("<div id='roompicture'>");
+			listStr = listStr.concat("<div>เลือกไฟล์รูปห้องพักที่ต้องการให้ลูกค้าดู โดยคลิกปุ่ม <b>เลือกไฟล์</b> จากนั้นคลิกปุ่ม <b> Upload </b> เพื่ออัพโหลดรูป</div>");
+			listStr = listStr.concat("<div><input type='file' id='roompic'/></div>");
+			listStr = listStr.concat("<div><input type='button' id='upload-file-cmd' onclick='uploadpic(\"" + hotelid + "\",\"" + roomid +"\")' value=' Upload '/></div>");
+			listStr = listStr.concat("</div>");
+ 			listStr = listStr.concat("<div id='listallpic'><div>&nbsp;</div><div>&nbsp;</div><div>&nbsp;</div></div>");
+			listStr = listStr.concat("</div>");
+			$("#listallroom").html(listStr);
+			listAllPic(hotelid, roomid);
+ 	})
+}
+
+function updateroom(hotelid, roomid) {
+    var num = $("#num").val();
+    var name = $("#name").val();
+    var size = $("#size").val();
+    var price = $("#price").val();
+    var desc = $("#desc").val();
+	var rsts = $("#rsts").val();
+    var warnings = "";
+
+    if (num.length == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน หมายเลขห้อง<br/>';
+    }
+    if (name.length == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน ชื่อห้อง <br/>';
+    }
+    if (Number(size) == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน ขนาดจำนวนผู้พัก <br/>';
+    }
+    if (Number(price) == 0) {
+      warnings += 'คุณยังไม่ได้ป้อน ราคา(รายวัน) <br/>';
+    }
+    if ((Number(rsts) != 0) && (Number(rsts) != 1)) {
+      warnings += 'ค่าสถานะห้องที่ป้อน ไม่ภูกต้อง <br/>';
+    }
+    if (warnings != "") {
+		$("#errors").css("display","block");
+		$("#errors").html(warnings);
+    } else {
+		$("#errors").css("display","none");
+		savenewroom(hotelid, roomid, num, name, size, price, desc, rsts);
+     }
+
+}
+
+function savenewroom(hotelid, roomid, num, name, size, price, desc, rsts) {
+	var docpath = "hotels/" + hotelid + "/rooms/" + roomid;
+	var roomRef = db.doc(docpath);
+	roomRef.set({
+		num: num,
+		name: name,
+		size: size,
+		price: price,
+		desc: desc,
+		rsts: rsts
+	})
+	$("#alert-msg").html("บันทึกข้อมูลเรียบร้อยแล้ว");
+	$("#alert-msg").show();
+	setTimeout(function() {
+		$("#alert-msg").hide();
+	}, 2000);
+}
+ 
+function picpreview() {
+	var filepath = $('input[type=file]').val();
+	var filename = filepath.split('\\');
+	console.log(filename[filename.length-1]);
+}
+ 
+function uploadpic(hotelid, roomid) {
+	$("#listallpic").html("");
+	var filepath = $('input[type=file]').val();
+	if (filepath){
+		var storageRef = storage.ref();
+ 			var selectedFile = document.getElementById('roompic').files[0];
+ 			var metadata = {
+				contentType: 'image/jpeg',
+			};
+
+			var uploadTask = storageRef.child('images/' + hotelid + "/" + roomid + "/" + selectedFile.name).put(selectedFile, metadata);
+ 			/*
+			uploadTask.on('state_changed', function progress(snapshot) {
+				console.log(snapshot.totalBytesTransferred); // progress of upload
+			});
+*/
+			savePicDB(hotelid, roomid, selectedFile.name);
+			setTimeout(function() {
+				listAllPic(hotelid, roomid);
+			}, 5000);
+	}	
+}
+
+function listAllPic(hotelid, roomid) {
+	$("#listallpic").append("<div></div><div></div>");
+	$("#listallpic").append("<div style='text-align: center;'><b>รายการรูปทั้งหมดที่อัพโหลดไปแล้ว</b></div>");
+	var picpath = "images/" + hotelid + "/" + roomid + "/";
+	var docpath = "hotels/" + hotelid + "/rooms/" + roomid;
+	var storageRef = firebase.storage().ref();
+	var roomRef = db.doc(docpath);
+	roomRef.collection("pics").get().then(function(querySnapshot) {
+		querySnapshot.forEach(function(doc) {
+			//filename: picname
+			var picRef = storageRef.child(picpath + doc.data().filename);
+			picRef.getDownloadURL().then(function(url) {
+				var picview = url;
+				getMeta(url).done(function(test){
+					//alert(test.w + ' ' + test.h);
+					//var picview = "<div style='float: left;'><input type='checkbox' id='" + doc.id + "' onclick='userselectpic(this)'/><a href='" + url + "' target='_blank'><img width='150' height='100' src='" + url + "'/></a></div>";
+					var iw = calPicturSize(test.w, test.h).w;
+					var ih = calPicturSize(test.w, test.h).h;
+					var picview = "<div style='float: left;'><input type='checkbox' id='" + doc.id + "' onclick='userselectpic(this)'/><a href='" + url + "' target='_blank'><img width='" + iw + "' height='" + ih  +"' src='" + url + "'/></a></div>";
+					$("#listallpic").append(picview);
+				});
+			});
+			$("#listallpic").append("<div></div>");
+		});
+		$("#listallpic").append("<div id='listpic-control' style='display: none;'>");
+		$("#listallpic").append("<div style='text-align: center;'>คลิกช่องเช็คบ็อคหน้ารูปที่ต้องการลบ แล้วคลิกปุ่ม <b> ลบ </b></div>");
+		$("#listallpic").append("<div style='text-align: center;'><input type='button' value=' ลบ ' onclick='deletepic(\"" + hotelid + "\",\"" + roomid + "\")'/></div>");
+		$("#listallpic").append("</div>");
+		if (querySnapshot.size > 5){
+			$("#roompicture").css("display", "none");
+		} else {
+			$("#roompicture").css("display","block");
+		}
+	});
+}
+
+function savePicDB(hotelid, roomid, picname) {
+ 	var docpath = "hotels/" + hotelid + "/rooms/" + roomid;
+	var roomRef = db.doc(docpath);
+	roomRef.collection("pics").doc().set({
+		filename: picname
+	});
+}
+
+var spics =[];
+
+function userselectpic(box) {
+	if ($(box).prop('checked') == true ) {
+		spics.push(box.id);
+		if (spics.length > 0) {
+			//console.log($("#listpic-control").css('display'));
+			if ($("#listpic-control").css('display') === "none") {
+				//$("#listpic-control").css('display','block');
+				$("#listpic-control").show();
+			}
+		} else {
+			//$("#listpic-control").css('display','none');
+			$("#listpic-control").hide();
+		}
+	} else {
+		var at = spics.indexOf(box.id);
+		if (at >= 0)	{
+			spics.splice(at, 1);
+		}
+	}
+}
+
+function deletepic(hotelid, roomid) {
+	if (spics.length > 0){
+		$("#listallpic").html("");
+		for (var i=0; i< spics.length ; i++){
+			var docpath = "hotels/" + hotelid + "/rooms/" + roomid + "/pics/" + spics[i];
+			var storageRef = firebase.storage().ref();
+			var picRef = db.doc(docpath);
+			picRef.get().then(function(doc) {
+				var picpath = "images/" + hotelid + "/" + roomid + "/" + doc.data().filename;
+				var desertRef = storageRef.child(picpath);
+				desertRef.delete();
+				doc.ref.delete().then(function() {
+					console.log("Document successfully deleted!.");
+				});
+			});
+		}
+		setTimeout(function() {
+			listAllPic(hotelid, roomid);
+		}, 3000);
+	} else {
+		alert("โปรดเลือกรูปที่ต้องการลบก่อน");
+	}
+}
+
+function getMeta(url){
+    var r = $.Deferred();
+  $('<img/>').attr('src', url).load(function(){
+     var s = {w:this.width, h:this.height};
+     r.resolve(s)
+  });
+  return r;
+}
+
+function calPicturSize(w, h) {
+	if (w <= 150){
+		return {w: w, h: h};
+	} else if (w*0.9 <= 150){
+		return {w: w*0.9, h: h*0.9};
+	} else if (w*0.8 <= 150){
+		return {w: w*0.8, h: h*0.8};
+	} else if (w*0.7 <= 150){
+		return {w: w*0.7, h: h*0.7};
+	} else if (w*0.6 <= 150){
+		return {w: w*0.6, h: h*0.6};
+	} else if (w*0.5 <= 150){
+		return {w: w*0.5, h: h*0.5};
+	} else if (w*0.4 <= 150){
+		return {w: w*0.4, h: h*0.4};
+	}  else if (w*0.3 <= 150){
+		return {w: w*0.3, h: h*0.3};
+	} else if (w*0.2 <= 150){
+		return {w: w*0.2, h: h*0.2};
+	} else if (w*0.1 <= 150){
+		return {w: w*0.1, h: h*0.1};
+	} else {
+		return {w: w*0.05, h: h*0.05};
+	}
+}
+</script>
+

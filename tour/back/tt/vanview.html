@@ -1,0 +1,341 @@
+<style>
+	input[type=text] {
+		border: 3px #cc33cc solid;
+		border-radius: 3px;
+		padding: 5px;
+	}
+	#input {
+
+	}
+	#output {
+		display: none;
+		background-color: #cc33cc;
+		border: 3px white solid;
+		border-radius: 3px;
+		color: white;
+		margin: 10px;
+		padding: 10px;
+	}
+	#errors{
+		display: none;
+		color: red;
+	}
+	#from-inputDiv {
+		margin: 10px 0px;
+	}
+	#to-inputDiv {
+		margin: 20px 0px;
+	}
+	#rout-option{
+		display: none;
+	}
+	#frDiv{
+		width: 48%;
+		float: left;
+		margin: 5px;
+	}
+	#toDiv{
+		width: 48%;
+		float: left;
+		margin: 5px;
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 97%;
+		text-align: left;
+		border: 2px solid white;
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 72%;
+		text-align: left;
+		padding: 5px;
+	}
+	.pagelink {
+		background-color: white;
+		color: blue;
+	}
+ 	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 25%;
+		vertical-align: middle;
+		padding: 0px 5px;
+	}
+	.searchitem{
+		border: 3px solid #ffff00;
+		border-radius: 5px;
+		margin: 15px;
+	}
+	.option-ink{
+		display: block;
+		margin: 5px;
+	}
+</style>
+
+<div id="guide">
+	<div style="text-align: center;"><h3>การค้นหาเส้นทางรถตู้โดยสาร ไม่ได้มีอะไรยาก</h3></div>
+	<p>เพียงแค่คุณบอกเราว่า คุณต้องการเดินทางจากที่<b>ไหน</b> และจะไปที่<b>ไหน</b>
+	คำว่า <b>"ไหน"</b> ในที่นี้ จะเป็นไปได้แค่สองอย่างคือ ถ้าไม่ใช่<b>ชื่อจังหวัด</b>ก็ต้องเป็น<b>ชื่ออำเภอ</b> เนื่องจากคิวรถตู้ส่วนใหญ่ถ้าไม่อยู่ที่ตัวจังหวัดก็จะไปอยู่ที่ตัวอำเภอ จริงไหม?</p>
+	<p>ดังนั้น ขอให้พิมพ์ชื่อจังหวัดหรือชื่ออำเภอ ลงในช่อง <b>จากที่ไหน</b> และช่อง <b>ไปที่ไหน</b></p>
+	<p>หากเข้าใจแล้ว คลิกที่ <b>เริ่ม</b> ได้เลย</p>
+</div>
+
+<div id="input" data-role="collapsible" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+    <h4>เริ่ม</h4>
+	<p>เราเข้าใจดีว่า คุณคงไม่อยากกดแป้นพิมพ์ แต่อย่างไรก็ดี มันคือสิ่งจำเป็น โปรดสลับแป้นพิมพ์เป็นภาษาไทย แล้วป้อนอักษรบางตัวที่เป็นชื่อจังหวัดหรือชื่ออำเภอลงไปก็พอ ส่วนอักษรที่เหลือเราจะพยายามช่วยคุณเอง</p>
+	<p>หากได้ชื่อจังหวัดหรืออำเภอที่ต้องการทั้งสองช่องแล้ว คลิกปุ่ม <b>ค้นหา</b> ได้เลย</p>
+	<div style="display: block-inline;">
+	<div id="from-inputDiv"><label for="from-input"><b>จากที่ไหน : </b></label><input type="text" id="from-input" size="50" ></div>
+	<div id="to-inputDiv"><label for="to-input"><b>ไปที่ไหน : </b></label><input type="text" id="to-input" size="50"></div>
+	</div>
+	<div style="text-align: center">
+		<button  id="search-cmd" class="ui-btn ui-icon-search ui-btn-icon-left" onclick="startSearch()">ค้นหา</button>
+	</div>
+</div>
+<div id="errors"></div>
+<div id="output"></div>
+<div id="rout-option">
+
+</div>
+<div class="ui-field-contain">
+	<button class="ui-btn" id="back-cmd" onclick="backtoHome()">   กลับ     </button>
+</div>
+
+<script>
+
+   var availableTags = [];
+
+   $(document).ready(function() {
+		$('#main').find('div[data-role=collapsible]').collapsible(); 
+		showLoadingImageMT();
+		loadStationList();
+		setTimeout(function() {
+			$("#from-input").autocomplete({ source: availableTags });
+			$("#to-input").autocomplete({ source: availableTags });
+			hideLoadingImageM();
+		},2000);
+   });
+
+   function loadStationList() {
+	   var idx;
+	   availableTags = [];
+		infoRef = db.collection("infos");
+		infoRef.get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				idx = availableTags.indexOf(doc.data().routebegin);
+				if (idx < 0)	{
+					availableTags.push(doc.data().routebegin);
+				}
+			});
+			infoRef.get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(doc) {
+					idx = availableTags.indexOf(doc.data().routebegin);
+					if (idx < 0)	{
+						availableTags.push(doc.data().routebegin);
+					}
+				});
+			});
+		});
+   }
+
+   function startSearch(){
+		var fr_key = $("#from-input").val();
+		var to_key = $("#to-input").val();
+		var warnning = "";
+		var result = "";
+		var items = [];
+		if (fr_key == "")	{
+			warnning = "โปรดป้อนชื่อจังหวัดหรือชื่ออำเภอสำหรับบอกเราว่า คุณจะเดินทางจากที่ไหน";
+		}
+		if (to_key == "")	{
+			warnning = "โปรดป้อนชื่อจังหวัดหรือชื่ออำเภอสำหรับบอกเราว่า คุณจะเดินทางไปที่ไหน";
+		}
+		if (warnning != "")	{
+			$("#errors").show();
+			$("#errors").html(warnning);
+		} else {
+			$("#errors").empty();
+			$("#errors").hide();
+			$("#output").empty();
+			$("#rout-option").empty();
+			showLoadingImageMT();
+			items = search(fr_key, to_key);
+			var frresult = searchOptionRouteFR(fr_key);
+			var toresult = searchOptionRouteTO(to_key);
+			setTimeout(function() {
+				//console.log(JSON.stringify(items));
+				if (items.length > 0) {
+					result = "<div style='text-align: center;'><h3>ประเทศไทยดีจัง!!!</h3></div><p>เราค้นพบเส้นทางรถตู้โดยสารจาก <b>" + fr_key + "</b> ไป <b>" +  to_key + "</b> จำนวน <b>" + items.length + "</b> เส้นทาง  ตามที่คุณต้องการ ดังต่อไปนี้</p>";
+					result = result.concat(createView(items));
+				} else {
+					result = createOop(fr_key, to_key);
+				}
+				$("#output").html(result);
+				$("#output").show();
+				result = "<div style='text-align: center;'><h3>เส้นทางสายอื่นๆ ที่น่าสนใจ</h3></div><p>ลองคลิกบนลิงค์เส้นทางเหล่านั้น เพื่อดูรายละเอียดเส้นทาง</p>";
+				result = result.concat(createOptionView(frresult, toresult));
+				$("#rout-option").html(result);
+				$("#rout-option").show();
+				hideLoadingImageM();
+			}, 8000);
+		}
+   }
+
+	function search(frkey, tokey) {
+		var rsitems = [];
+		infoRef = db.collection("infos");
+		infoRef.get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				if (((frkey==doc.data().routebegin) && (tokey==doc.data().routedest)) ||((tokey==doc.data().routebegin) && (frkey==doc.data().routedest))) {
+					var item = {};
+					item.routeno = doc.data().routeno;
+					item.routename = doc.data().routename;
+					item.routemiddle = doc.data().routemiddle;
+					item.distanct = doc.data().distanct;
+					item.providername = doc.data().providername;
+					item.schedule = doc.data().schedule;
+					item.pointup = doc.data().pointup;
+					item.price = doc.data().price;
+					item.phoneno = doc.data().phoneno;
+					item.link = doc.data().link;
+					item.remark = doc.data().remark;
+					rsitems.push(item);
+				}
+			});
+		});
+		return rsitems;
+	}
+
+	function searchOptionRouteFR(frkey) {
+		var rsitems = [];
+		infoRef = db.collection("infos");
+		infoRef.get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				if (frkey==doc.data().routebegin) {
+					var item = {};
+					item.routeno = doc.data().routeno;
+					item.routename = doc.data().routename;
+					item.routebegin = doc.data().routebegin;
+					item.routedest = doc.data().routedest;
+					rsitems.push(item);
+				}
+			});
+		});
+		return rsitems;
+	}
+
+	function searchOptionRouteTO(tokey) {
+		var rsitems = [];
+		infoRef = db.collection("infos");
+		infoRef.get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				if (tokey==doc.data().routedest) {
+					var item = {};
+					item.routeno = doc.data().routeno;
+					item.routename = doc.data().routename;
+					item.routebegin = doc.data().routebegin;
+					item.routedest = doc.data().routedest;
+					rsitems.push(item);
+				}
+			});
+		});
+		return rsitems;
+	}
+
+	function createView(items) {
+		rs_str = "";
+		for (var x=0; x<items.length; x++){
+			rs_str = rs_str.concat("<div class='searchitem'>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>หมายเลขเส้นทาง :</h3></div><div class='step-bar'><div>" + items[x].routeno + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ชื่อเส้นทาง :</h3></div><div class='step-bar'><div>" + items[x].routename + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>จุดทางผ่าน :</h3></div><div class='step-bar'><div>" + items[x].routemiddle + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>รวมระยะทาง :</h3></div><div class='step-bar'><div>" + items[x].distanct + " ก.ม." + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ชื่อผู้ประกอบการ :</h3></div><div class='step-bar'><div>" + items[x].providername + "</div></div></div>");
+
+			var parts = items[x].schedule.split("\\n");
+			var result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เที่ยวเวลาเดินรถ :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			parts = items[x].pointup.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>จุดจอดให้ผู้โดยสารขึ้น :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			parts = items[x].price.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				if (parts.length > 1){
+					result = result.concat("<br/>");
+				}
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ค่าโดยสาร :</h3></div><div class='step-bar'><div>" + result  + " บาท" + "</div></div></div>");
+
+			parts = items[x].phoneno.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เบอร์โทรติดต่อ :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			if ((items[x].link !=="") && (items[x].link !=="-")){
+				rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เฟสบุคลิงค์ :</h3></div><div class='step-bar'><div>" + "<a class='pagelink' href='"+items[x].link +"' target='_blank'>เข้าชมเพจ</a>" + "</div></div></div>");
+			} else {
+				rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เฟสบุคลิงค์ :</h3></div><div class='step-bar'><div>" +  items[x].link  + "</div></div></div>");
+			}
+
+			parts = items[x].remark.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ข้อมูลอื่นๆ :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			rs_str = rs_str.concat("</div>");
+		}
+		return rs_str;
+	}
+
+	function createOop(frkey, tokey) {
+		var rs_str = "<div style='text-align: center;'><h3>แย่จังประเทศไทย!!! </h3></div><p>เส้นทางจาก <b>" + frkey + "</b> ไป <b>" + tokey + "</b> ไม่มีรถตู้โดยสารวิ่งให้บริการเลย</p>";
+		rs_str = rs_str.concat("<p>แต่อย่างไรก็ตาม เราได้พยายามหาข้อมูลของเส้นทางรถตู้โดยสารที่ใกล้เคียงกับความต้องการของคุณมาแสดงให้คุณได้ดูประกอบอยู่ด้านล่าง ลองเลือกดู</p>");
+		return rs_str;
+	}
+
+	function createOptionView(fritems, toitems) {
+		var result = "<div id='frDiv'>";
+		if (fritems.length > 0)	{
+			result = result.concat("<p>เส้นทางสายต่างๆ ที่ออกจาก <b>" + fritems[0].routebegin + "</b> มีดังนี้</p>");
+			result = result.concat(createLinkOption(fritems));
+		}
+		result = result.concat("</div>");
+		result = result.concat("<div id='toDiv'>");
+		if (toitems.length > 0)	{
+			result = result.concat("<p>เส้นทางสายต่างๆ ที่มาถึง <b>" + toitems[0].routedest + "</b> มีดังนี้</p>");
+			result = result.concat(createLinkOption(toitems));
+		}
+		result = result.concat("</div>");
+		return result;
+	}
+
+	function createLinkOption(items){
+		var result = "";
+		for (var x=0; x < items.length; x++){
+			result = result.concat("<a class='option-ink' href='vaninfo.html?r=" + items[x].routeno + "' target='_blank'>" + items[x].routename + "</a>");
+		}
+		return result;
+	}
+</script>

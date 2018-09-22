@@ -1,0 +1,801 @@
+<style>
+	.bill-items{
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+	.ticket-items{
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+	.message-items{
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+	.message-items p{
+		color: black;
+	}
+	.input-step {
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		padding: 10px;
+		text-align: left;
+	}
+	#home-profile{
+		background: #cc33cc;
+		color: white;
+		text-align: right;
+	}
+	#signup-signin-errors{
+		display: none;
+		color: red;
+	}
+	#yr-home-item {
+		position: relative;
+		width: 100%
+		float: left;
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+	}
+	#yr-home-item p {
+		color: black;
+	}
+	#howto-popup p{
+		color: black;
+	}
+</style>
+
+<div  id='home-main'>
+	<div id="home-profile"></div>
+	<div  id='home-main-cmd'>
+		<button class="ui-btn" id="billList-cmd" onclick="openHowTo()">วิธีใช้งาน</button>
+		<button class="ui-btn" id="billList-cmd" onclick="goToBooking()">จองตั๋ว</button>
+		<button class="ui-btn" id="billList-cmd" onclick="openBillList()">รายการบิลของฉัน</button>
+		<button class="ui-btn" id="billList-cmd" onclick="openTicketList()">รายการตั๋วของฉัน</button>
+		<button class="ui-btn" id="billList-cmd" onclick="openNotifyList()">ข้อความที่แจ้งเตือนฉัน</button>
+	</div>
+</div>
+<div id="yr-home-item"></div>
+
+<div data-role='popup' id='bookinglist-popup' style='padding: 20px;'>
+	<div class="title-box">รายการเส้นทางรถตู้ที่เปิดให้จอง</div>
+	<div id="explian-text" style="margin-top: 10px;"><p>คลิกที่ปุ่มเส้นทางที่คุณต้องการจอง</p></div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" onclick="openBookingRoute('TDUwna6CbjjYJr65dQo1','6s4NgzVwiJWcVBJUvlVT')">   นครศรีธรรมราช - สุราษฎร์ธานี     </button>	
+		<button class="ui-btn" onclick="openBookingRoute('TDUwna6CbjjYJr65dQo1','itsIPyEoq5PCW9X0MEaT')">    สุราษฎร์ธานี - นครศรีธรรมราช    </button>	
+
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" onclick="closebookinglistpopup()">   ปิด     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='howto-popup' style='padding: 20px;'>
+	<div class="title-box">วิธีใช้งาน</div>
+	<div id="explian-text" style="margin-top: 10px;"><p>คลิกบนหัวข้อเพื่อเปิดอ่าน</p></div>
+	<div id="howtocontent"></div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="google-cmd" onclick="closehowtopopup()">   ปิด     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='showtoken-popup' style='padding: 20px;'>
+	<div class="ui-field-contain">
+		<input type="text" data-clear-btn="false" id="yrtoken" size="50" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="google-cmd" onclick="closeshowtokenpopup()">   OK     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='signin-mothod-popup' style='padding: 20px;'>
+	<div class="title-box">เลือกวิธีเข้าสู่ระบบ เพื่อดำเนินการตามที่คุณต้องการ</div>
+	<div id="explian-text" style="margin-top: 10px;"><p>คลิกที่ปุ่มวิธีเข้าสู่ระบบตามที่คุณต้องการ</p><p><b>ข้อแนะนำ</b> ควรเลือกวิธีเดียวกับการจองตั๋ว</p></div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="facebook-cmd" onclick="facebookMethod()">   Facebook     </button>	
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="google-cmd" onclick="googleMethod()">   Google     </button>	
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="signup-cmd" onclick="signupMethod()">   ใช้บัญชีที่เคยเปิดไว้ / เปิดบัญชีใหม่     </button>	
+	</div>
+	<div id="signin-mothod-errors" onclick="signout()"></div>
+</div>
+
+<div data-role='popup' id='signup-signin-popup' style='padding: 20px;'>
+	<div class="title-box">เข้าสู่ระบบ</div>
+	<div id="explian-text" style="margin-top: 10px;">
+	<p> ในกรณีที่คุณเคยเปิดบัญชีใช้งานมาก่อนแล้ว ป้อน Email และ Password แล้วคลิก <b>Login</b> เพื่อเข้าสู่ระบบได้ทันที</p>
+	<p> ในกรณีที่คุณยังไม่เคยเปิดบัญชีใช้งานมาก่อน และต้องการเปิดบัญชีใช้งานใหม่ คลิกปุ่ม <b>เปิดบัญชีใหม่</b> เพื่อเปิดบัญชีและเข้าสู่ระบบ</p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Email :</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="loginemail" size="40" placeholder="example@example.com" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Password :</b></div>
+		<div class="step-bar">
+			<input type="password" data-clear-btn="false" id="loginpassword" size="40" placeholder="......" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<div class="ui-field-contain">
+			<button class="ui-btn" id="booking-login-cmd" onclick="userLogin()">   Login     </button>
+			<button class="ui-btn" id="booking-signup-cmd" onclick="userSignup()">   เปิดบัญชีใหม่     </button>
+			<button class="ui-btn" id="booking-signup-back-cmd" onclick="back2SelectMethod()">   กลับ    </button>
+		</div>
+	</div>
+	<div id="signup-signin-errors">&nbsp;</div>
+</div>
+		
+<div data-role='popup' id='signup-popup' style='padding: 20px;'>
+	<div class="title-box">เปิดบัญชีใหม่</div>
+	<div id="explian-text" style="margin-top: 10px;">
+	<p>ป้อน ชื่อ-นามสกุล, เบอร์โทรศัพท์, Email และ Password 2 ครั้ง(ให้เหมือนกัน) แล้วคลิกปุ่ม <b>เปิดบัญชี</b></p>
+	<p><b>หมายเหตุ</b> Email จะต้องเป็น Email ที่ใช้งานได้จริงๆ เท่านั้น ทั้งนี้หากระบบตรวจสอบและพบว่าเป็น Email ที่ใช้งานไม่ได้ ก็จะไม่สามารถเปิดบัญชีใหม่ได้ ส่วนเบอร์โทรศัพท์ก็เช่นเดียวกัน จะต้องเป็นหมายเลขที่ใช้งานได้จริงๆ เท่านั้น</p>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>ชื่อ-นามสกุล :</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="displayname" size="40" placeholder="ชื่อ-นามสกุล จะไปปราฎในบิลชำระค่าโดยสาร และตัํวโดยสาร ที่มีการจองเสมอ" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>เบอร์โทรศัพท์ :</b></div>
+		<div class="step-bar">
+			<input type="numbert" data-clear-btn="false" id="telephone" size="40" placeholder="0xxxxxxxxx" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Email :</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="email" size="40" placeholder="example@example.com" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>Password :</b></div>
+		<div class="step-bar">
+			<input type="password" data-clear-btn="false" id="password" size="40" placeholder="......" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="step-box">
+		<div class="step-bar-label"><b>ยืนยัน Password :</b></div>
+		<div class="step-bar">
+			<input type="password" data-clear-btn="false" id="confirmpassword" size="40" placeholder="......" style="border: 3px #cc33cc solid; border-radius: 3px;	padding: 10px; margin: 5px;"/>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<div class="ui-field-contain">
+			<button class="ui-btn" id="booking-login-cmd" onclick="validateSignup()">    เปิดบัญชี    </button>
+		</div>
+	</div>
+	<div id="'signup-popup-errors">&nbsp;</div>
+</div>
+
+<script>
+
+    $(document).ready(function() {
+		//สร้างส่วนหัวสไลด์เมนู
+		$("#home-profile").append("<span style='font-size:30px;cursor:pointer' onclick='openNav()'>&#9776;</span>");
+		if (cuser){
+			loadUserData(cuser.email, function(displayname, telephone) {
+				//$("#mySidenav").html("<h3 onclick='showToken(\"" + cuser.email + "\")'>ข้อมูลของฉัน</h3>" + displayname + " โทร : " + telephone +  " email : " + cuser.email);
+				$("#mySidenav").append("<div class='userprofile'><p onclick='showToken(\"" + yrtoken + "\")'>" + displayname + "</p><p>โทร : " + telephone +  "</p><p>email : " + cuser.email + "</p></div>");
+			});
+			//$("#home-main-cmd").append("<button class='ui-btn' id='signout-cmd' onclick='signout()'>ออกจากระบบ</button>");
+			$("#mySidenav").append("<button class='ui-btn' id='signout-cmd' onclick='signout()'>ออกจากระบบ</button>");
+		}
+		$("#howto-popup").popup({ overlayTheme: "a"});
+		$("#bookinglist-popup").popup({ overlayTheme: "a"});
+		$("#showtoken-popup").popup({ overlayTheme: "a"});
+		$("#signin-mothod-popup").popup({ overlayTheme: "a"});
+		$("#signup-signin-popup").popup({ overlayTheme: "a"});
+		$("#signup-popup").popup({ overlayTheme: "a"});
+	});
+
+	//Slide Menu 
+
+	function openNav() {
+		$("#mySidenav").css("width", "300px");
+	}
+
+	function closeNav() {
+		$("#mySidenav").css("width", "0");
+	}
+
+	//Main Command
+
+	function openBillList() {
+		if (cuser){
+			showBillList(cuser.email);
+		} else {
+			$("#signin-mothod-popup").popup("open");
+		}
+	}
+
+	function openTicketList() {
+		if (cuser){
+			showTicketList(cuser.email);
+		} else {
+			$("#signin-mothod-popup").popup("open");
+		}
+	}
+
+	function goToBooking() {
+		$("#bookinglist-popup").popup("open");
+	}
+
+	function openBookingRoute(terid,rouid) {
+		window.open("vanbooking.html?t=" + terid + "&r=" + rouid, '_blank');
+		$("#bookinglist-popup").popup("close");
+	}
+
+	function openHowTo() {
+		showLoadingImageMT();
+		$("#howto-popup").popup("open");
+		$.post("howto.html", {},
+		function(mdata) {
+			$("#howtocontent").html(mdata);
+			hideLoadingImageM();
+		});
+	}
+
+	function openNotifyList(){
+		if (cuser){
+			showNotifyList(cuser.email);
+		} else {
+			$("#signin-mothod-popup").popup("open");
+		}
+	}
+	//Signin And Signup
+
+	//กรณีที่ 1 user ขอ singin ด้วย Facebook Method
+	function facebookMethod(){
+		$("#signin-mothod-errors").empty();
+		$("#signin-mothod-errors").hide();
+		var provider = new firebase.auth.FacebookAuthProvider();
+	   firebase.auth().signInWithPopup(provider).then(function(result) {
+			showLoadingImageMT();
+			var token = result.credential.accessToken;
+			var user = result.user;
+			cuser = user;
+			//console.log(token)
+			//console.log(user)
+			saveUserData(user.displayName, user.phoneNumber, user.email, "facebook");
+			timeout(1900).then(function() {
+				updateUserToken(user.email, yrtoken);
+				$("#signin-mothod-popup").popup("close");
+				openHome();
+				hideLoadingImageM();
+			});
+	   }).catch(function(error) {
+            var errorCode     = error.code;
+            var errorMessage  = error.message;
+            var email         = error.email;
+			console.log(email);
+            var credential    = error.credential;
+			$("#signin-mothod-errors").css("display",($("#signin-mothod-errors").css("display") === "none" || $("#signin-mothod-errors").css("display") === "") ? "block" : "none");
+			$("#signin-mothod-errors").html(error.message + "<br/>");
+	   });
+	}
+
+	//กรณีที่ 2 user ขอ singin ด้วย Google Method
+	function googleMethod(){
+		$("#signin-mothod-errors").empty();
+		$("#signin-mothod-errors").hide();
+        var provider = new firebase.auth.GoogleAuthProvider(); 
+        provider.addScope('https://www.googleapis.com/auth/plus.login');
+        firebase.auth().signInWithPopup(provider).then(function(result) {
+			showLoadingImageMT();
+			//console.log(result.user);
+            var token = result.credential.accessToken;
+            var user = result.user;
+			cuser = user;
+			saveUserData(user.displayName, user.phoneNumber, user.email, "google");
+			timeout(1900).then(function() {
+				updateUserToken(user.email, yrtoken);
+				$("#signin-mothod-popup").popup("close");
+				openHome();
+				hideLoadingImageM();
+			});
+        }).catch(function(error) {
+            var errorCode     = error.code;
+            var errorMessage  = error.message;
+            var email         = error.email;
+            var credential    = error.credential;
+			$("#signin-mothod-errors").css("display",($("#signin-mothod-errors").css("display") === "none" || $("#signin-mothod-errors").css("display") === "") ? "block" : "none");
+			$("#signin-mothod-errors").html(error.message + "<br/>");
+         });         
+    }
+
+	//กรณีที่ 3 user ขอ singin ด้วย signup Method
+	function signupMethod() {
+		$("#signin-mothod-errors").empty();
+		$("#signin-mothod-errors").hide();
+		showLoadingImageMT();
+		$("#signin-mothod-popup").popup("close");
+		timeout(1900).then(function() {
+			//$("#booking-signup-cmd-Div").show();
+			$("#signup-signin-popup").popup("open");
+			hideLoadingImageM();
+		});
+	}
+
+	function userLogin() {
+		var email = $("#loginemail").val();
+		var password = $("#loginpassword").val();
+		var warnings = "";
+		if (!validateEmail(email)) {
+		  warnings += 'Email ผู้ใช้งาน ไม่ถูกต้อง<br/>';
+		}
+		if (password.length == 0) {
+		  warnings += 'คุณยังไม่ได้ป้อนรหัสผ่าน<br/>';
+		}
+		 if (warnings != "") {
+		  $("#signup-signin-errors").css("display", "block");
+		  $("#signup-signin-errors").html(warnings);
+		} else {
+			showLoadingImageMT();
+			$("#signup-signin-errors").css("display", "none");
+			userSignin(email, password);
+			timeout(3900).then(function() {
+				openHome();
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function userSignin(email, password) {
+		firebase.auth().signInWithEmailAndPassword(email, password)
+		.catch(function(error) {
+			var errorCode = error.code;
+			var errorMsg;
+			if (errorCode == "auth/wrong-password"){
+				errorMsg = "Password ไม่ถูกต้อง";
+			} else {
+				errorMsg = error.message;
+			}
+			$("#signup-signin-errors").css("display","block");
+			$("#signup-signin-errors").html("มีความผิดพลาดเกิดขึ้นคือ :" + errorMsg);
+		})
+		.then (function (checkVerify) {
+			firebase.auth().onAuthStateChanged(firebaseUser => {
+				cuser = firebaseUser;
+				if (firebaseUser.emailVerified) {
+					showLoadingImageMT();
+					console.log("Email is verified");
+					console.log("Success");
+					updateUserToken(cuser.email, yrtoken);
+					timeout(1900).then(function() {
+						openHome();
+						hideLoadingImageM();
+					});
+				} else {
+					console.log("Email is not verified");
+					alert("คุณยังไม่ได้ Active Email โปรดคลิกบนลิงค์ที่ระบบส่งไปให้ทาง Email เพื่อ Active Email\nหากยังไม่ดำเนินการตามนี้ คุณก็ยังคงเข้าสู่ระบบไม่ได้");
+				}
+			});
+		});
+	}
+
+	function userSignup() {
+		showLoadingImageMT();
+		$("#signup-signin-popup").popup("close");
+		timeout(1900).then(function() {
+			$("#signup-popup").popup("open");
+			hideLoadingImageM();
+		});
+	}
+
+	function back2SelectMethod() {
+		showLoadingImageMT();
+		$("#signup-signin-popup").popup("close");
+		timeout(1900).then(function() {
+			$("#signin-mothod-popup").popup("open");
+			hideLoadingImageM();
+		});
+	}
+
+	function validateSignup() {
+		var displayname = $("#displayname").val();
+		var telephone = $("#telephone").val();
+		var email = $("#email").val();
+		var password = $("#password").val();
+		var confirmpassword = $("#confirmpassword").val();
+		var warning = "";
+		if (displayname.length < 0) 	{
+			warning += "กรุณาป้อนชื่อ-นามสกุลก่อน\n";
+		} 
+		if (! (isPhoneNo(telephone))) {
+			warning += "เบอร์โทรศัพท์ไม่ถูกต้อง\n";
+		}
+		if (!validateEmail(email)) {
+			warning += "Email ไม่ถูกต้อง\n";
+		}
+		if (password != confirmpassword){
+			warning += "Password และ ยืนยัน Password ไม่เหมือนกัน\n";
+		}
+		if (warning != "")	{
+			  $("#signup-popup-errors").css("display", "block");
+			  $("#signup-popup-errors").html(warning);
+		} else {
+			$("#signup-popup-errors").css("display", "none");
+			alert("โปรดจำ Email และ Password เอาไว้\nเพื่อใช้ในการจองครั้งต่อไปจะได้ไม่เสียเวลาเปิดบัญชีใหม่อีก");
+			showLoadingImageMT();
+			signup(email, password, yrtoken, displayname, telephone);
+			$("#signup-popup").popup("close");
+			timeout(1900).then(function() {
+				$("#signup-signin-popup").popup("open");
+				//$("#booking-signup-cmd-Div").hide();
+				hideLoadingImageM();
+			});
+		}
+	}
+
+	function signup(email, password, token, displayname, telephone){
+	  firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+		  var errorCode = error.code;
+		  var errorMessage = error.message;
+		  if (errorCode ==='auth/weak-password') {
+			$("#signup-popup-errors").css("display",(errors.css("display") === "none" || errors.css("display") === "") ? "block" : "none");
+			$("#errors").html("<p>Password ของคุณมีความเสี่ยงที่ผู้ไม่หวังดีคาดเดาได้!!</p>" + "<br/>" + "<p>ลองเพิ่ม Password ให้ยาวไม่ต่่ำกว่า 8 ตัวอักษร และใน password ควรมีทั้งตัวอักษรและตัวเลขปนกัน</p>");
+		  }
+	  })
+	  .then(function (sendEmailVerify) {
+			if (sendEmailVerify === false) {
+				return false;
+			} else {
+				alert("โปรดอย่าลืมว่า ระบบจะทำการตรวจสอบความมีตัวตนของคุณ\nดังนั้นขอได้โปรดจง Active Email โดยการคลิกบนลิงค์ที่ระบบส่งไปให้ทาง Email " +  email + "  หากไม่ Active Email บัญชีของคุณจะยังคงใช้งานไม่ได้\nหากดำเนินการ Active Email เรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบด้วย Email และ Password ตามที่ได้เปิดบัญชีใหม่ไปแล้วทันที");
+				firebase.auth().currentUser.sendEmailVerification();
+				saveUserData(displayname, telephone, email, "signup");
+			}
+	  });
+	}
+
+	function saveUserData(displayname, telephone, email, signin) {
+		var saveData;
+		if (telephone) {
+			saveData = {displayname : displayname, telephone : telephone, email: email, token: token, signin: signin};
+		} else {
+			saveData = {displayname : displayname, email: email, token: token, signin: signin};
+		}
+		db.collection("users").where("email", "==", email).get().then(function(querySnapshot) {
+			if (querySnapshot.size <= 0){
+				db.collection("users").add(saveData);
+			} else {
+				querySnapshot.forEach(function(doc) {
+					var docpath = "users/" + doc.id;
+					var userRef = db.doc(docpath);
+					userRef.set(saveData, { merge: true });
+				});
+			}
+		});
+	}
+
+	function updateUserToken(email, currenttoken){
+		getUdocId(email, function(udocid) {
+			var docpath = "users/" + udocid;
+			var userRef = db.doc(docpath);
+			userRef.collection("tokens").get().then(function(tquerySnapshot) {
+				if (tquerySnapshot.size < 10){
+					var newDoc = userRef.collection("tokens").doc();
+					newDoc.set({
+						seq: tquerySnapshot.size + 1,
+						token: currenttoken,
+						date: datetostring(new Date()),
+						time: datetotimestring(new Date()),
+					});
+				} else {
+					deleteSeq1(udocid, function() {
+						decressSeq(udocid, function() {
+							inserNewSeq(udocid, currenttoken);
+						});
+					});
+				}
+			});
+		});
+	}
+
+	function getUdocId(email, callback) {
+		var udocid;
+		db.collection("users").where("email", "==", email).get().then(function(uquerySnapshot) {
+			uquerySnapshot.forEach(function(udoc) {
+				udocid = udoc.id;
+			});
+		});
+		timeout(1500).then(function() {
+			callback(udocid);
+		});
+	}
+
+	function deleteSeq1(udocid, callback){
+		var docpath = "users/" + udocid;
+		var userRef = db.doc(docpath);
+		userRef.collection("tokens").where("seq", "==", 1).get().then(function(ttquerySnapshot) {
+			ttquerySnapshot.forEach(function(seqDoc) {
+				var deletepath = "users/" + udocid + "/tokens/" + seqDoc.id;
+				db.doc(deletepath).delete();
+			});
+		});
+		timeout(1000).then(function() {
+			callback();
+		});
+	}
+
+	function decressSeq(udocid, callback){
+		var docpath = "users/" + udocid;
+		var userRef = db.doc(docpath);
+		userRef.collection("tokens").get().then(function(ttkquerySnapshot) {
+			ttkquerySnapshot.forEach(function(seqdoc) {
+				var tokenpath = "users/" + udocid + "/tokens/" + seqdoc.id;
+				var tkDocRef = db.doc(tokenpath);
+				tkDocRef.get().then(function(doc) {
+					var seq = doc.data().seq;
+					tkDocRef.set({
+						seq: seq-1,
+					}, {merge: true});
+				});
+			});
+		});
+		timeout(700).then(function() {
+			callback();
+		});
+	}
+
+	function inserNewSeq(udocid, currenttoken) {
+		var docpath = "users/" + udocid;
+		var userRef = db.doc(docpath);
+		var newDoc = userRef.collection("tokens").doc();
+		newDoc.set({
+			seq: 5,
+			token: currenttoken,
+			date: datetostring(new Date()),
+			time: datetotimestring(new Date()),
+		});
+	}
+
+	function loadUserData(email, callback) {
+		db.collection("users").where("email", "==", email).get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				callback(doc.data().displayname, doc.data().telephone);
+			});
+		});
+	}
+
+	//Childs of Main command
+
+	function showToken(token) {
+		$("#showtoken-popup").popup("open");
+		$("#yrtoken").val(token);
+	}
+
+	function closeshowtokenpopup() {
+		$("#showtoken-popup").popup("close");
+	}
+
+	function closebookinglistpopup() {
+		$("#bookinglist-popup").popup("close");
+	}
+
+	function closehowtopopup(){
+		$("#howto-popup").popup("close");
+	}
+
+	function loadRouteList(callback){
+		var routes = [];
+		var docpath = "terminals/" + yrterminalid;
+		var terminalRef = db.doc(docpath);
+		terminalRef.collection("routes").get().then(function(querySnapshot) {
+			//console.log(querySnapshot.size);
+			querySnapshot.forEach(function(doc) {
+				var rt = {};
+				rt.id = doc.id;
+				rt.beg = doc.data().beginter;
+				rt.end = doc.data().endter;
+				routes.push(rt);
+			});
+			callback(routes);
+		});
+	}
+
+	function showBillList(email) {
+		$("#yr-home-item").empty();
+		var str = "";
+		str = str.concat("<p>โปรดเลือกเส้นทางรถ แล้วคลิกปุ่ม <b>ตกลง</b></p>");
+		str = str.concat("<select class='input-step' id='route-select'>");
+		loadRouteList(function(routes) {
+			//console.log(JSON.stringify(routes));
+			routes.forEach(function(item) {
+				str = str.concat("<option value='" + item.id + "'>" + item.beg + " - " + item.end + "</option>");
+			});
+			str = str.concat("</select>");
+			str = str.concat("<button class='ui-btn' onclick='showBill(\"" + email + "\")'>ตกลง</button>");
+			$("#yr-home-item").html(str);
+		});
+	}
+
+	function showBill(email) {
+		var routeName = $("#route-select option:selected").text();
+		brouteid = $("#route-select").val();
+		showLoadingImageMT();
+		$("#yr-home-item").html("<p>รายการบิลของเส้นทาง <b>" + routeName + "</b></p>");
+		$("#yr-home-item").append("<p>คลิกที่รายการบิลใดๆ เพื่อเปิดดูบิล หรือเพื่อ แจ้งผลการชำระเงิน</p>");
+		loadBillList(email, function(listString) {
+			$("#yr-home-item").append(listString);
+			hideLoadingImageM();
+		});
+	}
+
+	function showTicketList(email) {
+		$("#yr-home-item").empty();
+		var str = "";
+		str = str.concat("<p>โปรดเลือกเส้นทางรถ แล้วคลิกปุ่ม <b>ตกลง</b></p>");
+		str = str.concat("<select class='input-step' id='route-select'>");
+		loadRouteList(function(routes) {
+			routes.forEach(function(item) {
+				str = str.concat("<option value='" + item.id + "'>" + item.beg + " - " + item.end + "</option>");
+			});
+			str = str.concat("</select>");
+			str = str.concat("<button class='ui-btn' onclick='showTicket(\"" + email + "\")'>ตกลง</button>");
+			$("#yr-home-item").html(str);
+		});
+	}
+
+	function showTicket(email) {
+		var routeName = $("#route-select option:selected").text();
+		brouteid = $("#route-select").val();
+		showLoadingImageMT();
+		$("#yr-home-item").html("<p>รายการตั๋วของเส้นทาง <b>" + routeName + "</b></p>");
+		$("#yr-home-item").append("<p>คลิกที่รายการตั๋วใดๆ เพื่อเปิดดูตั๋ว และบันทึกตั๋ว</p>");
+		loadTicketList(email, function(listString) {
+			$("#yr-home-item").append(listString);
+			hideLoadingImageM();
+		});
+	}
+
+	function loadBillList(email, callback) {
+		getRouteNo(brouteid, function(rouNo) {
+			var str = "";
+			var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+			var billRef = db.doc(docpath);
+			billRef.collection("bills").where("userid", "==", email).orderBy("billno", "desc").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(billDoc) {
+					str = str.concat("<div class='bill-items' onmouseover='this.style.cursor=\"pointer\";' onclick='openBill(\"" + billDoc.data().billno + "\")'>");
+					str = str.concat("หมายเลขบิล " + buildPrefixRef(terNo, rouNo) + billDoc.data().billno + " จองเมื่อ " + billDoc.data().date + " เดินทางวันที่ " + billDoc.data().tourdate);
+					str = str.concat("</div>");
+				});
+			});
+			timeout(2900).then(function() {
+				//console.log(str);
+				callback(str);
+			});
+		});
+	}
+
+	function loadTicketList(email, callback) {
+		getRouteNo(brouteid, function(rouNo) {
+			var str = "";
+			var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+			var ticketRef = db.doc(docpath);
+			ticketRef.collection("bills").where("userid", "==", email).orderBy("billno", "desc").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(ticketDoc) {
+					if (ticketDoc.data().ticketno)	{
+						str = str.concat("<div class='ticket-items' onmouseover='this.style.cursor=\"pointer\";' onclick='openTicket(\"" + ticketDoc.data().billno + "\",\"" + ticketDoc.data().ticketno + "\")'>");
+						str = str.concat("หมายเลขตั๋ว " + buildPrefixRef(terNo, rouNo) + ticketDoc.data().ticketno + " จองเมื่อ " + ticketDoc.data().date + " เดินทางวันที่ " + ticketDoc.data().tourdate);
+						str = str.concat("</div>");
+					}
+				});
+			});
+			timeout(2900).then(function() {
+				//console.log(str);
+				callback(str);
+			});
+		});
+	}
+
+	function openBill(blno){
+		showLoadingImageMT();
+		var yrBillParamOB = [];
+		var yrparam = {blno: blno, rtid: brouteid};
+		yrBillParamOB.push(yrparam);
+		//console.log(JSON.stringify(myBillParamOB));
+		$.removeCookie("yrBillParamOB");
+		$.cookie("yrBillParamOB", JSON.stringify(yrBillParamOB));
+		timeout(3900).then(function() {
+			hideLoadingImageM();
+			window.open("bill.html", '_blank');
+		});
+	}
+
+
+	function openTicket(blno, tkno){
+		showLoadingImageMT();
+		var yrTicketParamOB = [];
+		var yrparam = {blno: blno, rtid: brouteid, tkno: tkno};
+		yrTicketParamOB.push(yrparam);
+		//console.log(JSON.stringify(myBillParamOB));
+		$.removeCookie("yrTicketParamOB");
+		$.cookie("yrTicketParamOB", JSON.stringify(yrTicketParamOB));
+		timeout(3900).then(function() {
+			hideLoadingImageM();
+			window.open("ticket.html", '_blank');
+		});
+	}
+
+	function showNotifyList(email) {
+		showLoadingImageMT();
+		$("#yr-home-item").empty();
+		$("#yr-home-item").html("<p>รายการข้อความที่ส่งเข้ามาแจ้งเตือนฉัน</p>");
+		loadNotifyList(email, function(listString) {
+			$("#yr-home-item").append(listString);
+			hideLoadingImageM();
+		});
+
+	}
+
+	function loadNotifyList(email, callback) {
+		var str = "";
+		var docpath = "terminals/" + yrterminalid + "/routes/" + brouteid;
+		var messageRef = db.doc(docpath);
+		messageRef.collection("messages").where("userid", "==", email).orderBy("date", "desc").limit(50).get().then(function(querySnapshot) {
+			var lastVisible = querySnapshot.docs[querySnapshot.docs.length-1];
+			//console.log(querySnapshot.docs.length);
+			//console.log(lastVisible);
+			querySnapshot.forEach(function(msgDoc) {
+				str = str.concat("<div class='message-items'>");
+				str = str.concat("<p><b>หัวเรื่อง</b> " + msgDoc.data().title + "</p>");
+				str = str.concat("<p><b>เนื้อความ</b> " + msgDoc.data().body + "</p>");				
+				str = str.concat("<p><b>ผู้ส่ง</b> " + msgDoc.data().sender + "</p>");		
+				str = str.concat("<p><b>เมื่อ</b> " + msgDoc.data().date + " <b>เวลา</b> " + msgDoc.data().time + "</p>");		
+				//str = str.concat("<input type='button' value=' ลบ ' onclick='deleteMessage(\"" + msgDoc.id + "\")'/>");
+				str = str.concat("</div>");
+			});
+		});
+		timeout(2900).then(function() {
+			//console.log(str);
+			callback(str);
+		});
+	}
+	
+	function deleteMessage(msgid) {
+		console.log(msgid);
+		alert("ยังไม่รองรับการทำงานในตอนนี้");
+	}
+
+	/*
+		var first = db.collection("cities").orderBy("population").limit(25);
+		return first.get().then(function (documentSnapshots) {
+		  // Get the last visible document
+		  var lastVisible = documentSnapshots.docs[documentSnapshots.docs.length-1];
+		  console.log("last", lastVisible);
+
+		  // Construct a new query starting at this document,
+		  // get the next 25 cities.
+		  var next = db.collection("cities").orderBy("population").startAfter(lastVisible).limit(25);
+		});
+	*/
+
+	function getRouteNo(routeid, callback) {
+		var docpath = "terminals/" + yrterminalid + "/routes/" + routeid;
+		var routeRef = db.doc(docpath);
+		routeRef.get().then(function(doc) {
+			callback(doc.data().routeno);
+		});
+	}
+</script>

@@ -1,0 +1,149 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../../resources/fonts/THSarabunNew.ttf');
+    }
+	#content {
+		text-align: center;
+	}
+</style>
+
+<div id="content">
+    <h1> นี่คือการทดสอบภาษาไทยด้วย pdfmake  </h1>
+	<a href="javascript:demoFromHTML()" class="button">ทดสอบภาษาไทย</a>
+	<a href="javascript:testImage()" class="button">ทดสอบรูปภาพ</a>
+	<div id="qrcodeCanvas" style="display:none"></div>
+</div>
+
+<script>
+
+	pdfMake.fonts = {
+	  THSarabunNew: {
+		normal: "THSarabunNew.ttf",
+		bold: "THSarabunNew Bold.ttf",
+		italics: "THSarabunNew Italic.ttf",
+		bolditalics: "THSarabunNew BoldItalic.ttf"
+	  }
+	}
+
+	function demoFromHTML() {
+ 		toDataURL(
+		  "https://myhotel-4746f.firebaseapp.com/tour/back/tt/0816776292.png",
+		  function(qrcode) {
+			toDataURL(
+			  "https://myhotel-4746f.firebaseapp.com/resources/imgs/vanOS.png",
+			  function(vanlogo) {
+					var docDefinition = {
+						pageSize: { width: 160 , height: 400},
+						// pageSize: "A5",
+						pageMargins: [ 10, 70, 10, 10 ],
+						defaultStyle: {
+							font: "THSarabunNew",
+							fontSize: 10,
+							alignment: "left"
+						},
+						styles: {
+							anotherStyle: {
+								font: "THSarabunNew",
+								fontSize: 10,
+								italics: false,
+								alignment: "left"
+							},
+							headerStyle: {
+								font: "THSarabunNew",
+								fontSize: 12,
+								italics: false,
+								bold: true,
+								alignment: "center"
+							},
+							emmStyle: {
+								font: "THSarabunNew",
+								fontSize: 11,
+								italics: false,
+								bold: true,
+								alignment: "left"
+							},
+							footerStyle: {
+								font: "THSarabunNew",
+								fontSize: 11,
+								italics: false,
+								bold: true,
+								alignment: "center"
+							}
+						},
+						content: [
+							{ image: vanlogo, fit: [50,50],	absolutePosition: {x: 55, y: 10}},
+							{ text: "ตั๋วโดยสารรถตู้",  style: "headerStyle"},
+							//{ text: "บิลชำระค่าโดยสารรถตู้",  style: "headerStyle"},
+							{ text: "**************************************", style: "emmStyle"},
+							{ text: "นครศรีธรรมราช - สุราษฏร์ธานี",  style: "headerStyle"},
+							{ text: "เที่ยวเวลา ..... 07:00 น. ......",  style: "emmStyle"},
+							{ text: "วันที่ ....  28/04/2561 ....",  style: "emmStyle"},
+							{ text: "ผู้โดยสาร .. ชื่อ คุณสมิงขาว โทร 0973451267 ...",  style: "emmStyle"},
+							{ text: "----------------------------------------------------------", style: "emmStyle"},
+							{ text: "เลขที่นั่ง ... 3 ... ราคา ....120 ..... บาท",  style: "emmStyle"},
+							{ text: "อื่นๆ ...บริการจองตั๋ว ... ราคา .. 5 .. บาท",  style: "emmStyle"},
+							{ text: "----------------------------------------------------------", style: "emmStyle"},
+							{ text: "รวม  ............ 125 .............. บาท",  style: "emmStyle"},
+							{ text: "----------------------------------------------------------", style: "emmStyle"},
+							{ text: "**************************************", style: "emmStyle"},
+							//{text: "----สิงที่คุณควรทราบ----", style: "headerStyle"},
+							//{text: "โปรดชำระเงินค่าโดยสารตามยอดที่ปรากฎในบิลด้วย คิวอาร์-โค้ด พร้อมเพย์ ก่อนถึงเวลารถออก 30 นาที", style: "anotherStyle"},
+							//{text: "เมื่อชำระเงินค่าโดยสารเสร็จแล้ว คุณดำเนินการแจ้งการชำระได้ที่ ....", style: "anotherStyle"},
+							//{text: "ต่อจากนั้นเราจะออกตั๋วโดยสารให้แก่คุณ", style: "anotherStyle"},
+							 //{text: "โปรดทราบว่า ยังมีบุคคลอื่นที่ต้องการเดินทางไปกับรถเที่ยวนี้ หากเขาสามารถชำระค่าโดยสารเสร็จก่อนคุณ บิลใบนี้ของคุณจะถูกยกเลิกโดยทันที", style: "emmStyle"},
+							//{text: "ขอบคุณที่ใช้บริการ", style: "footerStyle"},
+							//{text: "Thanks you.", style: "headerStyle"},
+							{ text: "**************************************", style: "emmStyle"},
+							{ image: qrcode, fit: [50,50],	absolutePosition: {x: 55, y: 310}},
+						]
+					};
+					//pdfMake.createPdf(docDefinition).open();
+					pdfMake.createPdf(docDefinition).download("myFirstTestPDF.pdf");
+			  }
+			)	
+		  }
+		);
+	}
+
+
+
+	function toDataURL(src, callback, outputFormat) {
+		var img = new Image();
+		img.crossOrigin = 'Anonymous';
+		img.onload = function() {
+			var canvas = document.createElement('CANVAS');
+			var ctx = canvas.getContext('2d');
+			var dataURL;
+			canvas.height = this.height;
+			canvas.width = this.width;
+			ctx.drawImage(this, 0, 0);
+			dataURL = canvas.toDataURL(outputFormat);
+			callback(dataURL);
+		};
+		img.src = src;
+		if (img.complete || img.complete === undefined) {
+			img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+			img.src = src;
+		}
+	}
+
+ 
+	function testImage(){
+		toDataURL(
+		  /*	"https://promptpay.io/0816776292.png", */
+		  "https://myhotel-4746f.firebaseapp.com/tour/back/tt/0816776292.png",
+		  /* 'https://vaadin.com/documents/10187/33841/cors-deployment-setup-with-vaadin.png', */
+		  function(dataUrl) {
+			console.log("Src static.srcdn.com:", dataUrl);
+			basecode = dataUrl;
+		  }
+		);
+		jQuery('#qrcodeCanvas').qrcode({
+			text	: "0816776292"
+		});	
+		$('#qrcodeCanvas').show();
+	}
+</script>

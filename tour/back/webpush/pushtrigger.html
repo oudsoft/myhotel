@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+ <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../../resources/imgs/ico/vanOS.ico">
+    <title>ทดสอบการ Push notification ฉบับ ออเจ้า</title>
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+ </head>
+ <body>
+ <div>&nbsp;</div>
+  <div>&nbsp;</div>
+  <div style="width: 50%; text-align: center; margin-left: 100px">
+  <h1>ทดสอบออเจ้าประกาศข่าว</h1>
+  <div style="text-align: left;">
+  <div>Title :: <input type="text" id="title" size="30" value="ออเจ้า"/></div>
+   <div>&nbsp;</div>
+  <div>Message :: <input type="text" id="message" size="60"/></div>
+   <div>&nbsp;</div>
+  <div style="text-align: center;"><input type="button" id="sendpush-cmd" value="Send" onclick="sendpush()"/></div>
+  </div>
+  </div>
+ </body>
+</html>
+<script>
+/* 
+	//Chrome on localhost
+	var subscription = {"endpoint":"https://fcm.googleapis.com/fcm/send/f4FusWmV_Wc:APA91bHfwNsatJHDnZyfAddwDMChhARsrshr3Yr_mGX1ZJIVbE1mHkRDWB2nJcHf7u2YBHdGJgjCa4bPxoRvvEWvYjdhzO0Oc5h09g8UiMnDAAwbLqLM0oTbUK8lKBZKPOHXS65UrWK3",
+	"expirationTime":null,
+	"keys":{
+		"p256dh":"BCejJStS6jNVxE8i-c-8THX8Dec97aYN0Mn8Sj4WaGb83fmdw_Exd-ti5jaf4rHDh3gil86JND9LVL-BnBf4-Ag",
+		"auth":"vSyDdcsYmcTgn59u49d3Rg"}
+	};
+
+	//Firefox on localhost
+	var subscription = {"endpoint":"https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbCSlLvtVFcEFy5_mivo98yWMT2XrFPpfJnlgvAy1eQ4tBjXmAExJUcAyt89vej3_KqQ3MBwGNP5MSM7-6pTqs7sm-_ptTAc4RgViNAHjbpluzio_8UVe9-nME7-nIwcLZgwExKGLm3_BM7Dj7Kl3fl6GzujTwe9QmKjeHmVq60qlcKtI",
+	"keys":{
+		"p256dh":"BNyIE9FF3oD9-8BVK2FN7BC8y9ftBwcQqZEvH1EKK7xdkgmNZv_6V1XkOKImbog_wgjwQs1UYdZWcKg5mRoAQCU",
+		"auth":"uFtLWoiBS1p6TNALm7CMKA",}
+	};
+*/
+	//Chrome on firebase
+	var subscription = {"endpoint":"https://fcm.googleapis.com/fcm/send/d7xn5mJoUq8:APA91bGMGaYpXjn_twbWFj_TrdTCIM0HEFYqyaidXsvuRd4_A85GDeiOgTkZPkGGjATtYUNbUCWY_jjcPu9r8Y8aYnYIt_G5NbYiD-s2Y2GKq8t_mmPYUzRnKlPXiQkAIQFXgDGQEPsg","expirationTime":null,"keys":{"p256dh":"BEIlAU0y4tvEfLi4Q3aucfLuYlBdfGcFRIy3cKeMKqiLb3_cge1ZHUNSLyKn4NVRAmN683G-HzWaDVnZIy0MCWc","auth":"oEIVIadvLOHV6ZICURCE-g"}};
+
+/*
+	//Firefox on firebase
+	{"endpoint":"https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbDWKUcm1XEYDr8kTTJiChndqLshMkRclcYIkOXPVoneLKaMbHN_68WzFB1crkXQvfAO_r0QafrzJjZ7DJ4AIgg-ObldaBCDwkm6heBzbOJr0wv3JFcFZGf5jwN-zRSVBobUrTuqzaIhbzyuMWUApInf3IFd88nROLgdNK1PyNU0F0F5A","keys":{"auth":"BeFneOvsru_ol8nfIct1dw","p256dh":"BKOSav2EOUpuBkm1pyEPb1Pe1IUvL7jWOi8RgXvKZZblnxsnJnJyJAwcauiyt3BKGalKrVt4nEqZ-tGU511YAqY"}}
+*/
+	async function sendpush() {
+		var title = $("#title").val();
+		var message = $("#message").val();
+		console.log(title);
+		console.log(message);
+
+		data = {};
+		data.subscription = subscription;
+		data.title = title;
+		data.msg = message;
+		//data.url =  "https://myhotel-4746f.firebaseapp.com/tour/front/front.html";
+
+		await fetch('https://us-central1-myhotel-4746f.cloudfunctions.net/subscribe', {
+		//await fetch('https://us-central1-myhotel-4746f.cloudfunctions.net/app', {
+			method: 'POST',
+			mode: 'no-cors',
+			/* body: JSON.stringify(subscription), */
+			body: JSON.stringify(data),
+			headers: {'content-type': 'application/json'	} 
+		});
+	}
+
+//https://us-central1-myhotel-4746f.cloudfunctions.net/app
+</script>

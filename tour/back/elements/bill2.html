@@ -1,0 +1,661 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../../resources/fonts/THSarabunNew.ttf');
+    }
+
+ 	#content {
+		text-align: center;
+        font-family: THSarabunNew;
+		src: url('../../resources/fonts/THSarabunNew.ttf');  
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 100%;
+		text-align: center:
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 33%;
+		text-align: center:
+	}
+	#printImg{
+		display: none;
+	}
+</style>
+
+<div id="content">
+	<div style="text-align: center"><h1>บิลขำระค่าโดยสาร</h1></div>
+	<div id="CanvasDiv" style="display:none">
+		<canvas id="myCanvas" width="220" height="770"></canvas>
+		<!--<canvas id="qrCanvas" width="170" height="170"></canvas>-->
+		<div class="step-box">
+			<div class="step-bar">
+				<button class="ui-btn" id="print-cmd" onclick="printPdf()">   พิมพ์     </button>
+			</div>
+			<div class="step-bar">
+				<a id="download" download="ticket.png">
+					<button class="ui-btn" id="download-cmd" onclick="downloadPdf()">   ดาวน์โหลด     </button>
+				</a>
+			</div>
+			<div class="step-bar">
+				<button class="ui-btn" id="showslip-cmd" onclick="openSlip()">   ผลการชำระเงิน     </button>
+			</div>
+		</div>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="createBill()">   แสดงบิล     </button>
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="back-cmd" onclick="closewindow()">   ปิด     </button>
+	</div>
+	<div id="printImg"></div>
+</div>
+
+<div data-role='popup' id='showslip-popup' style='padding: 20px;'>
+	<div class="title-box">ผลการชำระเงิน</div>
+	<div id="explian-text" style="margin-top: 10px;">
+	<p> คลิกที่รูป เพื่อดุรูปที่ใหญ่ขึ้น</p>
+	</div>
+	<div id ="slip">
+	</div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="createTicket-cmd" onclick="createTicket()">   ออกตั๋วโดยสาร     </button>
+		<button class="ui-btn" id="post-cmd" onclick="closeShowSlip()">   ปิด     </button>
+	</div>
+</div>
+
+<script>
+	
+    $(document).ready(function() {
+		billOB = [];
+		var blitem = [];
+
+		showLoadingImageMT();
+		blitem = loadBillData(billno, routeid, function(x) {
+			timeout(5000).then(function() {
+				billOB = x;
+				//console.log(JSON.stringify(billOB));
+				$("#showslip-cmd").attr("onclick", "openSlip(\"" + billno + "\")");
+				hideLoadingImageM();
+			});
+		});
+ 		$("#showslip-popup").popup({ overlayTheme: "a"});
+    });
+
+	function loadBillData(blno, routeid, callback) {
+		var blDataOB = [];
+		var blData = {};
+		blData.billno = blno;
+		var riitem = [];
+		loadRouteInit(routeid, function(items) {
+			riitem = items;
+			blData.route = riitem[0].route;
+			blData.defaultPrice = riitem[0].defaultPrice;
+			blData.conditions = [];
+			//var tcitem = loadBillConditions();
+			loadBillConditions(function(tcitem) {
+				//console.log(tcitem.length);
+				for (var l=0; l < tcitem.length; l++)	{
+					//console.log(tcitem[l]);
+					blData.conditions.push(tcitem[l]);
+				}
+			});
+		});
+
+		blData.seats = [];
+		blData.billno = blno;
+
+		timeout(3000).then(function() {
+			var pathPatials = [];
+			var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + blno;
+			var billRef = db.doc(docpath);
+			billRef.collection("billDocPaths").orderBy("seatno", "asc").get().then(function(blquerySnapshot) {
+				var cnt = 1;
+				blquerySnapshot.forEach(function(billDocPathsDoc) {
+					blData.seats.push(billDocPathsDoc.data().seatno); // --> เก็บค่า sno เข้า array แล้วส่งต่อให้ billOB.seats
+					var blDocPath = billDocPathsDoc.data().billDocPath;
+					pathPatials = blDocPath.split("/");
+					var tourRef = db.doc("terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + pathPatials[2]);
+					if (cnt == 1){
+						tourRef.get().then(function(trdoc) {
+							blData.date = trdoc.data().traveldatetext;
+							blData.schedule = trdoc.data().scheduletext;
+							var bookingRef = db.doc("terminals/" + myterminalid + "/routes/" + routeid + blDocPath);
+							bookingRef.get().then(function(bkdoc) {
+								//--> เก็บค่า pname, ptel, stationup, stationdown, price
+								var psitem = pricecharts.find(ob => (ob.frstation == bkdoc.data().stationupid) && (ob.tostation == bkdoc.data().stationdownid));
+								if (typeof psitem != 'undefined'){
+									blData.price = parseInt(psitem.price);
+								} else {
+									blData.price = parseInt(riitem[0].defaultPrice);
+								}
+								var sitem = stations.find(ob => ob.id == bkdoc.data().stationupid);
+								blData.stationup = sitem.name;
+								sitem = stations.find(ob => ob.id == bkdoc.data().stationdownid);
+								blData.stationdown = sitem.name;
+								blData.pname = bkdoc.data().cguid;
+								blData.ptel = bkdoc.data().ptel;
+							});
+						});
+					}
+					// --> เก็บค่า sno เข้า array แล้วส่งต่อให้ billOB.seats
+					/*
+					var psgRef = db.doc("terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + pathPatials[2] + "/passangers/" + pathPatials[4]);
+					console.log(pathPatials[2]);
+					console.log(pathPatials[4]);
+					psgRef.get().then(function(psgdoc) {
+						console.log(psgdoc.data().seatno);
+						blData.seats.push(psgdoc.data().seatno);
+					});
+					*/
+					// --> เพิ่มค่าตัวนับ
+					cnt++;
+				});
+			});
+		});
+
+		timeout(7500).then(function() {
+			blDataOB.push(blData);
+			callback(blDataOB);
+			return blDataOB;
+		});
+	}
+
+	/* Bill Render */
+
+	var canvas;
+
+	function createBill() {
+		if ($("#CanvasDiv").css("display")=="none"){
+			$("#CanvasDiv").show();
+			ceateCanvas(function(dataUrl) {
+
+			});
+			$("#ok-cmd").text("ปิดแสดงตั๋ว");
+		} else {
+			var context = canvas.getContext('2d');
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			$("#CanvasDiv").hide();
+			$("#ok-cmd").text("โปรดแสดงตั๋ว");
+		}
+	}
+
+	function ceateCanvas(callback) {
+		canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createQuotIMG(context);
+		var dataURL = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		callback(dataURL);
+	}
+
+	function createQuotIMG(ct) {
+		//console.log(JSON.stringify(billOB));
+		ct.scale(1, 1);
+		ct.beginPath();
+		ct.rect(5, 5, 210, 85);
+		ct.lineWidth = 1;
+		ct.strokeStyle = 'black';
+		ct.stroke();
+		var imageLOGO = new Image();
+		imageLOGO.src = "../../../resources/imgs/vanOS01.jpg";
+		imageLOGO.onload = function () {
+			ct.drawImage(imageLOGO, 88, 15, 50, 50);
+		};
+
+		ct.font = 'bold 20px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("บิลชำระค่าโดยสาร", 110, 82);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText(billOB[0].route, 110, 110);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("วันที่  " + billOB[0].date, 5, 130);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("เที่ยวเวลา  " + billOB[0].schedule + " น.", 5, 150);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้จอง .. ชื่อ .. " + billOB[0].pname + " .. ", 5, 170);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("ผู้จอง .. โทร .. " + billOB[0].ptel + " .. ", 5, 190);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดขึ้นรถ .. " + billOB[0].stationup + " .. ", 5, 210);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("จุดลงรถ .. " + billOB[0].stationdown + " .. ", 5, 230);
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 250);
+
+		var price = parseInt(billOB[0].price);
+
+		// เริ่มค่า top ที 250
+		billOB[0].seats.sort();
+		var total = 0;
+		for (var i=0; i<billOB[0].seats.length; i++)	{
+			ct.font = 'bold 16px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "left";
+			ct.fillText("เลขที่นั่ง .. " + billOB[0].seats[i] + " .... ราคา .. " + price + " .. บาท ", 5, 250 + (i+1)*25);
+			total = total + price;
+		}
+		var charge = 5;
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("อื่นๆ ..บริการจองตั๋ว .. ราคา .. " + Number(charge) + " .. บาท ", 5, 250 + ((billOB[0].seats.length +1)* 25));
+
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		ct.fillText("------------------------------------------------------------", 5, 260 + (billOB[0].seats.length * 25) + 40);
+ 		total = Number(total + charge);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("รวม  .................... " + Number(total).toFixed(0).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + " ....... บาท", 5, 260 + (billOB[0].seats.length * 25) + 60);
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.fillText("------------------------------------------------------------", 5, 260 + (billOB[0].seats.length * 25) + 80);
+
+		ct.font = 'bold 18px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("----สิงที่ผู้จองควรทราบ----", 110, 260 + (billOB[0].seats.length * 25) + 110);
+
+		ct.font = 'bold 14px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "left";
+		var cline = 0;
+		for (var x=0; x < billOB[0].conditions.length; x++) {
+            cline = printAtWordWrap(ct, String(x+1) + ". " + billOB[0].conditions[x], 5,  260 + (billOB[0].seats.length * 25) + 130 + x * (cline +1) *20, 20, 240);
+		}
+
+
+		$("#myCanvas").qrcode({
+			render: 'canvas',
+			minVersion: 1,
+			maxVersion: 40,
+			ecLevel: 'H',
+			left: 80,
+			top: 640,
+			fill: '#000000',
+			background: null,
+			mode: 0,
+			size: 60,
+			text:  "0816776292"
+		});
+
+
+/*
+		var imageQR = new Image();
+		//imageQR.src = "tt/0816776292.png";
+		imageQR.src = qrcanvas.get(0).toDataURL("image/png");
+		//imageQR.src = "tt/vaninfourl.png";
+		imageQR.onload = function () {
+			ct.drawImage(imageQR, 75, 630, 70, 70);
+		};
+*/
+		ct.font = 'bold 16px THSarabunNew';
+		ct.fillStyle = 'black';
+		ct.textAlign = "center";
+		ct.fillText("ขอบคุณที่ใช้บริการ", 110, 740);
+
+		getRouteNo(routeid, function(routeno) {
+			ct.font = 'bold 14px THSarabunNew';
+			ct.fillStyle = 'black';
+			ct.textAlign = "right";
+			ct.fillText(buildPrefixRef(terminalID, routeno) + billOB[0].billno, 205, 760);
+
+			$("#download-cmd").attr("onclick", "downloadPdf('B" + buildPrefixRef(terminalID, routeno) + billOB[0].billno + "')");
+		});
+ 	}
+
+
+	function printPdf() {
+		var image = canvas.toDataURL({format: 'jpeg', quality: 1.0});
+		$("#printImg").html("<img src='" + image + "' width=180' height='555'/>");
+		//$('#printImgt').hide();
+		$("#printImg").printThis();
+
+	}
+
+	function downloadPdf(billno) {
+		var download = document.getElementById("download");
+		var image = document.getElementById("myCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", billno + ".png");
+	}
+
+	function printAtWordWrap(context, text, x, y, lineHeight, fitWidth) {
+		fitWidth = fitWidth || 0;
+
+		if (fitWidth <= 0) {
+			context.fillText(text, x, y);
+			return;
+		}
+		var words = text.split(' ');
+		var currentLine = 0;
+		var idx = 1;
+		while (words.length > 0 && idx <= words.length) {
+			var str = words.slice(0, idx).join(' ');
+			var w = context.measureText(str).width;
+			if (w > fitWidth) {
+				if (idx == 1) {
+					idx = 2;
+				}
+				context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+				currentLine++;
+				words = words.splice(idx - 1);
+				idx = 1;
+			} else {
+				idx++;
+			}
+		}
+		if (idx > 0) context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+		return currentLine;
+	}
+
+	//ท่อน openSlip()
+
+	function openSlip(blno) {
+		showLoadingImageMT();
+		//console.log(blno);
+		var str;
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + blno;
+		var billRef = db.doc(docpath);
+		billRef.get().then(function(doc) {
+			//console.log(doc.data().sliplink);
+			if (doc.data().sliplink){
+				getMeta(doc.data().sliplink).done(function(test){
+					var iw = calPicturSize(test.w, test.h).w;
+					var ih = calPicturSize(test.w, test.h).h;
+					str = "<a href='" + doc.data().sliplink + "' target='_blank'><img width='" + iw + "' height='" + ih  + "' src='" + doc.data().sliplink + "'/></a>";
+					$("#showslip-popup").popup("open");
+					$("#createTicket-cmd").attr("onclick", "createTicket(\"" + blno + "\")");
+				$("#createTicket-cmd").css("display", "block");
+					$("#slip").html(str);
+					$("#slip").css("text-align", "center");
+					hideLoadingImageM();
+				});
+			} else {
+				str = "<p>ยังไม่มีผลการชำระเงินถูกผู้จองส่งเข้ามา</p>";
+				$("#showslip-popup").popup("open");
+				//$("#createTicket-cmd").attr("onclick", "createTicket(\"" + blno + "\")");
+				$("#createTicket-cmd").css("display", "none");
+				$("#slip").html(str);
+				hideLoadingImageM();
+			}
+		});
+	}
+
+	function closeShowSlip() {
+		$("#showslip-popup").popup("close");
+	}
+
+	function createTicket(billno) {
+		loadTicketNoOfBill(billno, function(tkno) {
+			if (typeof tkno != "undefined")	{
+				closeShowSlip();
+				openTicket(billno, tkno);
+			} else {
+				showLoadingImageMT();
+				getCurrentNo(2, function(lastdata) {
+					//console.log(JSON.stringify(lastdata));
+					var lastno = lastdata[0].currentno;
+					var nextTKno = nextSeqNo(parseInt(lastno));
+					docPathList = [];
+					saveTicketDataDB(nextTKno, billno);
+					executeAsync(3500, function() {
+						updateBillBeforMakeTicket(billno, nextTKno, function() {
+							loadCandidateBill(billno, function(candidateList) {
+								//alert(JSON.stringify(candidateList));
+								if (candidateList.length > 0)	{
+									cancelCandidate(candidateList, function() {
+										loadUserOwnerBill(billno, function(userid) {
+											var title = "ต้องขออภัยเป็นอย่างยิ่ง";
+											var body = "เนื่องจากบิลของคุณหมายเลข "  + billno + " ถูกยกเลิกโดยระบบพบว่ามีบุคคลอื่นได้ทำรายการชำระค่าดดยสารเสร็จก่อนคุณ อย่างไรก็ตามคุณยังสามารถเข้าจองตั๋วเพื่อเดินทางไปกับเราได้ใหม่ตลอดเวลา ที่ https://goo.gl/ZaZYJs หวังเป็นอย่างยิ่งว่าเราจะได้มีโอกาสรับใช้คุณใหม่";
+											pushNotificationToUser(userid, title, body, "myVanBooking");
+										});
+									});
+								} 
+							});
+						});
+					});
+					executeAsync(6500, function() {
+						openTicket(billno, nextTKno);
+						closeShowSlip();
+						hideLoadingImageM();
+					});
+				});
+			}
+		});
+	}
+
+	function saveTicketDataDB(nextnoText, billno) {
+		var myset = $.parseJSON($.cookie("mySet") || '[]');
+		//console.log(JSON.stringify(myset));
+		var docPathList = [];
+		myset.forEach(function(mitem) {
+			docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + mitem.tourid + "/passangers/" + mitem.passangerid + "/bookings/" + mitem.bookingid;
+			bookingDocRef = db.doc(docpath);
+			bookingDocRef.set({
+				bstatus: "2",
+				ticketno: nextnoText
+			}, { merge: true })
+			.then(function() {
+				var OB = {};
+				OB.path = "/tours/" + mitem.tourid + "/passangers/" + mitem.passangerid + "/bookings/" + mitem.bookingid;
+				OB.seatno = mitem.sno;
+				docPathList.push(OB);
+				//console.log(JSON.stringify(docPathList));
+			});
+		}); 
+		timeout(3100).then(function() {
+			loadUserOwnerBill(billno, function(userid) {
+				getTourIdFromBill(billno, function(tourid) {
+					getBdateFromTourId(tourid, function(bdate, bscheduleid) {
+						saveTicketData(nextnoText, userid, bdate, docPathList);
+						updateCurrentTicketNo(parseInt(nextnoText));
+					});
+				});
+			});
+		}); 
+	}
+
+	function updateBillBeforMakeTicket(blno, tkno, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + blno;
+		var billRef = db.doc(docpath);
+		billRef.set({
+			ticketno: tkno,
+			status: 2
+		}, { merge: true });
+		callback();
+	}
+
+	function loadCandidateBill(blno, callback) {
+		var result = [];
+		var docpath;
+		getTourIdFromBill(billno, function(mytourid) {
+			loadSeatsOfBill(blno, function(seats) {
+				seats.forEach(function(item) {
+					docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + mytourid;
+					var tourRef = db.doc(docpath);
+					tourRef.collection("passangers").where("seatno", "==", item).get().then(function(pquerySnapshot) {
+						pquerySnapshot.forEach(function(pssgdoc) {
+							docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + mytourid + "/passangers/" + pssgdoc.id;
+							var pssgRef = db.doc(docpath);
+							pssgRef.collection("bookings").get().then(function(bquerySnapshot) {
+								bquerySnapshot.forEach(function(bkdoc) {
+									if ((bkdoc.data().billno != blno) && (bkdoc.data().bstatus==1))	{
+										var idx = result.findIndex(x => x == bkdoc.data().billno);
+										if (idx < 0)	{
+											result.push(bkdoc.data().billno);
+										}
+									}
+								});
+							});
+						});
+					});
+				});
+			});
+		});
+		executeAsync(5500, function() {
+			callback(result);
+		});
+	}
+
+	function cancelCandidate(billItems, callback) {
+		billItems.forEach(function(item) {
+			var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + item;
+			var billRef = db.doc(docpath);
+			billRef.set({
+				status: 0
+			}, { merge: true });
+			billRef.collection("billDocPaths").get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(path) {
+					var bookingRef = db.doc("terminals/" + myterminalid + "/routes/" + routeid + path);
+					bookingRef.set({
+						bstatus: 0
+					}, { merge: true });
+				});
+			});
+		});
+		executeAsync(5500, function() {
+			callback();
+		});
+	}
+
+	function loadSeatsOfBill(blno, callback) {
+		var result = [];
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + blno;
+		var billRef = db.doc(docpath);
+		billRef.collection("billDocPaths").get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				result.push(doc.data().seatno);
+			});
+			callback(result);
+		});
+	}
+
+	function loadUserOwnerBill(blno, callback) {
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + blno;
+		var billRef = db.doc(docpath);
+		billRef.get().then(function(doc) {
+			var userid = doc.data().userid;
+			console.log(userid);
+			callback(userid);
+		});
+	}
+
+	function loadTicketNoOfBill(billno, callback){
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + billno;
+		var billRef = db.doc(docpath);
+		billRef.get().then(function(doc) {
+			var ticketno = doc.data().ticketno;
+			callback(ticketno);
+			//console.log(ticketno);
+		});
+	}
+
+ 	function openTicket(blno, tkno) {
+		var myTicketParamOB = [];
+		var myparam = {tkno: tkno, rtid: routeid, blno: blno};
+		myTicketParamOB.push(myparam);
+		//console.log(JSON.stringify(myTicketParamOB));
+		$.removeCookie("myTicketParamOB");
+		$.cookie("myTicketParamOB", JSON.stringify(myTicketParamOB));
+		window.open("ticket2.html", '_blank');
+	}
+
+	function getTourIdFromBill(billno, callback){
+		var tourid;
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/bills/" + billno;
+		var billRef = db.doc(docpath);
+		billRef.collection("billDocPaths").get().then(function(blquerySnapshot) {
+			var m = 1;
+			blquerySnapshot.forEach(function(ptdoc) {
+				if (m==1)	{
+					var path = ptdoc.data().billDocPath;
+					var paths = path.split("/");
+					tourid = paths[2];
+				}
+				m++;
+			});
+			callback(tourid);
+		});
+	}
+
+	function getBdateFromTourId(tourid, callback){
+		var docpath = "terminals/" + myterminalid + "/routes/" + routeid + "/tours/" + tourid;
+		var tourRef = db.doc(docpath);
+		tourRef.get().then(function(doc) {
+			callback(doc.data().traveldate, doc.data().scheduleid);
+		});
+	}
+
+	function calPicturSize(w, h) {
+		if (w <= 150){
+			return {w: w, h: h};
+		} else if (w*0.9 <= 150){
+			return {w: w*0.9, h: h*0.9};
+		} else if (w*0.8 <= 150){
+			return {w: w*0.8, h: h*0.8};
+		} else if (w*0.7 <= 150){
+			return {w: w*0.7, h: h*0.7};
+		} else if (w*0.6 <= 150){
+			return {w: w*0.6, h: h*0.6};
+		} else if (w*0.5 <= 150){
+			return {w: w*0.5, h: h*0.5};
+		} else if (w*0.4 <= 150){
+			return {w: w*0.4, h: h*0.4};
+		}  else if (w*0.3 <= 150){
+			return {w: w*0.3, h: h*0.3};
+		} else if (w*0.2 <= 150){
+			return {w: w*0.2, h: h*0.2};
+		} else if (w*0.1 <= 150){
+			return {w: w*0.1, h: h*0.1};
+		} else {
+			return {w: w*0.05, h: h*0.05};
+		}
+	}
+
+	function getMeta(url){
+		var r = $.Deferred();
+		$('<img/>').attr('src', url).load(function(){
+			 var s = {w:this.width, h:this.height};
+			 r.resolve(s)
+	   });
+	   return r;
+	}
+
+</script>
+

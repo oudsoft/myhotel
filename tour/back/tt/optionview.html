@@ -1,0 +1,158 @@
+<style>
+	#output {
+		display: none;
+		background-color: #cc33cc;
+		border: 3px white solid;
+		border-radius: 3px;
+		color: white;
+		margin: 10px;
+		padding: 10px;
+	}
+	.step-box {
+	    display: table;
+		margin: 10px;
+		width: 97%;
+		text-align: left;
+		border: 2px solid white;
+	}
+ 	.step-bar {
+		border: 0px solid #000000;
+		display: table-cell;
+		vertical-align: middle;
+		width: 72%;
+		text-align: left;
+		padding: 5px;
+	}
+	.step-bar a:link {
+		color: #ffff00;
+	}
+ 	.step-bar-label {
+		border: 0px solid #000000;
+		display: table-cell;
+		width: 25%;
+		vertical-align: middle;
+		padding: 0px 5px;
+	}
+	.searchitem{
+		border: 3px solid #ffff00;
+		border-radius: 5px;
+		margin: 15px;
+	}
+	.pagelink {
+		background-color: white;
+		color: blue;
+	}
+</style>
+<div id="output"></div>
+<div class="ui-field-contain">
+	<button class="ui-btn" id="back-cmd" onclick="closeOptionWindow()">   ปิด     </button>
+</div>
+<script>
+	
+	showOption();
+
+	function showOption() {
+		$("#output").empty();
+		showLoadingImageMT();
+		var items = search(rid);
+		setTimeout(function() {
+			var result = createView(items);
+			console.log(result);
+			$("#output").html(result);
+			$("#output").show();
+			hideLoadingImageM();
+		}, 7000);
+	}
+
+	function search(option) {
+		var rsitems = [];
+		infoRef = db.collection("infos");
+		infoRef.get().then(function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				if (option==doc.data().routeno) {
+					var item = {};
+					item.routeno = doc.data().routeno;
+					item.routename = doc.data().routename;
+					item.routemiddle = doc.data().routemiddle;
+					item.distanct = doc.data().distanct;
+					item.providername = doc.data().providername;
+					item.schedule = doc.data().schedule;
+					item.pointup = doc.data().pointup;
+					item.price = doc.data().price;
+					item.phoneno = doc.data().phoneno;
+					item.link = doc.data().link;
+					item.remark = doc.data().remark;
+					rsitems.push(item);
+				}
+			});
+		});
+		return rsitems;
+	}
+
+	function createView(items) {
+		rs_str = "";
+		for (var x=0; x<items.length; x++){
+			rs_str = rs_str.concat("<div class='searchitem'>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>หมายเลขเส้นทาง :</h3></div><div class='step-bar'><div>" + items[x].routeno + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ชื่อเส้นทาง :</h3></div><div class='step-bar'><div>" + items[x].routename + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>จุดทางผ่าน :</h3></div><div class='step-bar'><div>" + items[x].routemiddle + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>รวมระยะทาง :</h3></div><div class='step-bar'><div>" + items[x].distanct + " ก.ม." + "</div></div></div>");
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ชื่อผู้ประกอบการ :</h3></div><div class='step-bar'><div>" + items[x].providername + "</div></div></div>");
+
+			var parts = items[x].schedule.split("\\n");
+			var result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เที่ยวเวลาเดินรถ :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			parts = items[x].pointup.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>จุดจอดให้ผู้โดยสารขึ้น :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			parts = items[x].price.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				if (parts.length > 1){
+					result = result.concat("<br/>");
+				}
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ค่าโดยสาร :</h3></div><div class='step-bar'><div>" + result  + " บาท" + "</div></div></div>");
+
+			parts = items[x].phoneno.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เบอร์โทรติดต่อ :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			if ((items[x].link !=="") && (items[x].link !=="-")){
+				rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เฟสบุคลิงค์ :</h3></div><div class='step-bar'><div>" + "<a class='pagelink' href='"+items[x].link +"' target='_blank'>เข้าชมเพจ</a>" + "</div></div></div>");
+			} else {
+				rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>เฟสบุคลิงค์ :</h3></div><div class='step-bar'><div>" +  items[x].link  + "</div></div></div>");
+			}
+
+			parts = items[x].remark.split("\\n");
+			result = "";
+			for (var i=0; i< parts.length; i++){
+				result = result.concat(parts[i]);
+				result = result.concat("<br/>");
+			}
+			rs_str = rs_str.concat("<div class='step-box'><div class='step-bar-label'><h3>ข้อมูลอื่นๆ :</h3></div><div class='step-bar'><div>" + result + "</div></div></div>");
+
+			rs_str = rs_str.concat("</div>");
+		}
+		return rs_str;
+	}
+
+	function closeOptionWindow() {
+		close();
+	}
+</script>
