@@ -1,0 +1,464 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../resources/fonts/THSarabunNew.ttf');
+    }
+</style>
+
+<style>
+	#home-profile{
+		background: #cc33cc;
+		color: white;
+		text-align: right;
+	}
+	#screen-name{
+		text-align: center;
+	}
+	#howto-popup p{
+		color: black;
+	}
+	#search-explain-box{
+
+	}
+	#billTarget-Box {
+
+	}
+	#billNo-label{
+
+	}
+	#billNoTarget{
+
+	}
+	.step-box{
+		float: left;
+		clear: both;
+		margin: 10px;
+	}
+	.step-bar-label{
+		border: 0px solid #000000;
+		float: left;
+		clear: both;
+		width: 300px;
+		vertical-align: middle;
+	}
+	.step-bar {
+		border: 0px solid #000000;
+		vertical-align: middle;
+	}
+	.text-seacrh-input{
+		border: 3px #cc33cc solid; 
+		border-radius: 3px;
+		padding: 10px; 
+		margin: 5px;
+	}
+	#searchresult, #searchresult-BillList{
+		border: 3px blue solid; 
+		border-radius: 5px;
+		padding: 10px; 
+		margin: 5px;
+		color: blue;
+		text-align: left;
+        font-family: THSarabunNew;
+		src: url('../resources/fonts/THSarabunNew.ttf');  
+		position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.22em;
+	}
+	.previewElemrnt{
+		float: left;
+		clear: right;
+		padding: 3px; 
+		margin: 0px;
+	}
+	.autocomplete-suggestions {
+		text-align: left; cursor: default; border: 1px solid #ccc; border-top: 0; background: #fff; box-shadow: -1px 1px 3px rgba(0,0,0,.1);
+		/* core styles should not be changed */
+		position: absolute; display: none; z-index: 9999; max-height: 254px; overflow: hidden; overflow-y: auto; box-sizing: border-box;
+	}
+	.autocomplete-suggestion { position: relative; padding: 0 .6em; line-height: 23px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.02em; color: #333; }
+	.autocomplete-suggestion b { font-weight: normal; color: #1f8dd6; }
+	.autocomplete-suggestion.selected { background: #f0f0f0; }
+</style>
+
+<div  id='home-main'>
+	<div id="home-profile"></div>
+	<div id="screen-name"><h2>ค้นหาบิลที่ต้องการปิด</h2></div>
+	<div id="searchresult" style="display: none">#</div>
+	<div id="accordion">
+	  <h3>ค้นหาด้วยหมายเลขบิล</h3>
+	  <div>
+		<div id="search-explain-box">โปรดกรอกหมายเลขบิล แล้วคลิกปุ่ม <b>ค้นหา</b> </div>
+		<div id="billTarget-Box" class="step-box">
+			<div id="billNo-label" class="step-bar-label"><b>หมายเลขบิลที่ต้องการค้นหา</b></div>
+			<div class="step-bar">
+				<input type="search" data-clear-btn="false" id="billNoTarget" size="20" placeholder="" class="text-seacrh-input" tabindex="1" value="" onkeyup="userTypingSearch()"/>
+			</div>
+		</div>
+		<div  id='searchBillCmd-Box'>
+			<button class="ui-btn" id="searchBill-cmd" tabindex="2" onclick="searchBill()">ค้นหา</button>
+		</div>
+	  </div>
+	  <h3>ค้นหาด้วยหมายเลขผู้ใช้ไฟ/บัญชีแสดงสัญญา</h3>
+	  <div>
+		<div id="search-explain-box">โปรดกรอกหมายเลขผู้ใช้ไฟ หรือ บัญชีแสดงสัญญา แล้วคลิกปุ่ม <b>ค้นหา</b> </div>
+		<div id="billRefNoTarget-Box" class="step-box">
+			<div id="billNoRefNo-label" class="step-bar-label"><b>หมายเลขผู้ใช้ไฟ หรือ บัญชีแสดงสัญญา ที่ต้องการค้นหา</b></div>
+			<div class="step-bar">
+				<input type="search" data-clear-btn="false" id="refNoTarget" size="20" placeholder="" class="text-seacrh-input" tabindex="1" value="" onkeyup="userTypingRefNoSearch()"/>
+			</div>
+		</div>
+		<div  id='searchBillRefNoCmd-Box'>
+			<button class="ui-btn" id="searchBillRefNo-cmd" tabindex="2" onclick="searchBillRefNo()">ค้นหา</button>
+		</div>
+	  </div>
+	  <h3>ค้นหาด้วยวันที่ออกบิล</h3>
+	  <div>
+		<div id="search-explain-box">โปรดเลือกวันที่จากปฏิทิน แล้วคลิกปุ่ม <b>ค้นหา</b> </div>
+		<div id="billTarget-Box" class="step-box">
+			<div id="billNo-label" class="step-bar-label"><b>วันที่ออกบิล</b></div>
+			<div class="step-bar">
+				<input type="text" id="date-text" size="30" class="text-seacrh-input" placeholder="คลิก เพื่อเลือกวันที่เดินทางจากปฏิทิน" readOnly/>
+			</div>
+		</div>
+		<div  id='searchBillDateCmd-Box'>
+			<button class="ui-btn" id="searchBillDate-cmd" tabindex="2" onclick="searchBillDate()">ค้นหา</button>
+		</div>
+	  </div>
+		<div id="searchresult-BillList" style="display: none">#</div>
+	</div>
+</div>
+
+<script>
+
+	var allBillOjb;
+
+    $(document).ready(function() {
+		//สร้างส่วนหัวสไลด์เมนู
+		$("#home-profile").append("<span style='font-size:30px;cursor:pointer' onclick='openNav()'>&#9776;</span>");
+		$( "#accordion" ).accordion();
+		$("#date-text").datepicker({dateFormat: 'dd/mm/yy'});		
+		$("#date-text").datepicker().datepicker("setDate", new Date());
+	});
+
+	//Slide Menu 
+	/*
+	function openNav() {
+		$("#mySidenav").css("width", "300px");
+	}
+	function closeNav() {
+		$("#mySidenav").css("width", "0");
+	}
+*/
+	function loadAllBillData(callback) {
+
+	}
+	
+	function loadBillDataWithID(billID, callback) {
+		var docpath  = "/elects/000000000";
+		var ElectsRef = db.doc(docpath);
+		ElectsRef.collection("bills").where("billID","==",billID).get().then(function(querySnapshot) {
+			if (querySnapshot.size == 0) {
+				callback("0");
+			} else {
+				querySnapshot.forEach(function(anyBiilDoc) {
+					getCustomerDataWithID(anyBiilDoc.data().customerID, function(customerObj) {
+						var anyOBJ = {};
+						console.log(anyBiilDoc.data().billID);
+						anyOBJ.billNo = anyBiilDoc.data().billID;
+						anyOBJ.date = anyBiilDoc.data().date;
+						anyOBJ.time = anyBiilDoc.data().time;
+						anyOBJ.electricType = anyBiilDoc.data().electricType;
+						anyOBJ.electricRefnoName = anyBiilDoc.data().electricRefnoName;
+						anyOBJ.electricRefno = anyBiilDoc.data().electricRefno; 
+						anyOBJ.electricCharge = anyBiilDoc.data().electricCharge;
+						anyOBJ.customerName = customerObj.customerName;
+						anyOBJ.customerAddress = customerObj.customerAddress;
+						anyOBJ.promptpayAccountNo = anyBiilDoc.data().promptpayAccountNo;
+						anyOBJ.promptpayAccountName =  anyBiilDoc.data().promptpayAccountName;
+						anyOBJ.electricTypeValue = anyBiilDoc.data().electricTypeValue;
+						anyOBJ.receiptNo = anyBiilDoc.data().receiptID;
+						callback(anyOBJ);
+					});
+				});
+			}
+		});
+	}
+
+	function getCustomerDataWithID(customerID, callback) {
+		var docpath  = "/elects/000000000/customers/" + customerID;
+		var customersRef = db.doc(docpath);
+		customersRef.get().then(function(doc) {
+			var ob = {};
+			ob.customerID = doc.data().customerID;
+			ob.customerName = doc.data().customerName;
+			ob.customerAddress = doc.data().customerAddress;
+			callback(ob);
+		});
+	}
+
+	function searchBill() {
+		var billNo = $("#billNoTarget").val();
+		loadBillDataWithID(billNo, function(billDataObj) {
+			//console.log(JSON.stringify(billDataObj));
+			if (billDataObj != "0") {
+				commonDataObj = billDataObj;
+				if (billDataObj.receiptNo){
+					loadBill(3);
+				} else {
+ 					loadBill(2);
+				}
+			} else {
+				alert("ไม่พบบิลหมายเลข " + billNo + " จากระบบ");
+			}
+		});
+	}
+
+	function doPreBillList() {
+		return new Promise((resolve, reject) => {
+			try {
+				var list = [];
+				allBills.forEach(function(item) {
+					var listItem = [];
+					listItem.push(item.billID);
+					listItem.push(Number(item.billID));
+					list.push(listItem);
+				});
+				resolve(list);
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	function doPreRefNoList() {
+		return new Promise((resolve, reject) => {
+			try {
+				var list = [];
+				allBills.forEach(function(item) {
+					var anyTag = $.grep(list, (e) =>{ return (e[0] == item.electricRefno); });
+					if (anyTag.length == 0) {
+						var listItem = [];
+						listItem.push(item.electricRefno);
+						listItem.push(Number(item.billID));
+						list.push(listItem);
+					}
+				});
+				resolve(list);
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+
+	const loadPreBillList = async (callback) => {
+		var billAvailableTags = await doPreBillList();
+		//console.log(JSON.stringify(billAvailableTags));
+		callback(billAvailableTags);
+	}
+
+	const loadPreRefNoList = async (callback) => {
+		var refNoAvailableTags = await doPreRefNoList();
+		//console.log(JSON.stringify(billAvailableTags));
+		callback(refNoAvailableTags);
+	}
+
+	function userTypingSearch() {
+		if ($("#billNoTarget").val() != ''){
+			$("#billNoTarget").autoComplete({
+				minChars: 1,
+				source: function(term, suggest){
+					term = term.toLowerCase();
+					//var choices = [['Australia', 'au'], ['Austria', 'at'], ['Brasil', 'br'], ['Thailand', 'th'], ['Praser Sian-Sura', 'ps'], ['กรุงเทพ', 'กทม']];
+					//var choices = loadPreBillList;
+					//var choices = async () => {	return  await doPreBillList();	};
+					loadPreBillList(function(availableTags) {
+						var choices = availableTags;
+						var suggestions = [];
+						for (i=0;i<choices.length;i++)
+							if (~(choices[i][0]+' '+choices[i][1]).toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+						suggest(suggestions);
+					});
+				},
+				renderItem: function (item, search){
+					search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+					var re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
+					var choiceItem = '<div class="autocomplete-suggestion" data-langname="'+item[0]+'" data-lang="'+item[1]+'" data-val="'+search+'" onmouseover="userselect(\'' + item[0] + '\')" onmouseout="userunselect()">' + item[0].replace(re, "<b>$1</b>")+'</div>';
+					return choiceItem;
+				},
+				onSelect: function(e, term, item){
+					//alert('Item "'+item.data('langname')+' ('+item.data('lang')+')" selected by '+(e.type == 'keydown' ? 'pressing enter' : 'mouse click')+'.');
+					$("#billNoTarget").val(item.data('langname'));
+				},
+			});
+		} else {
+			userunselect();
+		}
+	}
+	
+	function getBillObj(billNo, callback) {
+		var anyBill = $.grep(allBills, (e) =>{ return (e.billID == billNo); });
+		callback(anyBill);
+	}
+
+	function getCustomerObj(customerNo,  callback) {
+		var anyCustomer = $.grep(allCustomers, (e) =>{ return (e.customerID == customerNo); });
+		callback(anyCustomer);
+	}
+
+	function userselect(billNo) {
+		getBillObj(billNo, function(billOBJ) {
+			let  customerNo = billOBJ[0].customerID;
+			getCustomerObj(customerNo, function(customerOBJ) {
+				let previewText = "";
+				previewText = previewText.concat("<div class='previewElemrnt'>หมายเลขบิล ");
+				previewText = previewText.concat("<b><span id='preview-billNo'>" + billOBJ[0].billID + "</span></b></div>");
+				previewText = previewText.concat("<div class='previewElemrnt'>ลูกค้าชื่อ ");
+				previewText = previewText.concat("<b>" + customerOBJ[0].customerName + "</b></div>");
+				previewText = previewText.concat("<div class='previewElemrnt'>หมายเลขผู้ใช้ไฟ ");
+				previewText = previewText.concat("<b>" + billOBJ[0].electricRefno  + "</b></div>");
+				previewText = previewText.concat("<div class='previewElemrnt'>ค่าไฟ ");
+				previewText = previewText.concat("<b>" + Number(billOBJ[0].electricCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + "</b> บาท</div>");
+				previewText = previewText.concat("<div class='previewElemrnt'>วันที่ ");
+				previewText = previewText.concat("<b>" + billOBJ[0].date + "</b></div>");
+				if (billOBJ[0].receiptID) {
+					previewText = previewText.concat("<div class='previewElemrnt'>เลขที่ใบเสร็จ ");
+					previewText = previewText.concat("<b>" + billOBJ[0].receiotID + "</b></div>");
+				}
+				$("#searchresult").html(previewText);
+				$("#searchresult").show();
+			});
+		});
+	}
+	function userunselect(){
+		$("#searchresult").html("");
+		$("#searchresult").hide();
+	}
+
+	$("#searchresult").click(function() {
+		var billNo = $("#preview-billNo").val();
+		$("#billNoTarget").val(billNo);
+		userunselect();
+	});
+
+	function searchBillDate() {
+		var udate = $("#date-text").val();
+		var ddmmyyyy = udate.split("/");
+		udate = ddmmyyyy[2] + "-" + ddmmyyyy[1] + "-" + ddmmyyyy[0];
+		//console.log(udate);
+		var tardate = new Date(udate); 
+		getBillDateListObj(datetostring(tardate), function(listBillOBJs) {
+			//console.log(JSON.stringify(listBillOBJs));
+			let previewText = "";
+			previewText = previewText.concat("<h3>วันที่ <b> " + datetostring(tardate) +"</b></h3>");
+			$.each( listBillOBJs, function( index, item ){
+			//listBillOBJs.forEach(function(item) {
+				let  customerNo = item.customerID;
+				getCustomerObj(customerNo, function(customerOBJ) {
+					previewText = previewText.concat("<div class='previewElemrnt' onclick='openTargetBill(\"" + item.billID + "\")'><span>" + (index+1) +". หมายเลขบิล </span>");
+					previewText = previewText.concat("<span id='preview-billNo'><b>" + item.billID + " </b></span>");
+					previewText = previewText.concat("<span> ลูกค้าชื่อ </span>");
+					previewText = previewText.concat("<span><b> " + customerOBJ[0].customerName + " </b></span>");
+					previewText = previewText.concat("<span>หมายเลขผู้ใช้ไฟ </span>");
+					previewText = previewText.concat("<span><b> " + item.electricRefno  + " </b></span>");
+					previewText = previewText.concat("<span>ค่าไฟ </span>");
+					previewText = previewText.concat("<span><b> " + Number(item.electricCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + " </b> บาท</span>");
+					if (item.receiptID) {
+						previewText = previewText.concat("<span> เลขที่ใบเสร็จ </span>");
+						previewText = previewText.concat("<b> " + item.receiotID + "</b></span>");
+					}
+					previewText = previewText.concat("</div>");
+				});
+			});
+			$("#searchresult-BillList").html(previewText);
+			$("#searchresult-BillList").show();
+		});
+	}
+
+	function getBillDateListObj(sdate, callback) {
+		var listBillObjs = $.grep(allBills, (e) =>{ return (e.date == sdate); });
+		callback(listBillObjs);
+	}
+
+	function openTargetBill(targetBillNo) {
+		console.log(targetBillNo);
+		loadBillDataWithID(targetBillNo, function(billDataObj) {
+			if (billDataObj != "0") {
+				commonDataObj = billDataObj;
+				if (billDataObj.receiptNo){
+					loadBill(3);
+				} else {
+ 					loadBill(2);
+				}
+			} else {
+				alert("ไม่พบบิลหมายเลข " + billNo + " จากระบบ");
+			}
+		});
+	}
+
+	function userTypingRefNoSearch() {
+		if ($("#refNoTarget").val() != ''){
+			$("#refNoTarget").autoComplete({
+				minChars: 1,
+				source: function(term, suggest){
+					term = term.toLowerCase();
+					loadPreRefNoList(function(availableTags) {
+						var choices = availableTags;
+						var suggestions = [];
+						for (i=0;i<choices.length;i++)
+							if (~(choices[i][0]+' '+choices[i][1]).toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+						suggest(suggestions);
+					});
+				},
+				renderItem: function (item, search){
+					search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+					var re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
+					var choiceItem = '<div class="autocomplete-suggestion" data-langname="'+item[0]+'" data-lang="'+item[1]+'" data-val="'+search+'" onmouseover="userselectRefNo(\'' + item[0] + '\')" onmouseout="userunselectRefNo()">' + item[0].replace(re, "<b>$1</b>")+'</div>';
+					return choiceItem;
+				},
+				onSelect: function(e, term, item){
+					$("#refNoTarget").val(item.data('langname'));
+				},
+			});
+		} else {
+			userunselect();
+		}
+	}
+
+	function userselectRefNo(refNo) {
+		var someBills = $.grep(allBills, (e) =>{ return (e.electricRefno == refNo); });
+		let previewText = "";
+		previewText = previewText.concat("<h3>หมายเลขผู้ใช้ไฟ/บัญชีแสดงสัญญา <b> " + refNo +"</b></h3>");
+		$.each(someBills, function( index, item ){
+			getBillObj(item.billID, function(billOBJ) {
+				let  customerNo = billOBJ[0].customerID;
+				getCustomerObj(customerNo, function(customerOBJ) {
+					previewText = previewText.concat("<div class='previewElemrnt' onclick='openTargetBill(\"" + item.billID + "\")'><span>" + (index+1) +". หมายเลขบิล </span>");
+					previewText = previewText.concat("<span id='preview-billNo'><b>" + item.billID + " </b></span>");
+					previewText = previewText.concat("<span> ลูกค้าชื่อ </span>");
+					previewText = previewText.concat("<span><b> " + customerOBJ[0].customerName + " </b></span>");
+					previewText = previewText.concat("<span>ค่าไฟ </span>");
+					previewText = previewText.concat("<span><b> " + Number(item.electricCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') + " </b> บาท</span>");
+					previewText = previewText.concat("<span>วันที่ </span>");
+					previewText = previewText.concat("<span><b>" + billOBJ[0].date + "</b></span>");
+					if (item.receiptID) {
+						previewText = previewText.concat("<span> เลขที่ใบเสร็จ </span>");
+						previewText = previewText.concat("<b> " + item.receiotID + "</b></span>");
+					}
+					previewText = previewText.concat("</div>");
+				});
+			});
+		});
+		$("#searchresult-BillList").html(previewText);
+		$("#searchresult-BillList").show();
+	}
+
+	function userunselectRefNo(){
+		$("#searchresult").html("");
+		$("#searchresult").hide();
+	}
+
+	function searchBillRefNo() {
+		var refNo = $("#refNoTarget").val();
+		userselectRefNo(refNo);
+	}
+</script>

@@ -1,0 +1,204 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../resources/fonts/THSarabunNew.ttf');
+    }
+
+ 	#billContent {
+		text-align: center;
+        font-family: THSarabunNew;
+		src: url('../resources/fonts/THSarabunNew.ttf');  
+	}
+</style>
+
+<style>
+	#home-profile{
+		background: #cc33cc;
+		color: white;
+		text-align: right;
+	}
+	#screen-name{
+		text-align: center;
+	}
+	#howto-popup p{
+		color: black;
+	}
+	#qrCanvas{
+		float: left;
+		clear: both;
+	}
+	.step-box {
+	    /* display: table; */
+		float: left;
+		clear: both;
+		margin: 10px;
+	}
+	.step-bar-label {
+		border: 0px solid #000000;
+		/* display: table-cell; */
+		float: left;
+		clear: both;
+		width: 200px;
+		vertical-align: middle;
+	}
+	.step-bar {
+		border: 0px solid #000000;
+		/* display: table-cell; */
+		vertical-align: middle;
+	}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		/* height: 40px; */
+		padding: 10px;
+	}
+	.input-step {
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		padding: 10px;
+		text-align: left;
+	}
+	.text-input{
+		border: 3px #cc33cc solid; 
+		border-radius: 3px;
+		padding: 10px; 
+		margin: 5px;
+	}
+	.explain-text-popup p{
+		margin-top: 10px;
+		text-align: left;
+		color: black;
+	}
+	.controlBill-Box{
+		float: left;
+		width: 28%;
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+		/* background: #cc33cc; */
+	}
+</style>
+
+<div  id='home-main'>
+	<div id="home-profile"></div>
+	<div id="screen-name"><h2>จัดทำคิว-อาร์โค้ดให้เอเย่น</h2></div>
+	<div id="explain-box">โปรดกรอกข้อมูลให้ครบ แล้วคลิกปุ่ม <b>สร้างคิว-อาร์โค้ด</b> </div>
+	<div id="electricCharge-bar" class="step-box">
+		<div id="electricCharge-label" class="step-bar-label"><b>จำนวนเงินค่าไฟฟ้า</b></div>
+		<div class="step-bar">
+			<input type="number" data-clear-btn="false" id="electricCharge" size="10" placeholder="" class="text-input" tabindex="3" value=""/>&nbsp;&nbsp;บาท
+		</div>
+	</div>
+	<div id="promptpayAccount-select-bar" class="step-box">
+		<div class="step-bar-label"><b>บัญชีพร้อมเพย์</b></div><div class="step-bar"><select id="promptpayAccount-select" class="input-step" tabindex="6"><option value="140000835077746">นายประเสริฐ สุดชดา</option><option value="140000640468725">นางจารุณี สุดชดา</option></select></div>
+	</div>
+	<div  id='home-main-cmd'>
+		<button class="ui-btn" id="OpenQRCode-cmd" tabindex="7" onclick="OpenQRCode()">สร้างคิว-อาร์โค้ด</button>
+	</div>
+</div>
+
+<div data-role='popup' id='qrcodeView-popup' style='padding: 20px;'>
+	<div class="title-box">คิว-อาร์โค้ดเอเย่น</div>
+	<div id="explian-text" class="explain-text-popup"><p>คลิกที่ ดาวน์โหลดคิว-อาร์โค้ด เพื่อดาวน์โหลดรูป คิว-อาร์โค้ด</p><p>หรือคลิก ปิด เพื่อปิดคิว-อาร์โค้ด</p></div>
+	<div id="billContent">
+		<canvas id="agentQRCanvas" width="210" height="210"></canvas>	
+	</div>
+	<div class="ui-field-contain">
+		<a id="downloadAgentQRCode-cmd">
+			<button class="ui-btn" id="downloadAgentQRCode-bttn" onclick="downloadAgentQRCode()">   ดาวน์โหลดคิว-อาร์โค้ด    </button>	
+		</a>
+		<button class="ui-btn" id="close-billView-popup-cmd" onclick="closeQRCodeViewpopup()">   ปิด     </button>	
+	</div>
+</div>
+
+<script>
+	var qrcanvas;
+
+    $(document).ready(function() {
+		//สร้างส่วนหัวสไลด์เมนู
+		$("#home-profile").append("<span style='font-size:30px;cursor:pointer' onclick='openNav()'>&#9776;</span>");
+		$("#qrcodeView-popup").popup({ overlayTheme: "a"});
+	});
+
+	function closeQRCodeViewpopup() {
+		$("#qrcodeView-popup").popup("close");
+	}
+
+	function downloadAgentQRCode(fileName){
+		var download = document.getElementById("downloadAgentQRCode-cmd");
+		var image = document.getElementById("agentQRCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", "QR" + fileName + ".png");
+	}
+
+	function validateInputForm() {
+		//electricCharge
+		return true;
+	}
+
+	function OpenQRCode() {
+		if (validateInputForm()){
+			OpenQRCodeViewPopup();
+		}
+	}
+
+	function OpenQRCodeViewPopup(){
+		var electricCharge = $("#electricCharge").val();
+		var promptpayAccountNo = $("#promptpayAccount-select option:selected").val();
+		var promptpayAccountName = $("#promptpayAccount-select option:selected").text();
+		var qrcodeObj = {electricCharge: electricCharge, promptpayAccountNo: promptpayAccountNo, promptpayAccountName: promptpayAccountName};
+		rederQRCode(qrcodeObj);
+	}
+
+	function rederQRCode(qrcodeOBJ){
+		showLoadingImageMT();
+		$("#qrcodeView-popup").popup("open");
+		ceateQRCanvas(qrcodeOBJ, function(QRCoddDataUrl) {
+			var charge = qrcodeOBJ.electricCharge.replace( /\./ , "_" )
+			$("#downloadAgentQRCode-bttn").attr("onclick", "downloadAgentQRCode('" + qrcodeOBJ.promptpayAccountNo + "-" + charge + "')");
+			hideLoadingImageM();
+		});
+	}
+
+	function ceateQRCanvas(qrcodeOBJ, callback) {
+		qrcanvas = document.getElementById('agentQRCanvas');
+		var context = qrcanvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, qrcanvas.width, qrcanvas.height);
+		createQRIMG(qrcodeOBJ, context);
+		var dataURL = qrcanvas.toDataURL({format: 'png', quality: 1.0});
+		callback(dataURL);
+	}
+
+	function createQRIMG(qrcodeOBJ, ct) {
+		var qrCodeText = generateQRCodeText(qrcodeOBJ.promptpayAccountNo, qrcodeOBJ.electricCharge);
+		//console.log(qrCodeText);
+		$("#agentQRCanvas").qrcode({
+			render: 'canvas',
+			minVersion: 1,
+			maxVersion: 40,
+			ecLevel: 'H',
+			left: 30,
+			top: 5,
+			fill: '#000000',
+			background: null,
+			mode: 0,
+			size: 150,
+			text: qrCodeText
+		});
+
+		createTextSingleLine(ct, {text: 'ขื่อบัญชีพร้อมเพย์ : {0}'.format(qrcodeOBJ.promptpayAccountName), x: 105, y: 175, textStyle: 'normal', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+
+		createTextSingleLine(ct, {text: 'ขอบคุณที่ใช้บริการ', x: 105, y: 195, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+	}
+
+</script>

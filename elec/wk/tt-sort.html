@@ -1,0 +1,20 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+<div id="output"/>
+
+<script>
+var names = [
+    { name : "Joe", age:20, email: "joe@hotmail.com"},
+    { name : "Mike", age:50, email: "mike@hotmail.com"},
+    { name : "Joe", age:45, email: "mike@hotmail.com"}
+   ];
+   
+   
+var filteredNames = $(names).filter(function( idx ) {
+    return names[idx].name === "Joe" && names[idx].age < 30;
+}); 
+
+$(filteredNames).each(function(){
+     $('#output').append(this.name);
+});
+</script>

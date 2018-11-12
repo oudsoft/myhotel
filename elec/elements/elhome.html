@@ -1,0 +1,720 @@
+<style>
+    @font-face {
+        font-family: THSarabunNew;
+        font-weight: normal;
+        font-style: normal;
+		src: url('../resources/fonts/THSarabunNew.ttf');
+    }
+
+ 	#billContent {
+		text-align: center;
+        font-family: THSarabunNew;
+		src: url('../resources/fonts/THSarabunNew.ttf');  
+	}
+</style>
+
+<style>
+	#home-profile{
+		background: #cc33cc;
+		color: white;
+		text-align: right;
+	}
+	#screen-name{
+		text-align: center;
+	}
+	#howto-popup p{
+		color: black;
+	}
+	#qrCanvas{
+		float: left;
+		clear: both;
+	}
+	.step-box {
+	    /* display: table; */
+		float: left;
+		clear: both;
+		margin: 10px;
+	}
+	.step-bar-label {
+		border: 0px solid #000000;
+		/* display: table-cell; */
+		float: left;
+		clear: both;
+		width: 200px;
+		vertical-align: middle;
+	}
+	.step-bar {
+		border: 0px solid #000000;
+		/* display: table-cell; */
+		vertical-align: middle;
+	}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		/* height: 40px; */
+		padding: 10px;
+	}
+	.input-step {
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		padding: 10px;
+		text-align: left;
+	}
+	.text-input{
+		border: 3px #cc33cc solid; 
+		border-radius: 3px;
+		padding: 10px; 
+		margin: 5px;
+	}
+	.explain-text-popup p{
+		margin-top: 10px;
+		text-align: left;
+		color: black;
+	}
+	.controlBill-Box{
+		float: left;
+		width: 28%;
+		border: #cc33cc 5px solid;
+		border-radius:5px;
+		box-shadow:0 0 3px #999;
+		margin: 5px;
+		padding: 5px;
+		/* background: #cc33cc; */
+	}
+</style>
+
+<div  id='home-main'>
+	<div id="home-profile"></div>
+	<div id="screen-name"><h2>จัดทำบิลให้ลูกค้า</h2></div>
+	<div id="explain-box">โปรดกรอกข้อมูลให้ครบ แล้วคลิกปุ่ม <b>ออกบิล</b> </div>
+
+	<div id="controlBill-Div">
+		<input type="hidden" id="BillState"/>
+		<div id="billDate-Box" class="controlBill-Box">
+			<div id="billDate-label">วันที่ : เวลา</div>
+			<div id="billDate"></div>
+		</div>
+		<div id="billNo-Box" class="controlBill-Box">
+			<div id="billNo-label">เลขที่บิล</div>
+			<input type="button" id="billNo-bttn"/>
+		</div>
+		<div id="receiptNo-Box" class="controlBill-Box">
+			<div id="receiptNo-label">เลขที่ใบเสร็จ</div>
+			<input type="button" id="receiptNo-bttn"/>
+		</div>
+		<input type="hidden" id="BillState"/>
+	</div>
+
+	<div id="electricType-select-bar" class="step-box">
+		<div class="step-bar-label"><b>ประเภทไฟฟ้า</b></div><div class="step-bar"><select id="electricType-select" class="input-step" onchange="electricTypeChange()" tabindex="1"><option value="1">การไฟฟ้าส่วนภูมิภาค</option><option value="2">การไฟฟ้านครหลวง</option></select></div>
+	</div>
+	<div id="electricRefno-bar" class="step-box">
+		<div id="electric-refno-label" class="step-bar-label"><b>หมายเลขผู้ใช้ไฟ</b></div>
+		<div class="step-bar">
+			<input type="number" data-clear-btn="false" id="electricRefno" size="20" placeholder="" class="text-input" tabindex="2" value="" onkeydown="userTypingBillNo()"/>
+		</div>
+	</div>
+	<div id="electricCharge-bar" class="step-box">
+		<div id="electricCharge-label" class="step-bar-label"><b>จำนวนเงินค่าไฟฟ้า</b></div>
+		<div class="step-bar">
+			<input type="number" data-clear-btn="false" id="electricCharge" size="10" placeholder="" class="text-input" tabindex="3" value=""/>&nbsp;&nbsp;บาท
+		</div>
+	</div>
+	<div id="customerName-bar" class="step-box">
+		<div id="customerName-label" class="step-bar-label"><b>ชื่อผู้ใช้ไฟ/ชื่อลูกค้า</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="customerName" size="20" placeholder="" class="text-input" tabindex="4" value="" onkeyup="userTypingCustomerName()"/>
+		</div>
+		<div id="searchresult" style="display: none">#</div>
+	</div>
+	<div id="customeAddress-bar" class="step-box">
+		<div id="customeAddress-label" class="step-bar-label"><b>ที่อยู่</b></div>
+		<div class="step-bar">
+			<input type="text" data-clear-btn="false" id="customerAddress" size="20" placeholder="" class="text-input" tabindex="5" value="" onkeyup="userTypingCustomerAddress()"/>
+		</div>
+	</div>
+	<div id="promptpayAccount-select-bar" class="step-box">
+		<div class="step-bar-label"><b>บัญชีพร้อมเพย์</b></div><div class="step-bar"><select id="promptpayAccount-select" class="input-step" tabindex="6"><option value="140000835077746">นายประเสริฐ สุดชดา</option><option value="140000640468725">นางจารุณี สุดชดา</option></select></div>
+	</div>
+	<div  id='home-main-cmd'>
+		<button class="ui-btn" id="OpenBill-cmd" tabindex="7" onclick="OpenBill()">ออกบิล</button>
+	</div>
+</div>
+<div id="yr-home-item"></div>
+
+<div data-role='popup' id='billView-popup' style='padding: 20px;'>
+	<div class="title-box">บิล</div>
+	<div id="explian-text" class="explain-text-popup"><p>คลิกที่ ดาวน์โหลดบิล เพื่อดาวน์โหลดรูปบิล</p><p>คลิกที่ ดาวน์โหลดคิว-อาร์โค้ด เพื่อดาวน์โหลดรูป คิว-อาร์โค้ด</p><p>หรือคลิก ปิด เพื่อปิดบิล</p></div>
+	<div id="billContent">
+		<canvas id="myCanvas" width="320" height="700"></canvas>
+		<canvas id="qrCanvas" width="210" height="210"></canvas>	
+	</div>
+	<div class="ui-field-contain">
+		<a id="downloadBill-cmd">
+			<button class="ui-btn" id="downloadBill-bttn" onclick="downloadBill()">   ดาวน์โหลดบิล     </button>	
+		</a>
+		<a id="downloadQRCode-cmd">
+			<button class="ui-btn" id="downloadQRCode-bttn" onclick="downloadQRCode()">   ดาวน์โหลดคิว-อาร์โค้ด  </button>	
+		</a>
+		<button class="ui-btn" id="close-billView-popup-cmd" onclick="closeBillViewpopup()">   ปิด     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='receiptView-popup' style='padding: 20px;'>
+	<div class="title-box">ใบเสร็จ</div>
+	<div id="explian-text" class="explain-text-popup">
+		<p>คลิกที่ ดาวน์โหลดใบเสร็จ เพื่อดาวน์โหลดรูปใบเสร็จ</p>
+		<p>หรือ คลิกที่ พิมพ์ใบเสร็จ เพื่อพิมพ์ใบเสร็จ</p>
+		<p>หรือคลิก ปิด เพื่อปิดใบเสร็จ</p>
+	</div>
+	<div id="receiptContent">
+		<canvas id="receiptCanvas" width="320" height="700"></canvas>
+	</div>
+	<div class="ui-field-contain">
+		<a id="downloadReceipt-cmd">
+			<button class="ui-btn" id="downloadReceipt-bttn" onclick="downloadReceipt()">   ดาวน์โหลดใบเสร็จ     </button>	
+		</a>
+		<button class="ui-btn" id="printReceipt-bttn" onclick="printReceipt()">   พิมพ์ใบเสร็จ     </button>	
+		<button class="ui-btn" id="close-receiptView-popup-cmd" onclick="closeReceiptViewpopup()">   ปิด     </button>	
+	</div>
+</div>
+
+<div data-role='popup' id='howto-popup' style='padding: 20px;'>
+	<div class="title-box">วิธีใช้งาน</div>
+	<div id="explian-text" style="margin-top: 10px;"><p>คลิกบนหัวข้อเพื่อเปิดอ่าน</p></div>
+	<div id="howtocontent"></div>
+	<div class="ui-field-contain">
+		<button class="ui-btn" id="google-cmd" onclick="closehowtopopup()">   ปิด     </button>	
+	</div>
+</div>
+
+<script>
+
+    $(document).ready(function() {
+		//สร้างส่วนหัวสไลด์เมนู
+		$("#home-profile").append("<span style='font-size:30px;cursor:pointer' onclick='openNav()'>&#9776;</span>");
+		$("#billView-popup").popup({ overlayTheme: "a"});
+		$("#receiptView-popup").popup({ overlayTheme: "a"});
+		$("#howto-popup").popup({ overlayTheme: "a"});
+		//
+	});
+
+	//Main Command
+	function electricTypeChange(){
+		if ($("#electric-type-select").prop('selectedIndex') == 0){
+			$("#electric-refno").attr("placeholder", "หมายเลขผู้ใช้ไฟ");
+			$("#electric-refno-label").html("<b>หมายเลขผู้ใช้ไฟ</b>");
+		}else{
+			$("#electric-refno").attr("placeholder", "บัญชีแสดงสัญญา");
+			$("#electric-refno-label").html("<b>บัญชีแสดงสัญญา</b>");
+		}
+		//var promptpayAccountName = $("#promptpayAccount-select option:selected").text();
+		//console.log(promptpayAccountName);
+	}
+
+	function validateInputForm() {
+		//electricRefno
+		//electricCharge
+		//customerName
+		//customerAddress
+		return true;
+	}
+
+	function OpenBill() {
+		if (getBillState() == 1)	{
+			if (validateInputForm()){
+				OpenBillViewPopup();
+			}
+		} else {
+			if (getBillState() == 2)	{
+				OpenRecieptViewPopup();
+			} else {
+				alert(getBillState() + " บิลนี้ถูกปิดไปแล้ว ไม่สามารถออกใบเสร็จซ้ำได้");
+			}
+		}
+	}
+	/*Bill*/
+	function OpenBillViewPopup(){
+		var electricType = $("#electricType-select option:selected").text();
+		var electricTypeValue = $("#electricType-select option:selected").val();
+		var electricRefnoName = $("#electric-refno-label").text();
+		var electricRefno = $("#electricRefno").val();
+		var electricCharge = $("#electricCharge").val();
+		var customerName = $("#customerName").val();
+		var customerAddress = $("#customerAddress").val();
+		var promptpayAccountNo = $("#promptpayAccount-select option:selected").val();
+		var promptpayAccountName = $("#promptpayAccount-select option:selected").text();
+		var billObj = 	{electricType: electricType, electricRefnoName: electricRefnoName, electricRefno: electricRefno, electricCharge: electricCharge, customerName: customerName, customerAddress: customerAddress, promptpayAccountNo: promptpayAccountNo, promptpayAccountName: promptpayAccountName, electricTypeValue: electricTypeValue};
+		setBillState(1);	
+		rederBill(billObj);
+	}
+
+	function rederBill(billObj) {
+		showLoadingImageMT();
+		if (getBillState() == 1)	{
+			$("#billView-popup").popup("open");
+			saveNewBill(billObj, function(billNo) { 
+				billObj.billNo = billNo;
+				billObj.date = datetostring(new Date());
+				billObj.time = datetotimestring(new Date());
+				commonDataObj = billObj;
+				ceateCanvas(billObj, function(billDataUrl) {
+					ceateQRCanvas(billObj, function(QRCoddDataUrl) {
+						$("#downloadBill-bttn").attr("onclick", "downloadBill('" + billNo + "')");
+						$("#downloadQRCode-bttn").attr("onclick", "downloadQRCode('" + billNo + "')");
+						setBillState(2);			
+						hideLoadingImageM();
+					});
+				});
+			});
+		} else if (getBillState() == 2)	{
+			$("#billView-popup").popup("open");
+			ceateCanvas(commonDataObj , function(billDataUrl) {
+				ceateQRCanvas(commonDataObj , function(QRCoddDataUrl) {
+					$("#downloadBill-bttn").attr("onclick", "downloadBill('" + commonDataObj.billNo + "')");
+					$("#downloadQRCode-bttn").attr("onclick", "downloadQRCode('" + commonDataObj.billNo + "')");
+					setBillState(2);			
+					hideLoadingImageM();
+				});
+			});
+		} else if (getBillState() == 3)	{
+			searchReceiptWithBillNo(commonDataObj.billNo, function(dmmNo){
+				//console.log(dmmNo);
+				if (dmmNo == "0"){
+					$("#receiptView-popup").popup("open");
+					saveNewReceipt(commonDataObj, function(receiptNo){
+						commonDataObj.receiptNo = receiptNo;
+						$("#receiptNo-bttn").val(commonDataObj.receiptNo);
+						ceateReceiptCanvas(commonDataObj, function(receiptDataUrl) {
+							$("#downloadReceipt-bttn").attr("onclick", "downloadReceipt('" + receiptNo + "')");
+							$("#printReceipt-bttn").attr("onclick", "printReceipt('" + receiptNo + "')");
+							setBillState(3);	
+							hideLoadingImageM();
+						});
+					});
+				} else {
+					commonDataObj.receiptNo = dmmNo;
+					$("#receiptView-popup").popup("open");
+					$("#receiptNo-bttn").val(commonDataObj.receiptNo);
+					ceateReceiptCanvas(commonDataObj, function(receiptDataUrl) {
+						$("#downloadReceipt-bttn").attr("onclick", "downloadReceipt('" + dmmNo + "')");
+						$("#printReceipt-bttn").attr("onclick", "printReceipt('" + dmmNo + "')");
+						setBillState(3);	
+						hideLoadingImageM();
+					});
+				}
+			});
+		}
+	}
+
+	function renderInv(comDataObj){
+		showLoadingImageMT();
+		$("#billView-popup").popup("open");
+		ceateCanvas(commonDataObj , function(billDataUrl) {
+			ceateQRCanvas(commonDataObj , function(QRCoddDataUrl) {
+				$("#downloadBill-bttn").attr("onclick", "downloadBill('" + comDataObj.billNo + "')");
+				$("#downloadQRCode-bttn").attr("onclick", "downloadQRCode('" + comDataObj.billNo + "')");
+				hideLoadingImageM();
+			});
+		});
+	}
+
+	function downloadBill(fileName) {
+		var download = document.getElementById("downloadBill-cmd");
+		var image = document.getElementById("myCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", "B" + fileName + ".png");
+	}
+
+	function downloadQRCode(fileName){
+		var download = document.getElementById("downloadQRCode-cmd");
+		var image = document.getElementById("qrCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", "QR" + fileName + ".png");
+	}
+
+	function downloadReceipt(fileName) {
+		var download = document.getElementById("downloadReceipt-cmd");
+		var image = document.getElementById("receiptCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+		download.setAttribute("href", image);
+		download.setAttribute("download", "R" + fileName + ".png");
+	}
+
+	function closeBillViewpopup(){
+		$("#billView-popup").popup("close");
+	}
+
+	function closeReceiptViewpopup() {
+		$("#receiptView-popup").popup("close");
+	}
+	function closehowtopopup(){
+		$("#howto-popup").popup("close");
+	}
+
+	/*Reciept*/
+	function OpenRecieptViewPopup(){
+		setBillState(3);	
+		rederBill(commonDataObj);
+	}
+</script>
+
+<script>
+	/* Bill Render */
+	const serviceCharge = 10;
+	var canvas;
+
+	function ceateCanvas(billObj, callback) {
+		canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createQuotIMG(billObj, context);
+		var dataURL = canvas.toDataURL({format: 'png', quality: 1.0});
+		callback(dataURL);
+	}
+
+	function ceateQRCanvas(billObj, callback) {
+		canvas = document.getElementById('qrCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createQRIMG(billObj, context);
+		var dataURL = canvas.toDataURL({format: 'png', quality: 1.0});
+		callback(dataURL);
+	}
+
+	function createQuotIMG(billOBJ, ct) {
+		//console.log(JSON.stringify(billOBJ));
+		const breakLineText = "-------------------------------------------------------------------------------";
+		var totalServiceCharge = Number(billOBJ.electricCharge) + Number(serviceCharge);
+		var paragX = 5;
+		var paragY = 430;
+		var lineH = 20;
+		var lineR = 315;
+		var lineNo = 2;
+		var paragH = lineH * lineNo;
+
+		ct.scale(1, 1);
+		ct.beginPath();
+		ct.rect(5, 5, 315, 85);
+		ct.lineWidth = 1;
+		ct.strokeStyle = 'black';
+		ct.stroke();
+		var imageLOGO = new Image();
+		imageLOGO.src = "../resources/imgs/thunderOS.png";
+		imageLOGO.onload = function () {
+			ct.drawImage(imageLOGO, 155, 15, 50, 50);
+		};
+
+		createTextSingleLine(ct, {text: 'บิลฝากจ่ายค่าไฟฟ้า', x: 155, y: 82, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+		createTextSingleLine(ct, {text: 'เลขที่', x: 3, y: 110, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: billOBJ.billNo, x: 155, y: 110, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: 'ประเภทไฟฟ้า', x: 3, y: 130, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: billOBJ.electricType, x: 155, y: 130, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: billOBJ.electricRefnoName, x: 3, y: 150, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: billOBJ.electricRefno, x: 155, y: 150, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: 'ชื่อผู้ใช้ไฟฟ้า/ลูกค้า', x: 3, y: 170, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: billOBJ.customerName, x: 155, y: 170, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: 'ที่อยู่', x: 3, y: 190, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+ 
+		createTextMultipleLine(ct, {text: billOBJ.customerAddress, x: 0, y: 0, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'}, 40, 190, 20, lineR);
+
+		createTextSingleLine(ct, {text: breakLineText, x: 3, y: 230, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		var electricChargeTextLine = "ค่าไฟฟ้า …….. จำนวน ………………………… {0} ….. บาท".format(Number(billOBJ.electricCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+		createTextSingleLine(ct, {text: electricChargeTextLine, x: 3, y: 250, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		var serviceChargeTextLine = "ค่าบริการ …… จำนวน ………………………….. {0} ….. บาท".format(Number(serviceCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+		createTextSingleLine(ct, {text: serviceChargeTextLine, x: 3, y: 270, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: breakLineText, x: 3, y: 290, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		var totalServiceChargeTextLine = "รวม ……............………………………… {0} ….. บาท".format(Number(totalServiceCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+		createTextSingleLine(ct, {text: totalServiceChargeTextLine, x: 3, y: 310, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: breakLineText, x: 3, y: 330, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: 'คำแนะนำ', x: 155, y: 360, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+
+		createTextMultipleLine(ct, {text: 'เพื่อให้การชำระค่าไฟฟ้าในครั้งนี้เป็นไปโดยความถูกต้องและรวดเร็ว โปรดปฏิบัติตามคำแนะนำง่ายๆ ดังนี้', x: 0, y: 0, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'}, 5, 390, lineH, lineR);
+
+		var customerUseges = ['1. ฝากจ่ายโดยการชำระเงินจำนวน {0} บาท เข้าบัญชีพร้อมเพย์หมายเลข {1}', '2. หรือหากมีเอ็ม-แบงคิ้งในโทรศัพท์มือถือชำระง่ายๆ โดยสแกนคิว-อาร์โค้ดด้านล่างได้ทันที', '3. เมื่อชำระเรียบร้อยแล้วกรุณาส่งสลิปกลับมาเพื่อรับ ใบเสร็จค่าไฟฟ้า(ชั่วคราว)'];
+		for (let i=0; i<customerUseges.length; i++){
+			var useageParag;
+			if (i != 0){
+				useageParag = customerUseges[i];
+				createTextMultipleLine(ct, {text: useageParag, x: 0, y: 0, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'}, paragX, paragY +(i*paragH), lineH, lineR);
+			} else {
+				useageParag = customerUseges[i].format(Number(totalServiceCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'), billOBJ.promptpayAccountNo);
+				createTextMultipleLine(ct, {text: useageParag, x: 0, y: 0, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'}, paragX, paragY +(i*paragH), lineH, lineR);
+			}
+		}
+
+		var qrCpdeText = generateQRCodeText(billOBJ.promptpayAccountNo, totalServiceCharge);
+		$("#myCanvas").qrcode({
+			render: 'canvas',
+			minVersion: 1,
+			maxVersion: 40,
+			ecLevel: 'H',
+			left: 115,
+			top: 550,
+			fill: '#000000',
+			background: null,
+			mode: 0,
+			size: 90,
+			text:  qrCpdeText
+		});
+
+		createTextSingleLine(ct, {text: 'ขื่อบัญชีพร้อมเพย์ : {0}'.format(billOBJ.promptpayAccountName), x: 160, y: 670, textStyle: 'normal', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+
+		createTextSingleLine(ct, {text: 'ขอขอบคุณที่ใช้บริการ', x: 160, y: 690, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+
+	}
+
+	function createQRIMG(billOBJ, ct) {
+		var totalServiceCharge = Number(billOBJ.electricCharge) + Number(serviceCharge);
+		var qrCpdeText = generateQRCodeText(billOBJ.promptpayAccountNo, totalServiceCharge);
+		$("#qrCanvas").qrcode({
+			render: 'canvas',
+			minVersion: 1,
+			maxVersion: 40,
+			ecLevel: 'H',
+			left: 30,
+			top: 5,
+			fill: '#000000',
+			background: null,
+			mode: 0,
+			size: 150,
+			text: qrCpdeText
+		});
+
+		createTextSingleLine(ct, {text: 'ขื่อบัญชีพร้อมเพย์ : {0}'.format(billOBJ.promptpayAccountName), x: 105, y: 175, textStyle: 'normal', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+
+		createTextSingleLine(ct, {text: 'ขอบคุณที่ใช้บริการ', x: 105, y: 195, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+	}
+
+	function generateQRCodeText(accountNo, totalCharge){
+		const versionText = "000201";
+		const typeCode = "010211" //promptpay type code 11=multiple times sale, 12= single time sale
+		const sallerBeginField = "29";
+		var sallerCodeTextLemght;
+		var sallerCodeText;
+		const applicationID = "0016A000000677010111";
+		const truemoneyPromptpayType = "0315";
+
+		const sallerEndFlag = "5802";
+		const countryCode = "TH";
+		const amountBeginField = "54";
+		const bahtMoneyCode = "5303764";
+		const checksumBeginField = "6304";
+
+		sallerCodeText = applicationID + truemoneyPromptpayType + accountNo;
+		sallerCodeTextLemght = sallerCodeText.length;
+		//console.log(sallerCodeTextLemght);
+		sallerCodeText = sallerBeginField + sallerCodeTextLemght + sallerCodeText + sallerEndFlag;
+
+		var totalChargeText = Number(totalCharge).toFixed(2);
+		//console.log(totalChargeText);
+		var totalChargeTextLength = String(totalChargeText).length;
+		if (totalChargeTextLength < 10) {
+			totalChargeTextLength = '0' + totalChargeTextLength;
+		}
+		//console.log(totalChargeTextLength);
+		//console.log(Number(totalCharge).toFixed(2));
+		var totalChargeText = amountBeginField + totalChargeTextLength + Number(totalCharge).toFixed(2);
+		//console.log(totalChargeText );
+		var QRCodeText = versionText + typeCode + sallerCodeText + countryCode + totalChargeText + bahtMoneyCode + checksumBeginField;
+
+		//console.log(QRCodeText);
+		var checksumcrc16ccit = getChecksum(QRCodeText);
+		//console.log(checksumcrc16ccit.toUpperCase());
+		return QRCodeText + checksumcrc16ccit.toUpperCase();
+	}
+
+	function getChecksum(text) {
+		return crc16(text).toString(16);
+	}
+
+	function ceateReceiptCanvas(dataObj, callback) {
+		canvas = document.getElementById('receiptCanvas');
+		var context = canvas.getContext('2d');
+		context.fillStyle = "white";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		createReceiptIMG(dataObj, context);
+		var dataURL = canvas.toDataURL({format: 'png', quality: 1.0});
+		callback(dataURL);
+	}
+
+	//Render Receipt
+	function createReceiptIMG(dataOBJ, ct) {
+		const breakLineText = "-------------------------------------------------------------------------------";
+		var totalServiceCharge = Number(dataOBJ.electricCharge) + Number(serviceCharge);
+		var paragX = 5;
+		var paragY = 410;
+		var lineH = 20;
+		var lineR = 315;
+		var lineNo = 2;
+		var paragH = lineH * lineNo;
+
+		ct.scale(1, 1);
+		ct.beginPath();
+		ct.rect(5, 5, 315, 85);
+		ct.lineWidth = 1;
+		ct.strokeStyle = 'black';
+		ct.stroke();
+		var imageLOGO = new Image();
+		imageLOGO.src = "../resources/imgs/thunderOS.png";
+		imageLOGO.onload = function () {
+			ct.drawImage(imageLOGO, 155, 15, 50, 50);
+		};
+
+		createTextSingleLine(ct, {text: 'ใบเสร็จชั่วคราว', x: 165, y: 82, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+
+		createTextSingleLine(ct, {text: 'เลขที่ใบเสร็จ', x: 3, y: 110, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: dataOBJ.receiptNo, x: 155, y: 110, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: 'วันที่ : เวลา', x: 3, y: 130, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: dataOBJ.date + " : " + dataOBJ.time, x: 155, y: 130, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: 'เลขที่บิล', x: 3, y: 150, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: dataOBJ.billNo, x: 155, y: 150, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: 'ประเภทไฟฟ้า', x: 3, y: 170, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: dataOBJ.electricType, x: 155, y: 170, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: dataOBJ.electricRefnoName, x: 3, y: 190, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: dataOBJ.electricRefno, x: 155, y: 190, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: 'ชื่อผู้ใช้ไฟฟ้า/ลูกค้า', x: 3, y: 210, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: dataOBJ.customerName, x: 155, y: 210, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+		createTextSingleLine(ct, {text: 'ที่อยู่', x: 3, y: 230, textStyle: 'bold', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+ 		createTextMultipleLine(ct, {text: dataOBJ.customerAddress, x: 0, y: 0, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'}, 40, 230, 20, lineR);
+
+		createTextSingleLine(ct, {text: breakLineText, x: 3, y: 270, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		var electricChargeTextLine = "ค่าไฟฟ้า …….. จำนวน ………………………… {0} ….. บาท".format(Number(dataOBJ.electricCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+		createTextSingleLine(ct, {text: electricChargeTextLine, x: 3, y: 290, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		var serviceChargeTextLine = "ค่าบริการ …… จำนวน ………………………….. {0} ….. บาท".format(Number(serviceCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+		createTextSingleLine(ct, {text: serviceChargeTextLine, x: 3, y: 310, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: breakLineText, x: 3, y: 330, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		var totalServiceChargeTextLine = "รวม ……............………………………… {0} ….. บาท".format(Number(totalServiceCharge).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+		createTextSingleLine(ct, {text: totalServiceChargeTextLine, x: 3, y: 350, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: breakLineText, x: 3, y: 370, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'});
+
+		createTextSingleLine(ct, {text: 'คำแนะนำ', x: 155, y: 390, textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+
+		var customerUseges = ['1. โปรดเก็บใบเสร็จชั่วคราวไว้เป็นหลักฐานจนกว่า จะได้รับใบเสร็จจริงจากการไฟฟ้าทางไปรษณีย์', '2. จ่ายบิลค่าไฟฟ้าครั้งต่อไป อย่าลืมเรียกใช้บริการของเราได้ทุกที่ทุกเวลา', '3. หากมีข้อสงสัยหรือคำแนะนำ-ติชมใดๆ ติดต่อได้ทางไลน์ LineID=oudsoft', '4. หรือโทรศัพท์ที่หมายเลข 0835077746', ''];
+		for (let i=0; i<customerUseges.length; i++){
+			var useageParag;
+			useageParag = customerUseges[i];
+			createTextMultipleLine(ct, {text: useageParag, x: 0, y: 0, textStyle: 'normal', textSize: '18px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'left'}, paragX, paragY +(i*paragH), lineH, lineR);
+		}
+
+		createTextSingleLine(ct, {text: 'ขอขอบคุณที่ใช้บริการ', x: 160, y: paragY + (customerUseges.length*40), textStyle: 'bold', textSize: '20px', textFontName: 'THSarabunNew', textColor: 'black', textAlign: 'center'});
+	}
+
+	function saveNewBill(billOBJ, callback) {
+		searchCustomer(billOBJ.customerName, billOBJ.customerAddress, function(lastCustomerNo) { 
+			if (lastCustomerNo == "0") {
+				getNextCustomerNo(function(nextCustomerNo) { 
+					var cOBJ = {customerID: nextCustomerNo, customerName: billOBJ.customerName, customerAddress: billOBJ.customerAddress};
+					cOBJ.date = datetostring(new Date());
+					cOBJ.time = datetotimestring(new Date());
+					saveCustomer(cOBJ);
+					getNextBillNo(function(nextBillNo) { 
+						var bOBJ = {billID: nextBillNo, electricType: billOBJ.electricType, electricTypeValue: billOBJ.electricTypeValue, electricRefno: billOBJ.electricRefno, electricCharge: billOBJ.electricCharge, promptpayAccountNo: billOBJ.promptpayAccountNo, promptpayAccountName: billOBJ.promptpayAccountName};
+						bOBJ.customerID = nextCustomerNo;
+						bOBJ.date = datetostring(new Date());
+						bOBJ.time = datetotimestring(new Date());
+						saveBill(bOBJ);
+						callback(nextBillNo);
+					});
+				});
+			} else {
+				getNextBillNo(function(nextBillNo) { 
+					var bOBJ = {billID: nextBillNo, electricType: billOBJ.electricType, electricTypeValue: billOBJ.electricTypeValue,electricRefno: billOBJ.electricRefno, electricCharge: billOBJ.electricCharge, promptpayAccountNo: billOBJ.promptpayAccountNo, promptpayAccountName: billOBJ.promptpayAccountName};
+					bOBJ.customerID = lastCustomerNo;
+					bOBJ.date = datetostring(new Date());
+					bOBJ.time = datetotimestring(new Date());
+					saveBill(bOBJ);
+					callback(nextBillNo);
+				});
+			}
+		});
+	}
+
+	function saveNewReceipt(billOBJ, callback) {
+		getNextReceiptNo(function(nextReceiptNo) { 
+			var dataOBJ = {receiptID: nextReceiptNo, billID: billOBJ.billNo, date: datetostring(new Date()), time: datetotimestring(new Date())};
+			saveReceipt(dataOBJ);
+			updateBill(billOBJ.billNo, nextReceiptNo);
+			callback(nextReceiptNo);
+		});
+	}
+
+	function saveCustomer(custOBJ){
+		var docpath  = "/elects/000000000";
+		var ElectsRef = db.doc(docpath);
+		var newCustomerDoc = ElectsRef.collection('customers').doc(custOBJ.customerID);
+		newCustomerDoc.set(custOBJ);
+	}
+
+	function saveBill(billOBJ){
+		var docpath  = "/elects/000000000";
+		var ElectsRef = db.doc(docpath);
+		var newBillDoc = ElectsRef.collection('bills').doc(billOBJ.billID);
+		newBillDoc.set(billOBJ);
+	}
+
+	function saveReceipt(dataOBJ){
+		var docpath  = "/elects/000000000";
+		var ElectsRef = db.doc(docpath);
+		var newBillDoc = ElectsRef.collection('receipts').doc(dataOBJ.receiptID);
+		newBillDoc.set(dataOBJ);
+	}
+
+	function updateBill(billNo, receiptNo){
+		var docpath  = "/elects/000000000/bills/" + billNo;
+		var BillRef = db.doc(docpath);
+		BillRef.set({
+			receiptID: receiptNo
+		}, { merge: true });
+	}
+
+	function searchCustomer(name, address, callback) {
+		var docpath  = "/elects/000000000";
+		var ElectsRef = db.doc(docpath);
+		var query = ElectsRef.collection("customers").where("customerName", "==", name).where("customerAddress", "==", address);
+		query.get().then(function(querySnapshot) {
+			if (querySnapshot.size == 0) {
+				callback("0");
+			} else {
+				querySnapshot.forEach(function(customerDoc) {
+					callback(customerDoc.data().customerID);
+				});
+			}
+		});
+	}
+
+	function searchReceiptWithBillNo(billNo, callback) {
+		var docpath  = "/elects/000000000";
+		var ElectsRef = db.doc(docpath);
+		var query = ElectsRef.collection("receipts").where("billID", "==", billNo);
+		query.get().then(function(querySnapshot) {
+			if (querySnapshot.size == 0) {
+				callback("0");
+			} else {
+				querySnapshot.forEach(function(receiptDoc) {
+					callback(receiptDoc.data().receiptID);
+				});
+			}
+		});
+	}
+</script>

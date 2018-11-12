@@ -1,0 +1,94 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+<div id="output"/>
+
+<div>
+	<div>
+		<select name="workplace1" tabindex="1" >
+			<option value="">&lt;Select&gt;</option>
+			<option value="BP">Banpho</option>
+			<option value="BPL">Bangphlee</option>
+			<option value="GW">Gateway</option>
+			<option value="SR">Samrong</option>
+		</select>		
+	</div>
+	<div>
+		<select name="workplace2" tabindex="2" >
+			<option value="">&lt;Select&gt;</option>
+			<option value="BP">Banpho</option>
+			<option value="BPL">Bangphlee</option>
+			<option value="GW">Gateway</option>
+			<option value="SR">Samrong</option>
+		</select>		
+	</div>
+	<div>
+		<select name="workplace3" tabindex="3" >
+			<option value="">&lt;Select&gt;</option>
+			<option value="BP">Banpho</option>
+			<option value="BPL">Bangphlee</option>
+			<option value="GW">Gateway</option>
+			<option value="SR">Samrong</option>
+		</select>		
+	</div>
+	<div>
+		<select name="workplace4" tabindex="4" >
+			<option value="">&lt;Select&gt;</option>
+			<option value="BP">Banpho</option>
+			<option value="BPL">Bangphlee</option>
+			<option value="GW">Gateway</option>
+			<option value="SR">Samrong</option>
+		</select>		
+	</div>
+</div>
+
+<script>
+
+var options1 = $("[name='workplace1'] > option").clone();
+var options2;
+var options3;
+
+$("[name='workplace1']").bind('change', function() {
+	var workplace1Value = $("[name='workplace1']").val();
+	$("[name='workplace2']").children('option:not(:first)').remove();
+	$("[name='workplace3']").children('option:not(:first)').remove();
+	$("[name='workplace4']").children('option:not(:first)').remove();
+	$.each(options1, function(index, item) {
+		if (index > 0 ) {
+			if (item.value  != workplace1Value){
+				$("[name='workplace2']").append("<option value='" + item.value + "'>" + item.text + "</option>");
+				$("[name='workplace3']").append("<option value='" + item.value + "'>" + item.text + "</option>");
+				$("[name='workplace4']").append("<option value='" + item.value + "'>" + item.text + "</option>");
+			}
+		}
+	});		
+	options2 = $("[name='workplace2'] > option").clone();
+});
+
+$("[name='workplace2']").bind('change', function() {
+	var workplace2Value = $("[name='workplace2']").val();
+	$("[name='workplace3']").children('option:not(:first)').remove();
+	$("[name='workplace4']").children('option:not(:first)').remove();
+	$.each(options2, function(index, item) {
+		if (index > 0 ) {
+			if (item.value  != workplace2Value){
+				$("[name='workplace3']").append("<option value='" + item.value + "'>" + item.text + "</option>");
+				$("[name='workplace4']").append("<option value='" + item.value + "'>" + item.text + "</option>");
+			}
+		}
+	});		
+	options3 = $("[name='workplace3'] > option").clone();
+});
+
+$("[name='workplace3']").bind('change', function() {
+	var workplace3Value = $("[name='workplace3']").val();
+	$("[name='workplace4']").children('option:not(:first)').remove();
+	$.each(options3, function(index, item) {
+		if (index > 0 ) {
+			if (item.value  != workplace3Value){
+				$("[name='workplace4']").append("<option value='" + item.value + "'>" + item.text + "</option>");
+			}
+		}
+	});		
+});
+
+</script>

@@ -1,0 +1,55 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="../../resources/js/jQuery-autoComplete-master/jquery.auto-complete.min.js" type="text/javascript"></script>
+<style>
+	.text-input{
+		border: 3px #cc33cc solid; 
+		border-radius: 3px;
+		padding: 10px; 
+		margin: 5px;
+	}
+	.autocomplete-suggestions {
+		text-align: left; cursor: default; border: 1px solid #ccc; border-top: 0; background: #fff; box-shadow: -1px 1px 3px rgba(0,0,0,.1);
+
+		/* core styles should not be changed */
+		position: absolute; display: none; z-index: 9999; max-height: 254px; overflow: hidden; overflow-y: auto; box-sizing: border-box;
+	}
+	.autocomplete-suggestion { position: relative; padding: 0 .6em; line-height: 23px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.02em; color: #333; }
+	.autocomplete-suggestion b { font-weight: normal; color: #1f8dd6; }
+	.autocomplete-suggestion.selected { background: #f0f0f0; }
+</style>
+<div id="langList"/>
+<div id="output">
+<input type="text" data-clear-btn="false" name="electricRefno" size="20" placeholder="หมายเลขผู้ใช้ไฟ" class="text-input" tabindex="1" value=""/>
+</div>
+
+
+<script>
+$('input[name="electricRefno"]').autoComplete({
+    minChars: 1,
+    source: function(term, suggest){
+        term = term.toLowerCase();
+        var choices = [['Australia', 'au'], ['Austria', 'at'], ['Brasil', 'br'], ['Thailand', 'th'], ['Praser Sian-Sura', 'ps'], ['กรุงเทพ', 'กทม']];
+        var suggestions = [];
+        for (i=0;i<choices.length;i++)
+            if (~(choices[i][0]+' '+choices[i][1]).toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+        suggest(suggestions);
+    },
+    renderItem: function (item, search){
+        search = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        var re = new RegExp("(" + search.split(' ').join('|') + ")", "gi");
+		var choiceItem = '<div class="autocomplete-suggestion" data-langname="'+item[0]+'" data-lang="'+item[1]+'" data-val="'+search+'" onmouseover="userselect(\'' + item[0] + '\')" onmouseout="userunselect()"><img src="img/'+item[1]+'.png"> '+item[0].replace(re, "<b>$1</b>")+'</div>';
+        return choiceItem;
+    },
+    onSelect: function(e, term, item){
+        alert('Item "'+item.data('langname')+' ('+item.data('lang')+')" selected by '+(e.type == 'keydown' ? 'pressing enter' : 'mouse click')+'.');
+    },
+});
+
+function userselect(item) {
+	$("#langList").text(item);
+	$("#langList").show();
+}
+function userunselect(){
+	$("#langList").hide();
+}
+</script>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name = "viewport" content = "width = device-width, initial-scale = 1"/>
+	<link rel="shortcut icon" type="image/x-icon" href="../resources/imgs/ico/thunderOS.ico">
+
+	<!-- jQuery Declaire -->
+	<script src="../resources/js/jquery-ui-1.12.1.custom/external/jquery/jquery.js" type="text/javascript"></script>
+	<script src="../resources/js/jquery-ui-1.12.1.custom/jquery-ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../resources/js/jquery-ui-1.12.1.custom/jquery-ui.css"/>     
+	<script src = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<link rel = "stylesheet" href = "https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+
+	<script type="text/javascript" src="../resources/js/myhotel.js"></script>
+	<script type="text/javascript" src="../resources/js/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../resources/js/notify.js"></script>  
+	<script src="../resources/js/jquery-qrcode-0.14.0.js"></script>
+	<script src="../resources/js/printThis.js"></script>
+	<script src="../resources/js/easySelectable.js"></script>
+	<script src="../resources/js/jQuery-autoComplete-master/jquery.auto-complete.min.js" type="text/javascript"></script>
+
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-storage.js"></script>
+
+	<!-- Side Menu CSS -->
+	<style>
+		 .sidenav {
+			height: 100%;
+			width: 0;
+			position: fixed;
+			z-index: 1;
+			top: 0;
+			right: 0;
+			background-color: #dc29ce;
+			overflow-x: hidden;
+			transition: 0.5s;
+			padding-top: 60px;
+		}
+		.userprofile {
+			border: 5px solid #ffffff;
+			border-radius: 20px;
+			margin: 10px;
+			padding-left: 5px;
+		}
+		.sidenav  a, p {
+			/* padding: 8px 8px 8px 32px; */
+			text-decoration: none;
+			font-size: 16px;
+			color: #f1f1f1;
+			display: block;
+			transition: 0.5s;
+		}
+		.sidenav a:hover {
+			color: #ffffff;
+		}
+		.sidenav .closebtn {
+			position: absolute;
+			top: 0;
+			right: 25px;
+			font-size: 36px;
+			margin-left: 50px;
+		}
+		@media screen and (max-height: 450px) {
+		  .sidenav {padding-top: 15px;}
+		  .sidenav a {font-size: 18px;}
+		}
+	</style>
+	<!-- App CSS -->
+    <style>
+		#header{
+			position: relative;
+			width: 100%;
+			float: left;
+		}
+		#main {
+			position: relative;
+			width: 95%;
+			float: left;
+			border: #cc33cc 5px solid;
+			border-radius:5px;
+			box-shadow:0 0 3px #999;
+			margin: 5px;
+			padding: 5px;
+		}
+		#footer {
+			position: relative;
+			width: 100%;
+			float: left;
+		}
+		#herder-conter{
+			text-align: center;
+		}
+		#footer-conter p, h4{
+			text-align: center;
+			color: black;
+		}
+	.title-box{
+		background: #cc33cc;
+		color: white;
+		font-weight: 500;
+		font-size: 18px;
+		text-align: center;
+		padding: 10px;
+	}
+    </style>
+
+	<title>บริการทำบิล</title>
+  </head>
+  <body>
+	<div id="mySidenav" class="sidenav">
+	  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+		<button class="ui-btn" id="openBill-Slide-cmd" onclick="openBill()">เปิดบิล</button>
+		<button class="ui-btn" id="closeBill-Slide-cmd" onclick="closeBill()">ปิดบิล</button>
+		<button class="ui-btn" id="billList-cmd" onclick="openAgentQRCode()">คิว-อาร์โค้ดเอเย่น</button>
+		<!--
+		<button class="ui-btn" id="billList-cmd" onclick="openNotifyList()">ข้อความที่แจ้งเตือนฉัน</button>
+		-->
+		<button class="ui-btn" id="billList-cmd" onclick="openHowTo()">วิธีใช้งาน</button>
+	</div>
+	<div data-role = "page" id = "home" data-theme="a">
+		<div id="header" data-role="header">
+			<div  id='herder-conter'>
+				<img src="../resources/imgs/thunderOS.png" width="60" height="60"/>
+				<h4>&nbsp;</h4>
+			</div>
+		</div>
+		<div id="main" data-role="content">
+
+		</div>
+		<div id="footer" data-role="footer">
+			<div  id='footer-conter'>
+				<b>&nbsp;</b>
+			</div>
+			<div id="soundcontrol">
+				<audio id="soundeffect" src="../resources/sound/16923_1461333030.mp3" preload="auto"></audio>
+			</div>
+		</div>
+	</div>
+
+
+    <script>
+	  var config = {
+		apiKey: "AIzaSyC63cSzp4g6MGLYOjZ4XvIF0eFU8-EA_ac",
+		authDomain: "myhotel-4746f.firebaseapp.com",
+		databaseURL: "https://myhotel-4746f.firebaseio.com",
+		projectId: "myhotel-4746f",
+		storageBucket: "myhotel-4746f.appspot.com",
+		messagingSenderId: "312890797074"
+	  };
+
+	  firebase.initializeApp(config);
+	  var db = firebase.firestore();
+      const messaging = firebase.messaging();
+	  const storage = firebase.storage();
+    </script>
+
+	<script>
+	//Your Code Here
+
+	var dummyterminalid = "TDUwna6CbjjYJr65dQo1";
+	var dummyroute = "6s4NgzVwiJWcVBJUvlVT";
+
+	var yrterminalOB = [];
+	var yrterminalid = "";
+	var yrtoken = "";
+	var handlePermisState;
+
+	var commonDataObj;
+	var allCustomers;
+	var allBills;
+	</script>
+
+    <script>
+		$(document).ready(function() {
+			initVerifyPage();
+			openBill();
+		});
+
+		function getBillState(){
+			return $("#BillState").val();
+		}
+
+		function setBillState(value){
+			$("#BillState").val(value);
+			if (value==1) {
+				$("#controlBill-Div").hide();
+				$("#explain-box").html("โปรดกรอกข้อมูลให้ครบ แล้วคลิกปุ่ม <b>ออกบิล</b>");
+				$("#explain-box").show();
+				$("#electricType-select").removeAttr("disabled");
+				$("#electric-refno-label").removeAttr("disabled");
+				$("#electricRefno").removeAttr("disabled");
+				$("#electricCharge").removeAttr("disabled");
+				$("#customerName").removeAttr("disabled");
+				$("#customerAddress").removeAttr("disabled");
+				$("#promptpayAccount-select").removeAttr("disabled");
+				$("#OpenBill-cmd").show();
+				$("#OpenBill-cmd").text("ออกบิล");
+			} else if (value==2) {
+				$("#controlBill-Div").show();
+				$("#explain-box").html("บิลถูกบันทึกแล้ว ไม่สามารถแก้ไขได้ คลิกปุ่ม <b>ปิดบิล</b> เพื่อปิดบิลและออกใบเสร็จให้ลูกค้า");
+				$("#explain-box").show();
+				$("#billDate-label").show();
+				$("#billNo-label").show();
+				$("#receiptNo-label").hide();
+				$("#billDate").show();
+				$("#billDate").html("<b>" + commonDataObj.date + " : " + commonDataObj.time + "</b>");
+				$("#billNo").show();
+				$("#billNo-bttn").val(commonDataObj.billNo);
+				$("#billNo-bttn").attr("onclick", "rederBill(commonDataObj)");
+				$("#receiptNo-Box").hide();
+
+				$("#electricType-select").val(commonDataObj.electricTypeValue);
+				$("#electricType-select").attr("disabled", "disabled");
+				$("#electric-refno-label").val(commonDataObj.electricRefnoName);
+				$("#electric-refno-label").attr("disabled", "disabled");
+				$("#electricRefno").val(commonDataObj.electricRefno);
+				$("#electricRefno").attr("disabled", "disabled");
+				$("#electricCharge").val(commonDataObj.electricCharge);
+				$("#electricCharge").attr("disabled", "disabled");
+				$("#customerName").val(commonDataObj.customerName);
+				$("#customerName").attr("disabled", "disabled");
+				$("#customerAddress").val(commonDataObj.customerAddress);
+				$("#customerAddress").attr("disabled", "disabled");
+				$("#promptpayAccount-select").val(commonDataObj.promptpayAccountNo);
+				$("#promptpayAccount-select").attr("disabled", "disabled");
+				$("#OpenBill-cmd").show();
+				$("#OpenBill-cmd").text("ปิดบิล");
+			} else if (value==3) {
+				$("#controlBill-Div").show();
+				$("#explain-box").html("บิลถูกปิดแล้ว ไม่สามารถแก้ไขได้ คลิกปุ่ม <b>หมายเลขบิล</b> หรือ <b>หมายเลขใบเสร็จ</b> เพื่อปิดบิลหรือใบเสร็จให้ลูกค้า");
+				$("#explain-box").show();
+				$("#billDate-label").show();
+				$("#billNo-label").show();
+				$("#receiptNo-label").show();
+				$("#billDate").show();
+				$("#billDate").html("<b>" + commonDataObj.date + " : " + commonDataObj.time + "</b>");
+				$("#billNo").show();
+				$("#billNo-bttn").val(commonDataObj.billNo);
+				$("#billNo-bttn").attr("onclick", "renderInv(commonDataObj)");
+				$("#receiptNo-Box").show();
+				$("#receiptNo-bttn").show();
+				//$("#receiptNo-bttn").val(commonDataObj.receiptNo);
+				$("#receiptNo-bttn").attr("onclick", "rederBill(commonDataObj)");
+
+				$("#electricType-select").val(commonDataObj.electricTypeValue);
+				$("#electricType-select").attr("disabled", "disabled");
+				$("#electric-refno-label").val(commonDataObj.electricRefnoName);
+				$("#electric-refno-label").attr("disabled", "disabled");
+				$("#electricRefno").val(commonDataObj.electricRefno);
+				$("#electricRefno").attr("disabled", "disabled");
+				$("#electricCharge").val(commonDataObj.electricCharge);
+				$("#electricCharge").attr("disabled", "disabled");
+				$("#customerName").val(commonDataObj.customerName);
+				$("#customerName").attr("disabled", "disabled");
+				$("#customerAddress").val(commonDataObj.customerAddress);
+				$("#customerAddress").attr("disabled", "disabled");
+				$("#promptpayAccount-select").val(commonDataObj.promptpayAccountNo);
+				$("#promptpayAccount-select").attr("disabled", "disabled");
+				$("#OpenBill-cmd").show();
+				$("#OpenBill-cmd").text("เปิดบิลใหม่");
+				$("#OpenBill-cmd").attr("onclick", "setBillState(1)");
+			} else {
+				setBillState(1);
+			}
+		}
+
+		function getNextBillNo(callback) {
+			var docpath  = "/elects/000000000";
+			var ElectsRef = db.doc(docpath);
+			var query = ElectsRef.collection("bills").orderBy("billID", "desc").limit(1);
+			query.get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(billDoc) {
+					callback(nextSeqNo(Number(billDoc.data().billID)));
+				});
+			});
+		}
+
+		function getNextReceiptNo(callback) {
+			var docpath  = "/elects/000000000";
+			var ElectsRef = db.doc(docpath);
+			var query = ElectsRef.collection("receipts").orderBy("receiptID", "desc").limit(1);
+			query.get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(receiptDoc) {
+					callback(nextSeqNo(Number(receiptDoc.data().receiptID)));
+				});
+			});
+		}
+
+		function getNextCustomerNo(callback) {
+			var docpath  = "/elects/000000000";
+			var ElectsRef = db.doc(docpath);
+			var query = ElectsRef.collection("customers").orderBy("customerID", "desc").limit(1);
+			query.get().then(function(querySnapshot) {
+				querySnapshot.forEach(function(customerDoc) {
+					callback(nextSeqNo(Number(customerDoc.data().customerID)));
+				});
+			});
+		}
+
+		//Slide Menu 
+		function openNav() {
+			$("#mySidenav").css("width", "300px");
+		}
+		function closeNav() {
+			$("#mySidenav").css("width", "0");
+		}
+</script>
+
+<script>
+//ท่อนนี้ของ application
+
+	function openBill() {
+		showLoadingImageMT();
+		$.post("elements/elhome.html", {},
+		function(mdata) {
+			$("#main").html(mdata);
+			setBillState(1);
+			closeNav();
+			hideLoadingImageM();
+		});
+	}
+
+	function closeBill() {
+		showLoadingImageMT();
+		$.post("elements/elsearch.html", {},
+		function(mdata) {
+			$("#main").html(mdata);
+			setBillState(1);
+			closeNav();
+			hideLoadingImageM();
+		});
+	}
+
+	function openHowTo() {
+		showLoadingImageMT();
+		$("#howto-popup").popup("open");
+		$.post("howto.html", {},
+		function(mdata) {
+			$("#howtocontent").html(mdata);
+			hideLoadingImageM();
+		});
+	}
+
+	function openAgentQRCode(){
+		showLoadingImageMT();
+		$.post("elements/elagentqrcode.html", {},
+		function(mdata) {
+			$("#main").html(mdata);
+			closeNav();
+			hideLoadingImageM();
+		});
+	}
+
+	function loadBill(billState) {
+		showLoadingImageMT();
+		$.post("elements/elhome.html", {},
+		function(mdata) {
+			$("#main").html(mdata);
+			setBillState(billState);
+			$("#receiptNo-bttn").val(commonDataObj.receiptNo);
+			hideLoadingImageM();
+		});
+	}
+
+	function doLoadAllCustomers() {
+		showLoadingImageMT();
+		return new Promise((resolve, reject) => {
+			try {
+				var allCustomers = [];
+				var docpath  = "/elects/000000000";
+				var ElectsRef = db.doc(docpath);
+				ElectsRef.collection("customers").get().then(function(querySnapshot) {
+					querySnapshot.forEach(function(customerDoc) {
+						var customerOBJ = {};
+						customerOBJ.customerID = customerDoc.data().customerID;
+						customerOBJ.customerName = customerDoc.data().customerName;
+						customerOBJ.customerAddress = customerDoc.data().customerAddress;
+						allCustomers.push(customerOBJ);
+					});		
+					resolve(allCustomers);		
+					hideLoadingImageM();
+				});
+			} catch (error) {
+				reject(error);
+				hideLoadingImageM();
+			}
+		});
+	}
+
+	function doLoadAllBills() {
+		showLoadingImageMT();
+		return new Promise((resolve, reject) => {
+			try {
+				var allBills = [];
+				var docpath  = "/elects/000000000";
+				var ElectsRef = db.doc(docpath);
+				ElectsRef.collection("bills").get().then(function(querySnapshot) {
+					querySnapshot.forEach(function(billDoc) {
+						var billOBJ = {};
+						 billOBJ.billID = billDoc.data().billID;
+						 billOBJ.customerID = billDoc.data().customerID;
+						 billOBJ.receiptID = billDoc.data().receiotID;
+						 billOBJ.date = billDoc.data().date;
+						 billOBJ.time = billDoc.data().time;
+						 billOBJ.electricCharge = billDoc.data().electricCharge;
+						 billOBJ.electricRefno = billDoc.data().electricRefno;
+						 billOBJ.electricType = billDoc.data().electricType;
+						 if (billDoc.data().electricTypeValue == "1") {
+							billOBJ.electricRefnoName = "หมายเลขผู้ใช้ไฟ";
+						 } else if (billDoc.data().electricTypeValue == "2") {
+							billOBJ.electricRefnoName = "บัญชีแสดงสัญญา";
+						 } else {
+							billOBJ.electricRefnoName = "หมายเลขผู้ใช้ไฟ";
+						 }
+						 billOBJ.promptpayAccountNo = billDoc.data().promptpayAccountNo;
+						//billOBJ.promptpayAccountName = billDoc.data().promptpayAccountName;
+						allBills.push(billOBJ);
+						hideLoadingImageM();
+					});		
+					resolve(allBills);		
+				});
+			} catch (error) {
+				reject(error);
+				hideLoadingImageM();
+			}
+		});
+	}
+
+	const loadAllCustomer = async (callback) => {
+		allCustomers = await doLoadAllCustomers();
+		callback(allCustomers);
+		//console.log(JSON.stringify(allCustomers));
+	}
+
+	const loadAllBill = async (callback) => {
+		allBills = await doLoadAllBills();
+		callback(allBills);
+		//console.log(JSON.stringify(allBills));
+	}
+
+	loadAllCustomer(function(allCustomers) {
+		//console.log(JSON.stringify(allCustomers));
+	});
+	loadAllBill(function() {
+		//console.log(JSON.stringify(allBills));
+	});
+
+	function userTypingCustomerName() {
+		//console.log(JSON.stringify(allCustomers));
+		var availableTags = [];
+		allCustomers.forEach(function(item) {
+			if (item.customerName) {
+				var tag = $.grep(availableTags, (e) =>{ return (e == item.customerName); });
+				if (jQuery.isEmptyObject(tag)) {
+					availableTags.push(item.customerName);
+				}
+			}
+		});
+		//console.log(JSON.stringify(availableTags));
+		availableTags.reverse();
+		$( "#customerName" ).autocomplete({source: availableTags });
+	}
+
+	function userTypingCustomerAddress() {
+		//console.log(JSON.stringify(allCustomers));
+		var availableTags = [];
+		allCustomers.forEach(function(item) {
+			if (item.customerAddress) {
+				var tag = $.grep(availableTags, (e) =>{ return (e == item.customerAddress); });
+				if (jQuery.isEmptyObject(tag)) {
+					availableTags.push(item.customerAddress);
+				}
+			}
+		});
+		//console.log(JSON.stringify(availableTags));
+		availableTags.reverse();
+		$( "#customerAddress" ).autocomplete({source: availableTags });
+	}
+
+	function userTypingBillNo() {
+		if ($("#electricRefno").val()) {
+			var availableTags = [];
+			allBills.forEach(function(item) {
+				if (item.electricRefno) {
+					var tag = $.grep(availableTags, (e) =>{ return (e == item.electricRefno); });
+					if (jQuery.isEmptyObject(tag)) {
+						availableTags.push(item.electricRefno);
+					}
+				}
+			});
+			//console.log(JSON.stringify(availableTags));
+			availableTags.reverse();
+			$( "#electricRefno" ).autocomplete({source: availableTags });
+		}
+	}
+
+</script>
+
+<script>
+	//common canvas
+	function generateQRCodeText(accountNo, totalCharge){
+		const versionText = "000201";
+		const typeCode = "010211" //promptpay type code 11=multiple times sale, 12= single time sale
+		const sallerBeginField = "29";
+		var sallerCodeTextLemght;
+		var sallerCodeText;
+		const applicationID = "0016A000000677010111";
+		const truemoneyPromptpayType = "0315";
+
+		const sallerEndFlag = "5802";
+		const countryCode = "TH";
+		const amountBeginField = "54";
+		const bahtMoneyCode = "5303764";
+		const checksumBeginField = "6304";
+
+		sallerCodeText = applicationID + truemoneyPromptpayType + accountNo;
+		sallerCodeTextLemght = sallerCodeText.length;
+		//console.log(sallerCodeTextLemght);
+		sallerCodeText = sallerBeginField + sallerCodeTextLemght + sallerCodeText + sallerEndFlag;
+
+		var totalChargeText = Number(totalCharge).toFixed(2);
+		//console.log(totalChargeText);
+		var totalChargeTextLength = String(totalChargeText).length;
+		if (totalChargeTextLength < 10) {
+			totalChargeTextLength = '0' + totalChargeTextLength;
+		}
+		//console.log(totalChargeTextLength);
+		//console.log(Number(totalCharge).toFixed(2));
+		var totalChargeText = amountBeginField + totalChargeTextLength + Number(totalCharge).toFixed(2);
+		//console.log(totalChargeText );
+		var QRCodeText = versionText + typeCode + sallerCodeText + countryCode + totalChargeText + bahtMoneyCode + checksumBeginField;
+
+		//console.log(QRCodeText);
+		var checksumcrc16ccit = getChecksum(QRCodeText);
+		//console.log(checksumcrc16ccit.toUpperCase());
+		return QRCodeText + checksumcrc16ccit.toUpperCase();
+	}
+
+	function getChecksum(text) {
+		return crc16(text).toString(16);
+	}
+
+	//Render utility functions
+
+	String.prototype.format = function() {
+	  a = this;
+	  for (k in arguments) {
+		a = a.replace("{" + k + "}", arguments[k])
+	  }
+	  return a
+	}
+
+	function createTextSingleLine(thisCT, textObj) {
+		thisCT.font = textObj.textStyle + ' ' + textObj.textSize + ' ' + textObj.textFontName;
+		thisCT.fillStyle = textObj.textColor;
+		thisCT.textAlign = textObj.textAlign;
+		thisCT.fillText(textObj.text, textObj.x, textObj.y);
+	}
+
+	function createTextMultipleLine(thisCT, textObj, x, y, lineHeight, fitWidth) {
+		thisCT.font = textObj.textStyle + ' ' + textObj.textSize + ' ' + textObj.textFontName;
+		thisCT.fillStyle = textObj.textColor;
+		thisCT.textAlign = textObj.textAlign;
+		fitWidth = fitWidth || 0;
+		if (fitWidth <= 0) {
+			thisCT.fillText(textObj.text, x, y);
+			return;
+		}
+		var words = textObj.text.split(' ');
+		var currentLine = 0;
+		var idx = 1;
+		while (words.length > 0 && idx <= words.length) {
+			var str = words.slice(0, idx).join(' ');
+			var w = thisCT.measureText(str).width;
+			if (w > fitWidth) {
+				if (idx == 1) {
+					idx = 2;
+				}
+				thisCT.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+				currentLine++;
+				words = words.splice(idx - 1);
+				idx = 1;
+			} else {
+				idx++;
+			}
+		}
+		if (idx > 0)
+			thisCT.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+	}
+</script>
+
+<script>
+//ท่อนนี้ของ Notification และ Notify
+
+		$.notify.addStyle('myshopman', {
+			html: "<div class='superblue'><span data-notify-html/></div>",
+			classes: {
+				base: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "black",
+					"background-color": "white",
+					"padding": "20px"
+				},
+				green: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "green",
+					"padding": "20px"
+				},
+				red: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "red",
+					"padding": "20px"
+				},
+				purple: {
+					"border": "3px solid white",
+					"border-radius": "20px",
+					"color": "white",
+					"background-color": "#cc33cc",
+					"padding": "20px"
+				}
+			}
+		});
+
+		messaging.onMessage(function(payload) {
+			//console.log("Message received. ", payload);
+			var msg = "<div id='notify-title'>";
+			msg = msg.concat(payload.notification.title);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div id='notify-body'>");
+			msg = msg.concat(payload.notification.body);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div div id='notify-from'> จาก : ");
+			msg = msg.concat(payload.data.sendername);
+			msg = msg.concat("</div>");
+			msg = msg.concat("<div id='buttons'><button onclick='opendetail(\"" + payload.notification.click_action + "\")'>รายละเอียด</button></div>");
+			$.notify(msg, {position: 'bottom right', autoHideDelay: 10000, clickToHide: true, style: 'myshopman', className: 'purple'});
+			playsoundeffect();
+		});
+
+		function opendetail(link) {
+			window.open(link , '_blank');
+		}
+
+		function playsoundeffect() {
+			 $('#soundeffect')[0].play();
+		}
+
+		function subscribeFCM() {
+			messaging.requestPermission().then(function() {
+				console.log("Thank you.");
+			})
+			.catch(function(err) {
+				console.log('Unable to get permission to notify. ', err);
+			});
+		 }
+
+		function getcurrentToken(callback) {
+			timeout(1100).then(function() {
+				 messaging.getToken().then(function(currentToken) {
+				   //mytoken = currentToken;
+				   callback(currentToken);
+				 });
+			});
+		}
+
+		messaging.onTokenRefresh(function() {
+			messaging.getToken()
+			.then(function(refreshedToken) {
+				yrtoken = refreshedToken;
+				console.log('Token refreshed. :: ' + refreshedToken);
+			})
+			.catch(function(err) {
+				console.log('Unable to retrieve refreshed token ', err);
+			});
+		});
+
+		$("#footer-conter").click(function(e) {
+			playsoundeffect();
+		});
+
+		function opendetail(link){
+			window.open(link , '_blank');
+		}
+
+		function verifyBrowser() {
+			var is_chrome = ((navigator.userAgent.toLowerCase().indexOf('chrome') > -1) &&(navigator.vendor.toLowerCase().indexOf("google") > -1));
+			var is_firefox = (navigator.userAgent.toLowerCase().indexOf('firefox') > -1); 
+			if ( !is_chrome )  {
+				if  (! is_firefox ) {
+					alert("เพื่อให้ได้ผลการทำงานที่ดีที่สุด โปรดใช้ Google Chrome หรือ Firefox สำหรับแอพพลิเคชั่นนี้");
+				} else {
+					var match = navigator.userAgent.match(/Firefox\/([0-9]+)\./);
+					var firefoxver = parseInt(match[1]);
+					$("#mytoken").html(firefoxver);
+					$("#mytoken").show();
+				   if (chromever < 50) {
+					   alert ("โปรดอัพเดท Firefox ขั้นต่ำควรเป็นเวอร์ชั่น 44");
+				   }
+				}
+			} else {
+			   var raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+			   var chromever = parseInt(raw[2], 10);
+			   $("#mytoken").html(chromever);
+			   $("#mytoken").show();
+			   if (chromever < 50) {
+				   alert ("โปรดอัพเดท Google Chrome ขั้นต่ำควรเป็นเวอร์ชั่น 55");
+			   }
+			}
+		}
+
+	</script>
+
+	<script>
+		//initial verift page
+		function initVerifyPage(){
+			handlePermission(function (state) {
+				console.log(state);
+				if (state !== "granted"){ //ยังไม่เคยยอมรับการแจ้งเตือน
+					if (yrtoken==""){
+						subscribeFCM();
+						getcurrentToken(function(yrtk) {
+							//console.log(yrtk);
+							yrtoken = yrtk;
+							// ควรจะมีการแจ้งเตือนแค่ครั้งแรกครั้งเดียวที่ผู้ใช้ตกลงยอมรับการแจ้งเตือน
+							pushNoticationToken("ขอขอบคุณ","ขอขอบคุณที่ยอมรับการแจ้งเตือนจากเรา ซึ่งจะเป็นประโยชน์กับคุณในเรื่องของการเดินทาง",  "myVanBooking", yrtoken, function(res) {
+								//console.log(res);
+								//save cookei
+								yrterminalOB.push({terminalid: dummyterminalid, routeid: dummyroute, yrtoken: yrtoken});
+								$.cookie("yrterminalOB", JSON.stringify(yrterminalOB));
+								//open cookie
+								yrterminalOB = $.parseJSON($.cookie("yrterminalOB") || '[]');
+								//console.log(JSON.stringify(yrterminalOB)); //log
+
+								if (yrterminalOB.length > 0) {
+									yrterminalid  = yrterminalOB[0].terminalid;
+									yrtoken  = yrterminalOB[0].yrtoken;
+									brouteid = yrterminalOB[0].routeid;
+									initPage(function(doc) {
+										document.title = "ออกบิลให้ลูกค้า";
+										$('#herder-conter').html("<img src='../resources/imgs/thunderOS.png' width='60' height='60'/><h4>ออกบิลให้ลูกค้า</h4>");
+										$('#footer-conter').html("<p>ออกบิลให้ลูกค้า</p>");
+										$('#footer-conter').append("<h4>" + "ข้อแนะนำ" + "</h4><p>เพื่อให้ได้ผลการทำงานที่ดีที่สุด โปรดใช้ Google Chrome หรือ Firefox สำหรับแอพพลิเคชั่นนี้</p>");
+									});
+								} else {
+									//ส่งกลับไปหน้า Dashboard ใหม่ เพราะข้อมูล yrterminalid ไม่ถูกต้อง
+									window.location ="home.html";
+								}
+							});
+						});
+					}
+				} else { //เคยยอมรับการแจ้งเตือนมาแล้ว
+					getcurrentToken(function(yrtk) {
+						yrtoken = yrtk;
+						//save cookei
+						yrterminalOB.push({terminalid: dummyterminalid, routeid: dummyroute, yrtoken: yrtk});
+						$.cookie("yrterminalOB", JSON.stringify(yrterminalOB));
+						//open cookie
+						yrterminalOB = $.parseJSON($.cookie("yrterminalOB") || '[]');
+						//console.log(JSON.stringify(yrterminalOB)); //log
+
+						if (yrterminalOB.length > 0) {
+							yrterminalid  = yrterminalOB[0].terminalid;
+							yrtoken  = yrterminalOB[0].yrtoken;
+							brouteid = yrterminalOB[0].routeid;
+							initPage(function(doc) {
+								document.title = "ออกบิลให้ลูกค้า";
+								$('#herder-conter').html("<img src='../resources/imgs/thunderOS.png' width='60' height='60'/><h4>ออกบิลให้ลูกค้า</h4>");
+								$('#footer-conter').html("<p>ออกบิลให้ลูกค้า</p>");
+								$('#footer-conter').append("<h4>" + "ข้อแนะนำ" + "</h4><p>เพื่อให้ได้ผลการทำงานที่ดีที่สุด โปรดใช้ Google Chrome หรือ Firefox สำหรับแอพพลิเคชั่นนี้</p>");
+							});
+						} else {
+							//ส่งกลับไปหน้า Dashboard ใหม่ เพราะข้อมูล yrterminalid ไม่ถูกต้อง
+							window.location ="home.html";
+						}
+					});
+				}
+			});
+		}
+
+		function initPage(callback) {
+
+		}
+
+		// ตรวจสอบว่า user เคยยอมรับการแจ้งเตือน Notification หรือยัง
+		function handlePermission(callback) {
+			return navigator.permissions.query({name:'notifications'}).then(function(result) {
+				//.catch(permissionError);
+				//.then(permissionQuery);
+					callback(result.state);
+			});
+		}
+
+		function permissionQuery(result) {
+			//console.debug({result});
+			handlePermisState = result.state;
+			var newPrompt;
+			if (result.state == 'granted') {
+				// notifications allowed, go wild
+			} else if (result.state == 'prompt') {
+				// we can ask the user
+				newPrompt = Notification.requestPermission();
+			} else if (result.state == 'denied') {
+				// notifications were disabled
+			}
+			result.onchange = () => console.debug({updatedPermission: result});
+			return newPrompt || result;
+		}
+		
+		function printReceipt(receiptNo) {
+		  //window.open('printPDFDoc.html?type=rece&no='+receiptNo, '', 'window settings');
+		  window.open('printPDFDoc.html?type=rece&no='+receiptNo);
+		  return false;
+		}
+	</script>
+  </body>
+</html>
